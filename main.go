@@ -13,6 +13,11 @@ import (
 	"github.com/antvirf/s9s-ai/data"
 )
 
+type TableData struct {
+	Headers []string
+	Rows    [][]string
+}
+
 type App struct {
 	app             *tview.Application
 	pages           *tview.Pages
@@ -88,7 +93,8 @@ func (a *App) setupViews() {
 		SetTitleAlign(tview.AlignCenter)
 
 	// Nodes View
-	a.nodesView = tview.NewTable().
+	a.nodesView = tview.NewTable()
+	a.nodesView.
 		SetBorders(true).
 		SetTitle(" Nodes (1) ").
 		SetTitleAlign(tview.AlignLeft)
@@ -171,7 +177,7 @@ func (a *App) updateAllViews() {
 	nodeData, err := a.fetchNodesWithTimeout()
 	a.lastReqError = err
 	if err == nil {
-		data.RenderTable(a.nodesView, nodeData)
+		RenderTable(a.nodesView, nodeData)
 	}
 
 	a.lastReqDuration = time.Since(start)
@@ -196,6 +202,29 @@ func (a *App) updateAllViews() {
 	// TODO: Add jobs and scheduler updates
 }
 
+func RenderTable(table *tview.Table, data TableData) {
+	table.Clear()
+
+	// Set headers with fixed width
+	columnWidths := []int{10, 10, 10, 6, 8, 8, 20, 6, 6, 6, 15} // Adjust as needed
+	for col, header := range data.Headers {
+		table.SetCell(0, col, tview.NewTableCell(header).
+			SetSelectable(false).
+			SetAlign(tview.AlignCenter).
+			SetMaxWidth(columnWidths[col])
+	}
+
+	// Set rows with text wrapping
+	for row, rowData := range data.Rows {
+		for col, cell := range rowData {
+			table.SetCell(row+1, col, tview.NewTableCell(cell).
+				SetAlign(tview.AlignLeft).
+				SetMaxWidth(columnWidths[col]).
+				SetExpansion(1)
+		}
+	}
+}
+
 func (a *App) updateStatusFooter() {
 	timeLeft := time.Until(a.nextUpdate).Round(time.Second)
 	var status string
@@ -216,7 +245,7 @@ func (a *App) updateStatusFooter() {
 	a.footerStatus.SetText(status)
 }
 
-func (a *App) fetchNodesWithTimeout() (data.TableData, error) {
+func (a *App) fetchNodesWithTimeout() (TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
 	defer cancel()
 
