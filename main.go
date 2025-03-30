@@ -42,7 +42,9 @@ func (a *App) setupViews() {
 	a.footer = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
-		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
+		SetText("Nodes (1) - Jobs (2) - Scheduler (3)").
+		SetBorder(true).
+		SetBorderPadding(0, 0, 1, 0)
 
 	a.footerSeparator = tview.NewBox().
 		SetBorder(true).
@@ -53,7 +55,7 @@ func (a *App) setupViews() {
 
 	// Main grid layout
 	a.mainGrid = tview.NewGrid().
-		SetRows(0, 1, 1). // 0 for pages (flexible), 1 for separator, 1 for footer
+		SetRows(0, 1, 3). // 0 for pages (flexible), 1 for separator, 3 for footer (with border)
 		SetColumns(0).    // Single column
 		AddItem(a.pages, 0, 0, 1, 1, 0, 0, true).
 		AddItem(a.footerSeparator, 1, 0, 1, 1, 0, 0, false).
