@@ -40,7 +40,7 @@ func main() {
 	app.setupKeybinds()
 	app.startRefresh()
 
-	if err := app.app.SetRoot(app.mainGrid, true).EnableMouse(true).Run(); err != nil {
+	if err := app.app.SetRoot(app.mainGrid, true).EnableMouse(false).Run(); err != nil {
 		panic(err)
 	}
 }
