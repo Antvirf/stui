@@ -276,7 +276,6 @@ func (a *App) fetchNodesWithTimeout() (TableData, error) {
 	var rows [][]string
 
 	lines := strings.Split(string(out), "\n")
-	var rows [][]string
 	
 	for _, line := range lines {
 		fields := strings.Split(line, "|")
