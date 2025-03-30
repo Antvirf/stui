@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -35,7 +36,8 @@ func main() {
 
 func (a *App) setupViews() {
 	// Nodes View
-	a.nodesView = tview.NewTextView().
+	a.nodesView = tview.NewTextView()
+	a.nodesView.
 		SetDynamicColors(true).
 		SetTitle(" Nodes (1) ").
 		SetTitleAlign(tview.AlignLeft)
@@ -46,14 +48,16 @@ func (a *App) setupViews() {
 	a.pages.AddPage("jobs", a.jobsView, true, false)
 
 	// Scheduler View
-	a.schedView = tview.NewTextView().
+	a.schedView = tview.NewTextView()
+	a.schedView.
 		SetTitle(" Scheduler (3) ").
 		SetTitleAlign(tview.AlignLeft)
 	a.pages.AddPage("scheduler", a.schedView, true, false)
 }
 
 func (a *App) setupJobsView() {
-	a.jobsView = tview.NewTable().
+	a.jobsView = tview.NewTable()
+	a.jobsView.
 		SetBorders(true).
 		SetTitle(" Jobs (2) ").
 		SetTitleAlign(tview.AlignLeft)
