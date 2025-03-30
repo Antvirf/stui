@@ -248,7 +248,7 @@ func (a *App) fetchNodesWithTimeout() (TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "sinfo", "--Node", "-o=%N|%P|%T|%c|%m|%L|%E|%f|%F|%G|%X|%Y|%Z")
+	cmd := exec.CommandContext(ctx, "sinfo", "--Node", "--noheader", "-o=%N|%P|%T|%c|%m|%L|%E|%f|%F|%G|%X|%Y|%Z")
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
