@@ -16,9 +16,12 @@ type App struct {
 	jobsView       *tview.Table
 	schedView      *tview.TextView
 	footer         *tview.TextView
+	footerStatus   *tview.TextView
 	footerSeparator *tview.Box
 	mainGrid       *tview.Grid
 	refreshInterval time.Duration
+	lastUpdate     time.Time
+	nextUpdate     time.Time
 }
 
 func main() {
@@ -39,12 +42,21 @@ func main() {
 
 func (a *App) setupViews() {
 	// Footer components
-	a.footer = tview.NewTextView()
-	a.footer.
+	a.footerStatus = tview.NewTextView().
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignCenter)
+		
+	a.footer = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
 		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
-	a.footer.SetBorder(true).
+
+	footerGrid := tview.NewGrid().
+		SetRows(1, 1). // 1 for status, 1 for tabs
+		SetColumns(0).  // Single column
+		AddItem(a.footerStatus, 0, 0, 1, 1, 0, 0, false).
+		AddItem(a.footer, 1, 0, 1, 1, 0, 0, false)
+	footerGrid.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
 
 	a.footerSeparator = tview.NewBox().
@@ -56,11 +68,11 @@ func (a *App) setupViews() {
 
 	// Main grid layout
 	a.mainGrid = tview.NewGrid().
-		SetRows(0, 1, 3). // 0 for pages (flexible), 1 for separator, 3 for footer (with border)
+		SetRows(0, 1, 4). // 0 for pages (flexible), 1 for separator, 4 for footer
 		SetColumns(0).    // Single column
 		AddItem(a.pages, 0, 0, 1, 1, 0, 0, true).
 		AddItem(a.footerSeparator, 1, 0, 1, 1, 0, 0, false).
-		AddItem(a.footer, 2, 0, 1, 1, 0, 0, false)
+		AddItem(footerGrid, 2, 0, 1, 1, 0, 0, false)
 	
 	a.mainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrBold).
@@ -86,8 +98,9 @@ func (a *App) setupViews() {
 		SetTitleAlign(tview.AlignLeft)
 	a.pages.AddPage("scheduler", a.schedView, true, false)
 	
-	// Set initial active tab highlight
+	// Set initial active tab highlight and status
 	a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
+	a.footerStatus.SetText("Data as of never - updating in 3s")
 }
 
 func (a *App) setupJobsView() {
@@ -145,9 +158,21 @@ func (a *App) updateAllViews() {
 		return
 	}
 	
+	a.lastUpdate = time.Now()
+	a.nextUpdate = a.lastUpdate.Add(a.refreshInterval)
+	
 	if nodes, err := fetchNodes(); err == nil {
 		a.nodesView.SetText(nodes)
 	}
+	
+	// Update status footer
+	timeLeft := time.Until(a.nextUpdate).Round(time.Second)
+	a.footerStatus.SetText(fmt.Sprintf(
+		"Data as of %s - updating in %s",
+		a.lastUpdate.Format("15:04:05"),
+		timeLeft,
+	))
+	
 	// TODO: Add jobs and scheduler updates
 }
 
