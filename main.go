@@ -92,12 +92,12 @@ func (a *App) setupViews() {
 		SetTitleAlign(tview.AlignCenter)
 
 	// Nodes View
-	a.nodesView = tview.NewTable()
-	a.nodesView.
+	a.nodesView = tview.NewTable().
 		SetBorders(true).
 		SetTitle(" Nodes (1) ").
-		SetTitleAlign(tview.AlignLeft)
-	a.nodesView.SetFixed(1, 0) // Fixed header row
+		SetTitleAlign(tview.AlignLeft).
+		SetFixed(1, 0). // Fixed header row
+		SetSelectable(true, false) // Selectable rows but not columns
 	a.pages.AddPage("nodes", a.nodesView, true, true)
 
 	// Jobs View
@@ -117,17 +117,21 @@ func (a *App) setupViews() {
 }
 
 func (a *App) setupJobsView() {
-	a.jobsView = tview.NewTable()
-	a.jobsView.
+	a.jobsView = tview.NewTable().
 		SetBorders(true).
 		SetTitle(" Jobs (2) ").
-		SetTitleAlign(tview.AlignLeft)
+		SetTitleAlign(tview.AlignLeft).
+		SetFixed(1, 0). // Fixed header row
+		SetSelectable(true, false) // Selectable rows but not columns
 
 	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
 	for i, h := range headers {
 		a.jobsView.SetCell(0, i, tview.NewTableCell(h).
 			SetSelectable(false).
-			SetAlign(tview.AlignCenter))
+			SetAlign(tview.AlignCenter).
+			SetBackgroundColor(tcell.ColorBlack).
+			SetTextColor(tcell.ColorWhite).
+			SetAttributes(tcell.AttrBold))
 	}
 }
 
@@ -210,7 +214,10 @@ func RenderTable(table *tview.Table, data TableData) {
 		table.SetCell(0, col, tview.NewTableCell(header).
 			SetSelectable(false).
 			SetAlign(tview.AlignCenter).
-			SetMaxWidth(columnWidths[col]))
+			SetMaxWidth(columnWidths[col]).
+			SetBackgroundColor(tcell.ColorBlack).
+			SetTextColor(tcell.ColorWhite).
+			SetAttributes(tcell.AttrBold))
 	}
 
 	// Set rows with text wrapping
