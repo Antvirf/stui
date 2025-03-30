@@ -300,12 +300,12 @@ func (a *App) fetchJobsWithTimeout() (TableData, error) {
 		fields := strings.Split(line, "|")
 		if len(fields) >= 7 {
 			row := []string{
-				fields[0], // Job ID
-				fields[1], // User
-				fields[2], // Partition
-				fields[3], // Name
-				fields[4], // State
-				fields[5], // Time
+				strings.TrimPrefix(fields[0], "="), // Job ID
+				strings.TrimPrefix(fields[1], "="), // User
+				strings.TrimPrefix(fields[2], "="), // Partition
+				strings.TrimPrefix(fields[3], "="), // Name
+				strings.TrimPrefix(fields[4], "="), // State
+				strings.TrimPrefix(fields[5], "="), // Time
 				strings.TrimPrefix(fields[6], "="), // Nodes
 			}
 			rows = append(rows, row)
