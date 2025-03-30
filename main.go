@@ -22,6 +22,7 @@ type App struct {
 	refreshInterval time.Duration
 	lastUpdate     time.Time
 	nextUpdate     time.Time
+	lastReqDuration time.Duration
 }
 
 func main() {
@@ -100,7 +101,7 @@ func (a *App) setupViews() {
 	
 	// Set initial active tab highlight and status
 	a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
-	a.footerStatus.SetText("Data as of never - updating in 3s")
+	a.footerStatus.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
 }
 
 func (a *App) setupJobsView() {
@@ -158,22 +159,42 @@ func (a *App) updateAllViews() {
 		return
 	}
 	
-	a.lastUpdate = time.Now()
-	a.nextUpdate = a.lastUpdate.Add(a.refreshInterval)
+	start := time.Now()
 	
 	if nodes, err := fetchNodes(); err == nil {
 		a.nodesView.SetText(nodes)
 	}
 	
-	// Update status footer
-	timeLeft := time.Until(a.nextUpdate).Round(time.Second)
-	a.footerStatus.SetText(fmt.Sprintf(
-		"Data as of %s - updating in %s",
-		a.lastUpdate.Format("15:04:05"),
-		timeLeft,
-	))
+	a.lastReqDuration = time.Since(start)
+	a.lastUpdate = time.Now()
+	a.nextUpdate = a.lastUpdate.Add(a.refreshInterval)
+	
+	// Update status footer immediately
+	a.updateStatusFooter()
+	
+	// Start a ticker to update the countdown in real-time
+	go func() {
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			if time.Now().After(a.nextUpdate) {
+				return
+			}
+			a.app.QueueUpdateDraw(a.updateStatusFooter)
+		}
+	}()
 	
 	// TODO: Add jobs and scheduler updates
+}
+
+func (a *App) updateStatusFooter() {
+	timeLeft := time.Until(a.nextUpdate).Round(time.Second)
+	a.footerStatus.SetText(fmt.Sprintf(
+		"[::i]Data as of %s (%d ms) - updating in %s[::-]",
+		a.lastUpdate.Format("15:04:05"),
+		a.lastReqDuration.Milliseconds(),
+		timeLeft,
+	))
 }
 
 func fetchNodes() (string, error) {
