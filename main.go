@@ -75,7 +75,7 @@ func (a *App) setupViews() {
 	a.pages.AddPage("scheduler", a.schedView, true, false)
 	
 	// Set initial active tab highlight
-	a.footer.SetText("[green:black]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
+	a.footer.SetText("[green:black:b]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
 }
 
 func (a *App) setupJobsView() {
@@ -98,13 +98,13 @@ func (a *App) setupKeybinds() {
 		switch event.Rune() {
 		case '1':
 			a.pages.SwitchToPage("nodes")
-			a.footer.SetText("[green:black:bi]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
+			a.footer.SetText("[green:black:b]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
 		case '2':
 			a.pages.SwitchToPage("jobs")
-			a.footer.SetText("[white:black]Nodes (1)[::-] - [green:black:bi]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
+			a.footer.SetText("[white:black]Nodes (1)[::-] - [green:black:b]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
 		case '3':
 			a.pages.SwitchToPage("scheduler")
-			a.footer.SetText("[white:black]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [green:black:bi]Scheduler (3)[::-]")
+			a.footer.SetText("[white:black]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [green:black:b]Scheduler (3)[::-]")
 		}
 		return event
 	})
