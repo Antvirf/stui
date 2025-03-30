@@ -277,7 +277,7 @@ func (a *App) fetchNodesWithTimeout() (TableData, error) {
 		fields := strings.Split(line, "|")
 		if len(fields) >= 11 {
 			row := []string{
-				fields[0],  // Node
+				strings.TrimPrefix(fields[0], "="),  // Node
 				fields[1],  // Partition
 				fields[2],  // State
 				fields[3],  // CPUs
