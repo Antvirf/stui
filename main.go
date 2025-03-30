@@ -9,12 +9,9 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	
+	"./data" // Import local data package
 )
-
-type TableData struct {
-	Headers []string
-	Rows    [][]string
-}
 
 type App struct {
 	app            *tview.Application
@@ -91,12 +88,11 @@ func (a *App) setupViews() {
 		SetTitleAlign(tview.AlignCenter)
 
 	// Nodes View
-	a.nodesView = tview.NewTable()
-	a.nodesView.
+	a.nodesView = tview.NewTable().
 		SetBorders(true).
 		SetTitle(" Nodes (1) ").
-		SetTitleAlign(tview.AlignLeft).
-		SetFixed(1, 0) // Fixed header row
+		SetTitleAlign(tview.AlignLeft)
+	a.nodesView.SetFixed(1, 0) // Fixed header row
 	a.pages.AddPage("nodes", a.nodesView, true, true)
 
 	// Jobs View
@@ -175,7 +171,7 @@ func (a *App) updateAllViews() {
 	nodeData, err := a.fetchNodesWithTimeout()
 	a.lastReqError = err
 	if err == nil {
-		RenderTable(a.nodesView, nodeData)
+		data.RenderTable(a.nodesView, nodeData)
 	}
 	
 	a.lastReqDuration = time.Since(start)
@@ -220,7 +216,7 @@ func (a *App) updateStatusFooter() {
 	a.footerStatus.SetText(status)
 }
 
-func (a *App) fetchNodesWithTimeout() (TableData, error) {
+func (a *App) fetchNodesWithTimeout() (data.TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
 	defer cancel()
 	

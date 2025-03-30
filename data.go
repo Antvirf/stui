@@ -1,7 +1,11 @@
-package main
+package data
 
 import "github.com/rivo/tview"
 
+type TableData struct {
+	Headers []string
+	Rows    [][]string
+}
 
 type NodeInfo struct {
 	Name          string
