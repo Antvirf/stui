@@ -33,14 +33,17 @@ type App struct {
 	nextUpdate      time.Time
 	lastReqDuration time.Duration
 	lastReqError    error
+	debugMultiplier int // Number of times to multiply node entries for debugging
 }
 
 func main() {
+	debugMultiplier := 3 // Default multiplier value for debugging
 	app := &App{
 		app:             tview.NewApplication(),
 		pages:           tview.NewPages(),
 		refreshInterval: 3 * time.Second,
 		requestTimeout:  2 * time.Second, // Must be less than refreshInterval
+		debugMultiplier: debugMultiplier,
 	}
 
 	app.setupViews()
@@ -273,10 +276,14 @@ func (a *App) fetchNodesWithTimeout() (TableData, error) {
 	var rows [][]string
 
 	lines := strings.Split(string(out), "\n")
+	var rows [][]string
+	
 	for _, line := range lines {
 		fields := strings.Split(line, "|")
 		if len(fields) >= 11 {
-			row := []string{
+			// Multiply the row according to debugMultiplier
+			for i := 0; i < a.debugMultiplier; i++ {
+				row := []string{
 				strings.TrimPrefix(fields[0], "="),  // Node
 				fields[1],  // Partition
 				fields[2],  // State
