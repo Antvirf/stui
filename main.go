@@ -37,17 +37,20 @@ func main() {
 }
 
 func (a *App) setupViews() {
-	// Footer
+	// Footer with border
 	a.footer = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
-		SetText("[::b]Tabs: [white:blue]1[::-] Nodes [white:blue]2[::-] Jobs [white:blue]3[::-] Scheduler")
+		SetBorder(true).
+		SetBorderPadding(0, 0, 1, 0).
+		SetText("[::b][white:blue]Nodes (1)[::-] - [white:blue]Jobs (2)[::-] - [white:blue]Scheduler (3)[::-]")
 
-	// Main layout
+	// Main layout with border
 	a.flex = tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(a.pages, 0, 1, true).
 		AddItem(a.footer, 1, 1, false)
+	a.flex.SetBorder(true)
 
 	// Nodes View
 	a.nodesView = tview.NewTextView()
@@ -67,6 +70,9 @@ func (a *App) setupViews() {
 		SetTitle(" Scheduler (3) ").
 		SetTitleAlign(tview.AlignLeft)
 	a.pages.AddPage("scheduler", a.schedView, true, false)
+	
+	// Set initial active tab highlight
+	a.footer.SetText("[::b][green:blue]Nodes (1)[::-] - [white:blue]Jobs (2)[::-] - [white:blue]Scheduler (3)[::-]")
 }
 
 func (a *App) setupJobsView() {
@@ -89,10 +95,13 @@ func (a *App) setupKeybinds() {
 		switch event.Rune() {
 		case '1':
 			a.pages.SwitchToPage("nodes")
+			a.footer.SetText("[::b][green:blue]Nodes (1)[::-] - [white:blue]Jobs (2)[::-] - [white:blue]Scheduler (3)[::-]")
 		case '2':
 			a.pages.SwitchToPage("jobs")
+			a.footer.SetText("[::b][white:blue]Nodes (1)[::-] - [green:blue]Jobs (2)[::-] - [white:blue]Scheduler (3)[::-]")
 		case '3':
 			a.pages.SwitchToPage("scheduler")
+			a.footer.SetText("[::b][white:blue]Nodes (1)[::-] - [white:blue]Jobs (2)[::-] - [green:blue]Scheduler (3)[::-]")
 		}
 		return event
 	})
