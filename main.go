@@ -306,7 +306,7 @@ func (a *App) fetchJobsWithTimeout() (TableData, error) {
 				fields[3], // Name
 				fields[4], // State
 				fields[5], // Time
-				fields[6], // Nodes
+				strings.TrimPrefix(fields[6], "="), // Nodes
 			}
 			rows = append(rows, row)
 		}
