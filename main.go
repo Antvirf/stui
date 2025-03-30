@@ -211,7 +211,7 @@ func RenderTable(table *tview.Table, data TableData) {
 		table.SetCell(0, col, tview.NewTableCell(header).
 			SetSelectable(false).
 			SetAlign(tview.AlignCenter).
-			SetMaxWidth(columnWidths[col])
+			SetMaxWidth(columnWidths[col]))
 	}
 
 	// Set rows with text wrapping
@@ -220,7 +220,7 @@ func RenderTable(table *tview.Table, data TableData) {
 			table.SetCell(row+1, col, tview.NewTableCell(cell).
 				SetAlign(tview.AlignLeft).
 				SetMaxWidth(columnWidths[col]).
-				SetExpansion(1)
+				SetExpansion(1))
 		}
 	}
 }
