@@ -199,6 +199,12 @@ func (a *App) updateAllViews() {
 		RenderTable(a.nodesView, nodeData)
 	}
 
+	// Update jobs view with squeue output
+	jobData, err := a.fetchJobsWithTimeout()
+	if err == nil {
+		RenderTable(a.jobsView, jobData)
+	}
+
 	// Update scheduler view with sdiag output
 	sdiagOutput, err := a.fetchSdiagWithTimeout()
 	if err == nil {
@@ -271,6 +277,45 @@ func (a *App) updateStatusFooter() {
 		)
 	}
 	a.footerStatus.SetText(status)
+}
+
+func (a *App) fetchJobsWithTimeout() (TableData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "squeue", "--noheader", "-o=%i|%u|%P|%j|%T|%M|%N")
+	out, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return TableData{}, fmt.Errorf("timeout after %v", a.requestTimeout)
+		}
+		return TableData{}, fmt.Errorf("squeue failed: %v", err)
+	}
+
+	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
+	var rows [][]string
+
+	lines := strings.Split(string(out), "\n")
+	for _, line := range lines {
+		fields := strings.Split(line, "|")
+		if len(fields) >= 7 {
+			row := []string{
+				fields[0], // Job ID
+				fields[1], // User
+				fields[2], // Partition
+				fields[3], // Name
+				fields[4], // State
+				fields[5], // Time
+				fields[6], // Nodes
+			}
+			rows = append(rows, row)
+		}
+	}
+
+	return TableData{
+		Headers: headers,
+		Rows:    rows,
+	}, nil
 }
 
 func (a *App) fetchSdiagWithTimeout() (string, error) {
