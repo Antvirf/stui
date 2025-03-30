@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"time"
@@ -20,9 +21,11 @@ type App struct {
 	footerSeparator *tview.Box
 	mainGrid       *tview.Grid
 	refreshInterval time.Duration
+	requestTimeout time.Duration
 	lastUpdate     time.Time
 	nextUpdate     time.Time
 	lastReqDuration time.Duration
+	lastReqError   error
 }
 
 func main() {
@@ -30,6 +33,7 @@ func main() {
 		app:            tview.NewApplication(),
 		pages:          tview.NewPages(),
 		refreshInterval: 3 * time.Second,
+		requestTimeout:  2 * time.Second, // Must be less than refreshInterval
 	}
 
 	app.setupViews()
@@ -161,7 +165,9 @@ func (a *App) updateAllViews() {
 	
 	start := time.Now()
 	
-	if nodes, err := fetchNodes(); err == nil {
+	nodes, err := a.fetchNodesWithTimeout()
+	a.lastReqError = err
+	if err == nil {
 		a.nodesView.SetText(nodes)
 	}
 	
@@ -189,18 +195,34 @@ func (a *App) updateAllViews() {
 
 func (a *App) updateStatusFooter() {
 	timeLeft := time.Until(a.nextUpdate).Round(time.Second)
-	a.footerStatus.SetText(fmt.Sprintf(
-		"[::i]Data as of %s (%d ms) - updating in %s[::-]",
-		a.lastUpdate.Format("15:04:05"),
-		a.lastReqDuration.Milliseconds(),
-		timeLeft,
-	))
+	var status string
+	if a.lastReqError != nil {
+		status = fmt.Sprintf(
+			"[::i]Data as of %s (FAILED) - updating in %s[::-]",
+			a.lastUpdate.Format("15:04:05"),
+			timeLeft,
+		)
+	} else {
+		status = fmt.Sprintf(
+			"[::i]Data as of %s (%d ms) - updating in %s[::-]",
+			a.lastUpdate.Format("15:04:05"),
+			a.lastReqDuration.Milliseconds(),
+			timeLeft,
+		)
+	}
+	a.footerStatus.SetText(status)
 }
 
-func fetchNodes() (string, error) {
-	cmd := exec.Command("sinfo", "-N", "-o%N %P %c %m %G %T")
+func (a *App) fetchNodesWithTimeout() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
+	defer cancel()
+	
+	cmd := exec.CommandContext(ctx, "sinfo", "-N", "-o%N %P %c %m %G %T")
 	out, err := cmd.Output()
 	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("timeout after %v", a.requestTimeout)
+		}
 		return "", fmt.Errorf("sinfo failed: %v", err)
 	}
 	return string(out), nil
