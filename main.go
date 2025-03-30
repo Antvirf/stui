@@ -24,11 +24,12 @@ func main() {
 	app := &App{
 		app:            tview.NewApplication(),
 		pages:          tview.NewPages(),
-		refreshInterval: 5 * time.Second,
+		refreshInterval: 3 * time.Second,
 	}
 
 	app.setupViews()
 	app.setupKeybinds()
+	app.updateAllViews() // Initial data load
 	app.startRefresh()
 
 	if err := app.app.SetRoot(app.flex, true).EnableMouse(true).Run(); err != nil {
