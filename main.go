@@ -16,6 +16,7 @@ type App struct {
 	jobsView       *tview.Table
 	schedView      *tview.TextView
 	footer         *tview.TextView
+	flex           *tview.Flex
 	refreshInterval time.Duration
 }
 
@@ -30,7 +31,7 @@ func main() {
 	app.setupKeybinds()
 	app.startRefresh()
 
-	if err := app.app.SetRoot(flex, true).EnableMouse(true).Run(); err != nil {
+	if err := app.app.SetRoot(app.flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}
 }
@@ -43,7 +44,7 @@ func (a *App) setupViews() {
 		SetText("[::b]Tabs: [white:blue]1[::-] Nodes [white:blue]2[::-] Jobs [white:blue]3[::-] Scheduler")
 
 	// Main layout
-	flex := tview.NewFlex().
+	a.flex = tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(a.pages, 0, 1, true).
 		AddItem(a.footer, 1, 1, false)
