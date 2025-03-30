@@ -9,32 +9,32 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	
-	"./data" // Import local data package
+
+	"github.com/antvirf/s9s-ai/data"
 )
 
 type App struct {
-	app            *tview.Application
-	pages          *tview.Pages
-	nodesView      *tview.Table
-	jobsView       *tview.Table
-	schedView      *tview.TextView
-	footer         *tview.TextView
-	footerStatus   *tview.TextView
+	app             *tview.Application
+	pages           *tview.Pages
+	nodesView       *tview.Table
+	jobsView        *tview.Table
+	schedView       *tview.TextView
+	footer          *tview.TextView
+	footerStatus    *tview.TextView
 	footerSeparator *tview.Box
-	mainGrid       *tview.Grid
+	mainGrid        *tview.Grid
 	refreshInterval time.Duration
-	requestTimeout time.Duration
-	lastUpdate     time.Time
-	nextUpdate     time.Time
+	requestTimeout  time.Duration
+	lastUpdate      time.Time
+	nextUpdate      time.Time
 	lastReqDuration time.Duration
-	lastReqError   error
+	lastReqError    error
 }
 
 func main() {
 	app := &App{
-		app:            tview.NewApplication(),
-		pages:          tview.NewPages(),
+		app:             tview.NewApplication(),
+		pages:           tview.NewPages(),
 		refreshInterval: 3 * time.Second,
 		requestTimeout:  2 * time.Second, // Must be less than refreshInterval
 	}
@@ -53,7 +53,7 @@ func (a *App) setupViews() {
 	a.footerStatus = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter)
-		
+
 	a.footer = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
@@ -61,7 +61,7 @@ func (a *App) setupViews() {
 
 	footerGrid := tview.NewGrid().
 		SetRows(1, 1). // 1 for status, 1 for tabs
-		SetColumns(0).  // Single column
+		SetColumns(0). // Single column
 		AddItem(a.footerStatus, 0, 0, 1, 1, 0, 0, false).
 		AddItem(a.footer, 1, 0, 1, 1, 0, 0, false)
 	footerGrid.SetBorder(true).
@@ -81,7 +81,7 @@ func (a *App) setupViews() {
 		AddItem(a.pages, 0, 0, 1, 1, 0, 0, true).
 		AddItem(a.footerSeparator, 1, 0, 1, 1, 0, 0, false).
 		AddItem(footerGrid, 2, 0, 1, 1, 0, 0, false)
-	
+
 	a.mainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrBold).
 		SetTitle(" S9S - Slurm Management TUI ").
@@ -105,7 +105,7 @@ func (a *App) setupViews() {
 		SetTitle(" Scheduler (3) ").
 		SetTitleAlign(tview.AlignLeft)
 	a.pages.AddPage("scheduler", a.schedView, true, false)
-	
+
 	// Set initial active tab highlight and status
 	a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 	a.footerStatus.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
@@ -165,22 +165,22 @@ func (a *App) updateAllViews() {
 	if a.app == nil || a.nodesView == nil {
 		return
 	}
-	
+
 	start := time.Now()
-	
+
 	nodeData, err := a.fetchNodesWithTimeout()
 	a.lastReqError = err
 	if err == nil {
 		data.RenderTable(a.nodesView, nodeData)
 	}
-	
+
 	a.lastReqDuration = time.Since(start)
 	a.lastUpdate = time.Now()
 	a.nextUpdate = a.lastUpdate.Add(a.refreshInterval)
-	
+
 	// Update status footer immediately
 	a.updateStatusFooter()
-	
+
 	// Start a ticker to update the countdown in real-time
 	go func() {
 		ticker := time.NewTicker(1 * time.Second)
@@ -192,7 +192,7 @@ func (a *App) updateAllViews() {
 			a.app.QueueUpdateDraw(a.updateStatusFooter)
 		}
 	}()
-	
+
 	// TODO: Add jobs and scheduler updates
 }
 
@@ -219,7 +219,7 @@ func (a *App) updateStatusFooter() {
 func (a *App) fetchNodesWithTimeout() (data.TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
 	defer cancel()
-	
+
 	cmd := exec.CommandContext(ctx, "sinfo", "--Node", "-o=%N|%P|%T|%c|%m|%L|%E|%f|%F|%G|%X|%Y|%Z")
 	out, err := cmd.Output()
 	if err != nil {
@@ -230,11 +230,11 @@ func (a *App) fetchNodesWithTimeout() (data.TableData, error) {
 	}
 
 	headers := []string{
-		"Node", "Partition", "State", "CPUs", "Memory", 
+		"Node", "Partition", "State", "CPUs", "Memory",
 		"CPULoad", "Reason", "Sockets", "Cores", "Threads", "GRES",
 	}
 	var rows [][]string
-	
+
 	lines := strings.Split(string(out), "\n")
 	for _, line := range lines {
 		fields := strings.Split(line, "|")
