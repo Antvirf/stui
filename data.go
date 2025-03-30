@@ -2,10 +2,6 @@ package main
 
 import "github.com/rivo/tview"
 
-type TableData struct {
-	Headers []string
-	Rows    [][]string
-}
 
 type NodeInfo struct {
 	Name          string
@@ -23,7 +19,7 @@ type NodeInfo struct {
 	GRES          string
 }
 
-func renderTable(table *tview.Table, data TableData) {
+func RenderTable(table *tview.Table, data TableData) {
 	table.Clear()
 	
 	// Set headers with fixed width
@@ -32,7 +28,7 @@ func renderTable(table *tview.Table, data TableData) {
 		table.SetCell(0, col, tview.NewTableCell(header).
 			SetSelectable(false).
 			SetAlign(tview.AlignCenter).
-			SetMaxWidth(columnWidths[col])
+			SetMaxWidth(columnWidths[col]))
 	}
 
 	// Set rows with text wrapping
@@ -41,7 +37,7 @@ func renderTable(table *tview.Table, data TableData) {
 			table.SetCell(row+1, col, tview.NewTableCell(cell).
 				SetAlign(tview.AlignLeft).
 				SetMaxWidth(columnWidths[col]).
-				SetExpansion(1)
+				SetExpansion(1))
 		}
 	}
 }

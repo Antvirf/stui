@@ -11,10 +11,15 @@ import (
 	"github.com/rivo/tview"
 )
 
+type TableData struct {
+	Headers []string
+	Rows    [][]string
+}
+
 type App struct {
 	app            *tview.Application
 	pages          *tview.Pages
-	nodesView      *tview.TextView
+	nodesView      *tview.Table
 	jobsView       *tview.Table
 	schedView      *tview.TextView
 	footer         *tview.TextView
@@ -170,7 +175,7 @@ func (a *App) updateAllViews() {
 	nodeData, err := a.fetchNodesWithTimeout()
 	a.lastReqError = err
 	if err == nil {
-		renderTable(a.nodesView, nodeData)
+		RenderTable(a.nodesView, nodeData)
 	}
 	
 	a.lastReqDuration = time.Since(start)
