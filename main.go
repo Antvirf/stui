@@ -113,8 +113,10 @@ func (a *App) setupViews() {
 	a.pages.AddPage("jobs", a.jobsView, true, false)
 
 	// Scheduler View
-	a.schedView = tview.NewTextView()
-	a.schedView.
+	a.schedView = tview.NewTextView().
+		SetDynamicColors(true).
+		SetScrollable(true).
+		SetWrap(false).
 		SetTitle(" Scheduler (3) ").
 		SetTitleAlign(tview.AlignLeft)
 	a.pages.AddPage("scheduler", a.schedView, true, false)
@@ -196,6 +198,12 @@ func (a *App) updateAllViews() {
 		RenderTable(a.nodesView, nodeData)
 	}
 
+	// Update scheduler view with sdiag output
+	sdiagOutput, err := a.fetchSdiagWithTimeout()
+	if err == nil {
+		a.schedView.SetText(sdiagOutput)
+	}
+
 	a.lastReqDuration = time.Since(start)
 	a.lastUpdate = time.Now()
 	a.nextUpdate = a.lastUpdate.Add(a.refreshInterval)
@@ -262,6 +270,22 @@ func (a *App) updateStatusFooter() {
 		)
 	}
 	a.footerStatus.SetText(status)
+}
+
+func (a *App) fetchSdiagWithTimeout() (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "sdiag")
+	out, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("timeout after %v", a.requestTimeout)
+		}
+		return "", fmt.Errorf("sdiag failed: %v", err)
+	}
+
+	return string(out), nil
 }
 
 func (a *App) fetchNodesWithTimeout() (TableData, error) {
