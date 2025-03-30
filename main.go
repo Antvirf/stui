@@ -29,8 +29,12 @@ func main() {
 
 	app.setupViews()
 	app.setupKeybinds()
-	app.updateAllViews() // Initial data load
 	app.startRefresh()
+	
+	// Queue initial data load
+	app.app.QueueUpdateDraw(func() {
+		app.updateAllViews()
+	})
 
 	if err := app.app.SetRoot(app.flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
@@ -119,12 +123,14 @@ func (a *App) startRefresh() {
 }
 
 func (a *App) updateAllViews() {
-	a.app.QueueUpdateDraw(func() {
-		if nodes, err := fetchNodes(); err == nil {
-			a.nodesView.SetText(nodes)
-		}
-		// TODO: Add jobs and scheduler updates
-	})
+	if a.app == nil || a.nodesView == nil {
+		return
+	}
+	
+	if nodes, err := fetchNodes(); err == nil {
+		a.nodesView.SetText(nodes)
+	}
+	// TODO: Add jobs and scheduler updates
 }
 
 func fetchNodes() (string, error) {
