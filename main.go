@@ -44,13 +44,13 @@ func (a *App) setupViews() {
 		SetTextAlign(tview.AlignCenter).
 		SetText("[::b][white:blue]Nodes (1)[::-] - [white:blue]Jobs (2)[::-] - [white:blue]Scheduler (3)[::-]")
 	a.footer.SetBorder(true).
-		SetBorderPadding(0, 0, 1, 0)
+		SetBorderPadding(1, 1, 1, 1) // Increased padding on all sides
 
 	// Main layout with border
 	a.flex = tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(a.pages, 0, 1, true).
-		AddItem(a.footer, 1, 1, false)
+		AddItem(a.footer, 3, 1, false) // Increased footer height from 1 to 3
 	a.flex.SetBorder(true)
 
 	// Nodes View
