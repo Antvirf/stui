@@ -39,11 +39,12 @@ func main() {
 
 func (a *App) setupViews() {
 	// Footer components
-	a.footer = tview.NewTextView().
+	a.footer = tview.NewTextView()
+	a.footer.
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
-		SetText("Nodes (1) - Jobs (2) - Scheduler (3)").
-		SetBorder(true).
+		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
+	a.footer.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
 
 	a.footerSeparator = tview.NewBox().
