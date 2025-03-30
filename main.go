@@ -284,19 +284,20 @@ func (a *App) fetchNodesWithTimeout() (TableData, error) {
 			// Multiply the row according to debugMultiplier
 			for i := 0; i < a.debugMultiplier; i++ {
 				row := []string{
-				strings.TrimPrefix(fields[0], "="),  // Node
-				fields[1],  // Partition
-				fields[2],  // State
-				fields[3],  // CPUs
-				fields[4],  // Memory
-				fields[5],  // CPULoad
-				fields[6],  // Reason
-				fields[7],  // Sockets
-				fields[8],  // Cores
-				fields[9],  // Threads
-				fields[10], // GRES
+					strings.TrimPrefix(fields[0], "="),  // Node
+					fields[1],  // Partition
+					fields[2],  // State
+					fields[3],  // CPUs
+					fields[4],  // Memory
+					fields[5],  // CPULoad
+					fields[6],  // Reason
+					fields[7],  // Sockets
+					fields[8],  // Cores
+					fields[9],  // Threads
+					fields[10], // GRES
+				}
+				rows = append(rows, row)
 			}
-			rows = append(rows, row)
 		}
 	}
 
