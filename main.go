@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -85,11 +86,12 @@ func (a *App) setupViews() {
 		SetTitleAlign(tview.AlignCenter)
 
 	// Nodes View
-	a.nodesView = tview.NewTextView()
+	a.nodesView = tview.NewTable()
 	a.nodesView.
-		SetDynamicColors(true).
+		SetBorders(true).
 		SetTitle(" Nodes (1) ").
-		SetTitleAlign(tview.AlignLeft)
+		SetTitleAlign(tview.AlignLeft).
+		SetFixed(1, 0) // Fixed header row
 	a.pages.AddPage("nodes", a.nodesView, true, true)
 
 	// Jobs View
@@ -165,10 +167,10 @@ func (a *App) updateAllViews() {
 	
 	start := time.Now()
 	
-	nodes, err := a.fetchNodesWithTimeout()
+	nodeData, err := a.fetchNodesWithTimeout()
 	a.lastReqError = err
 	if err == nil {
-		a.nodesView.SetText(nodes)
+		renderTable(a.nodesView, nodeData)
 	}
 	
 	a.lastReqDuration = time.Since(start)
@@ -213,17 +215,48 @@ func (a *App) updateStatusFooter() {
 	a.footerStatus.SetText(status)
 }
 
-func (a *App) fetchNodesWithTimeout() (string, error) {
+func (a *App) fetchNodesWithTimeout() (TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
 	defer cancel()
 	
-	cmd := exec.CommandContext(ctx, "sinfo", "-N", "-o%N %P %c %m %G %T")
+	cmd := exec.CommandContext(ctx, "sinfo", "--Node", "-o=%N|%P|%T|%c|%m|%L|%E|%f|%F|%G|%X|%Y|%Z")
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return "", fmt.Errorf("timeout after %v", a.requestTimeout)
+			return TableData{}, fmt.Errorf("timeout after %v", a.requestTimeout)
 		}
-		return "", fmt.Errorf("sinfo failed: %v", err)
+		return TableData{}, fmt.Errorf("sinfo failed: %v", err)
 	}
-	return string(out), nil
+
+	headers := []string{
+		"Node", "Partition", "State", "CPUs", "Memory", 
+		"CPULoad", "Reason", "Sockets", "Cores", "Threads", "GRES",
+	}
+	var rows [][]string
+	
+	lines := strings.Split(string(out), "\n")
+	for _, line := range lines {
+		fields := strings.Split(line, "|")
+		if len(fields) >= 11 {
+			row := []string{
+				fields[0],  // Node
+				fields[1],  // Partition
+				fields[2],  // State
+				fields[3],  // CPUs
+				fields[4],  // Memory
+				fields[5],  // CPULoad
+				fields[6],  // Reason
+				fields[7],  // Sockets
+				fields[8],  // Cores
+				fields[9],  // Threads
+				fields[10], // GRES
+			}
+			rows = append(rows, row)
+		}
+	}
+
+	return TableData{
+		Headers: headers,
+		Rows:    rows,
+	}, nil
 }
