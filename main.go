@@ -113,7 +113,8 @@ func (a *App) setupViews() {
 	a.pages.AddPage("jobs", a.jobsView, true, false)
 
 	// Scheduler View
-	a.schedView = tview.NewTextView().
+	a.schedView = tview.NewTextView()
+	a.schedView.
 		SetDynamicColors(true).
 		SetScrollable(true).
 		SetWrap(false).
