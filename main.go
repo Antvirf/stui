@@ -41,9 +41,9 @@ func (a *App) setupViews() {
 	a.footer = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
+		SetText("[::b][white:blue]Nodes (1)[::-] - [white:blue]Jobs (2)[::-] - [white:blue]Scheduler (3)[::-]").
 		SetBorder(true).
-		SetBorderPadding(0, 0, 1, 0).
-		SetText("[::b][white:blue]Nodes (1)[::-] - [white:blue]Jobs (2)[::-] - [white:blue]Scheduler (3)[::-]")
+		SetBorderPadding(0, 0, 1, 0)
 
 	// Main layout with border
 	a.flex = tview.NewFlex().
