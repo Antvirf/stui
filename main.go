@@ -16,6 +16,8 @@ type App struct {
 	jobsView       *tview.Table
 	schedView      *tview.TextView
 	footer         *tview.TextView
+	footerSeparator *tview.Box
+	footerGrid     *tview.Grid
 	flex           *tview.Flex
 	refreshInterval time.Duration
 }
@@ -37,19 +39,31 @@ func main() {
 }
 
 func (a *App) setupViews() {
-	// Footer styling
-	a.footer = tview.NewTextView()
-	a.footer.
+	// Footer components
+	a.footer = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
-		SetText("[::b][white:blue]Nodes (1)[::-] - [white:blue]Jobs (2)[::-] - [white:blue]Scheduler (3)[::-]").
-		SetBackgroundColor(tcell.ColorDefault)
+		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
+
+	a.footerSeparator = tview.NewBox().
+		SetBorder(true).
+		SetBorderAttributes(tcell.AttrBold).
+		SetBorderStyle(tcell.StyleDefault.
+			Foreground(tcell.ColorGray).
+			Background(tcell.ColorDefault))
+
+	// Footer grid layout
+	a.footerGrid = tview.NewGrid().
+		SetRows(1, 1). // 1 row for separator, 1 for footer
+		SetColumns(0).  // Single column
+		AddItem(a.footerSeparator, 0, 0, 1, 1, 0, 0, false).
+		AddItem(a.footer, 1, 0, 1, 1, 0, 0, false)
 
 	// Main layout with unified border
 	a.flex = tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(a.pages, 0, 1, true).
-		AddItem(a.footer, 1, 1, false)
+		AddItem(a.footerGrid, 2, 1, false) // 2 rows for the footer grid
 	a.flex.SetBorder(true).
 		SetBorderAttributes(tcell.AttrBold).
 		SetTitle(" S9S - Slurm Management TUI ").
@@ -75,7 +89,7 @@ func (a *App) setupViews() {
 	a.pages.AddPage("scheduler", a.schedView, true, false)
 	
 	// Set initial active tab highlight
-	a.footer.SetText("[green:black:b]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
+	a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 }
 
 func (a *App) setupJobsView() {
@@ -98,13 +112,13 @@ func (a *App) setupKeybinds() {
 		switch event.Rune() {
 		case '1':
 			a.pages.SwitchToPage("nodes")
-			a.footer.SetText("[green:black:b]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
+			a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 		case '2':
 			a.pages.SwitchToPage("jobs")
-			a.footer.SetText("[white:black]Nodes (1)[::-] - [green:black:b]Jobs (2)[::-] - [white:black]Scheduler (3)[::-]")
+			a.footer.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
 		case '3':
 			a.pages.SwitchToPage("scheduler")
-			a.footer.SetText("[white:black]Nodes (1)[::-] - [white:black]Jobs (2)[::-] - [green:black:b]Scheduler (3)[::-]")
+			a.footer.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
 		}
 		return event
 	})
