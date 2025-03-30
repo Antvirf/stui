@@ -92,12 +92,13 @@ func (a *App) setupViews() {
 		SetTitleAlign(tview.AlignCenter)
 
 	// Nodes View
-	a.nodesView = tview.NewTable().
+	a.nodesView = tview.NewTable()
+	a.nodesView.
 		SetBorders(true).
 		SetTitle(" Nodes (1) ").
-		SetTitleAlign(tview.AlignLeft).
-		SetFixed(1, 0). // Fixed header row
-		SetSelectable(true, false) // Selectable rows but not columns
+		SetTitleAlign(tview.AlignLeft)
+	a.nodesView.SetFixed(1, 0) // Fixed header row
+	a.nodesView.SetSelectable(true, false) // Selectable rows but not columns
 	a.pages.AddPage("nodes", a.nodesView, true, true)
 
 	// Jobs View
@@ -117,12 +118,13 @@ func (a *App) setupViews() {
 }
 
 func (a *App) setupJobsView() {
-	a.jobsView = tview.NewTable().
+	a.jobsView = tview.NewTable()
+	a.jobsView.
 		SetBorders(true).
 		SetTitle(" Jobs (2) ").
-		SetTitleAlign(tview.AlignLeft).
-		SetFixed(1, 0). // Fixed header row
-		SetSelectable(true, false) // Selectable rows but not columns
+		SetTitleAlign(tview.AlignLeft)
+	a.jobsView.SetFixed(1, 0) // Fixed header row
+	a.jobsView.SetSelectable(true, false) // Selectable rows but not columns
 
 	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
 	for i, h := range headers {
