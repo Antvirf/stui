@@ -97,11 +97,15 @@ func (a *App) setupViews() {
 	// Nodes View
 	a.nodesView = tview.NewTable()
 	a.nodesView.
-		SetBorders(true).
+		SetBorders(false). // Remove all borders
 		SetTitle(" Nodes (1) ").
 		SetTitleAlign(tview.AlignLeft)
 	a.nodesView.SetFixed(1, 0) // Fixed header row
 	a.nodesView.SetSelectable(true, false) // Selectable rows but not columns
+	// Configure more compact highlighting
+	a.nodesView.SetSelectedStyle(tcell.StyleDefault.
+		Background(tcell.ColorDarkSlateGray).
+		Foreground(tcell.ColorWhite))
 	a.pages.AddPage("nodes", a.nodesView, true, true)
 
 	// Jobs View
@@ -123,11 +127,15 @@ func (a *App) setupViews() {
 func (a *App) setupJobsView() {
 	a.jobsView = tview.NewTable()
 	a.jobsView.
-		SetBorders(true).
+		SetBorders(false). // Remove all borders
 		SetTitle(" Jobs (2) ").
 		SetTitleAlign(tview.AlignLeft)
 	a.jobsView.SetFixed(1, 0) // Fixed header row
 	a.jobsView.SetSelectable(true, false) // Selectable rows but not columns
+	// Configure more compact highlighting
+	a.jobsView.SetSelectedStyle(tcell.StyleDefault.
+		Background(tcell.ColorDarkSlateGray).
+		Foreground(tcell.ColorWhite))
 
 	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
 	for i, h := range headers {
