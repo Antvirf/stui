@@ -9,7 +9,6 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-
 )
 
 type TableData struct {
@@ -79,7 +78,7 @@ func (a *App) setupViews() {
 		SetBorderAttributes(tcell.AttrBold).
 		SetBorderStyle(tcell.StyleDefault.
 			Foreground(tcell.ColorGray).
-			Background(tcell.ColorDefault))
+			Background(tcell.ColorBlack))
 
 	// Main grid layout
 	a.mainGrid = tview.NewGrid().
@@ -102,7 +101,7 @@ func (a *App) setupViews() {
 		SetTitle(" Nodes (1) ").
 		SetTitleAlign(tview.AlignLeft).
 		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-	a.nodesView.SetFixed(1, 0) // Fixed header row
+	a.nodesView.SetFixed(1, 0)             // Fixed header row
 	a.nodesView.SetSelectable(true, false) // Selectable rows but not columns
 	// Configure more compact highlighting
 	a.nodesView.SetSelectedStyle(tcell.StyleDefault.
@@ -137,7 +136,7 @@ func (a *App) setupJobsView() {
 		SetTitle(" Jobs (2) ").
 		SetTitleAlign(tview.AlignLeft).
 		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-	a.jobsView.SetFixed(1, 0) // Fixed header row
+	a.jobsView.SetFixed(1, 0)             // Fixed header row
 	a.jobsView.SetSelectable(true, false) // Selectable rows but not columns
 	// Configure more compact highlighting
 	a.jobsView.SetSelectedStyle(tcell.StyleDefault.
@@ -358,24 +357,24 @@ func (a *App) fetchNodesWithTimeout() (TableData, error) {
 	var rows [][]string
 
 	lines := strings.Split(string(out), "\n")
-	
+
 	for _, line := range lines {
 		fields := strings.Split(line, "|")
 		if len(fields) >= 11 {
 			// Multiply the row according to debugMultiplier
 			for i := 0; i < a.debugMultiplier; i++ {
 				row := []string{
-					strings.TrimPrefix(fields[0], "="),  // Node
-					fields[1],  // Partition
-					fields[2],  // State
-					fields[3],  // CPUs
-					fields[4],  // Memory
-					fields[5],  // CPULoad
-					fields[6],  // Reason
-					fields[7],  // Sockets
-					fields[8],  // Cores
-					fields[9],  // Threads
-					fields[10], // GRES
+					strings.TrimPrefix(fields[0], "="), // Node
+					fields[1],                          // Partition
+					fields[2],                          // State
+					fields[3],                          // CPUs
+					fields[4],                          // Memory
+					fields[5],                          // CPULoad
+					fields[6],                          // Reason
+					fields[7],                          // Sockets
+					fields[8],                          // Cores
+					fields[9],                          // Threads
+					fields[10],                         // GRES
 				}
 				rows = append(rows, row)
 			}

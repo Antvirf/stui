@@ -1,6 +1,5 @@
 package data
 
-import "github.com/rivo/tview"
 
 
 type NodeInfo struct {
