@@ -30,11 +30,6 @@ func main() {
 	app.setupViews()
 	app.setupKeybinds()
 	app.startRefresh()
-	
-	// Queue initial data load
-	app.app.QueueUpdateDraw(func() {
-		app.updateAllViews()
-	})
 
 	if err := app.app.SetRoot(app.flex, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
@@ -117,8 +112,17 @@ func (a *App) startRefresh() {
 	ticker := time.NewTicker(a.refreshInterval)
 	go func() {
 		for range ticker.C {
-			a.updateAllViews()
+			a.app.QueueUpdateDraw(func() {
+				a.updateAllViews()
+			})
 		}
+	}()
+	// Trigger initial update immediately
+	go func() {
+		time.Sleep(100 * time.Millisecond) // Small delay to let app start
+		a.app.QueueUpdateDraw(func() {
+			a.updateAllViews()
+		})
 	}()
 }
 
