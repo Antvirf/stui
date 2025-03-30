@@ -17,8 +17,7 @@ type App struct {
 	schedView      *tview.TextView
 	footer         *tview.TextView
 	footerSeparator *tview.Box
-	footerGrid     *tview.Grid
-	flex           *tview.Flex
+	mainGrid       *tview.Grid
 	refreshInterval time.Duration
 }
 
@@ -33,7 +32,7 @@ func main() {
 	app.setupKeybinds()
 	app.startRefresh()
 
-	if err := app.app.SetRoot(app.flex, true).EnableMouse(true).Run(); err != nil {
+	if err := app.app.SetRoot(app.mainGrid, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}
 }
@@ -52,19 +51,15 @@ func (a *App) setupViews() {
 			Foreground(tcell.ColorGray).
 			Background(tcell.ColorDefault))
 
-	// Footer grid layout
-	a.footerGrid = tview.NewGrid().
-		SetRows(1, 1). // 1 row for separator, 1 for footer
-		SetColumns(0).  // Single column
-		AddItem(a.footerSeparator, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.footer, 1, 0, 1, 1, 0, 0, false)
-
-	// Main layout with unified border
-	a.flex = tview.NewFlex().
-		SetDirection(tview.FlexRow).
-		AddItem(a.pages, 0, 1, true).
-		AddItem(a.footerGrid, 2, 1, false) // 2 rows for the footer grid
-	a.flex.SetBorder(true).
+	// Main grid layout
+	a.mainGrid = tview.NewGrid().
+		SetRows(0, 1, 1). // 0 for pages (flexible), 1 for separator, 1 for footer
+		SetColumns(0).    // Single column
+		AddItem(a.pages, 0, 0, 1, 1, 0, 0, true).
+		AddItem(a.footerSeparator, 1, 0, 1, 1, 0, 0, false).
+		AddItem(a.footer, 2, 0, 1, 1, 0, 0, false)
+	
+	a.mainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrBold).
 		SetTitle(" S9S - Slurm Management TUI ").
 		SetTitleAlign(tview.AlignCenter)
