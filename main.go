@@ -92,14 +92,16 @@ func (a *App) setupViews() {
 	a.mainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrBold).
 		SetTitle(" S9S - Slurm Management TUI ").
-		SetTitleAlign(tview.AlignCenter)
+		SetTitleAlign(tview.AlignCenter).
+		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 
 	// Nodes View
 	a.nodesView = tview.NewTable()
 	a.nodesView.
 		SetBorders(false). // Remove all borders
 		SetTitle(" Nodes (1) ").
-		SetTitleAlign(tview.AlignLeft)
+		SetTitleAlign(tview.AlignLeft).
+		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 	a.nodesView.SetFixed(1, 0) // Fixed header row
 	a.nodesView.SetSelectable(true, false) // Selectable rows but not columns
 	// Configure more compact highlighting
@@ -119,7 +121,8 @@ func (a *App) setupViews() {
 		SetScrollable(true).
 		SetWrap(false).
 		SetTitle(" Scheduler (3) ").
-		SetTitleAlign(tview.AlignLeft)
+		SetTitleAlign(tview.AlignLeft).
+		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 	a.pages.AddPage("scheduler", a.schedView, true, false)
 
 	// Set initial active tab highlight and status
@@ -132,7 +135,8 @@ func (a *App) setupJobsView() {
 	a.jobsView.
 		SetBorders(false). // Remove all borders
 		SetTitle(" Jobs (2) ").
-		SetTitleAlign(tview.AlignLeft)
+		SetTitleAlign(tview.AlignLeft).
+		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 	a.jobsView.SetFixed(1, 0) // Fixed header row
 	a.jobsView.SetSelectable(true, false) // Selectable rows but not columns
 	// Configure more compact highlighting
