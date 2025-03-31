@@ -36,10 +36,12 @@ type App struct {
 	debugMultiplier int // Number of times to multiply node entries for debugging
 	
 	// Search state
-	searchBox      *tview.InputField
-	searchActive   bool
-	searchPattern  string
+	searchBox       *tview.InputField
+	searchActive    bool
+	searchPattern   string
 	currentTableView *tview.Table // Points to either nodesView or jobsView
+	nodeGrid        *tview.Grid   // Grid containing nodes view and search
+	jobGrid         *tview.Grid   // Grid containing jobs view and search
 }
 
 func main() {
@@ -74,6 +76,43 @@ func (a *App) setupSearchBox() {
 			}
 		})
 	a.searchBox.SetBorder(false)
+	
+	// Set up input capture for search box
+	a.searchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyEsc:
+			a.searchBox.SetText("")
+			a.searchActive = false
+			a.hideSearchBox()
+			a.updateTableView(a.currentTableView)
+			return nil
+		case tcell.KeyEnter:
+			a.app.SetFocus(a.currentTableView)
+			return nil
+		}
+		return event
+	})
+}
+
+func (a *App) showSearchBox() {
+	if a.currentTableView == a.nodesView {
+		a.nodeGrid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
+	} else if a.currentTableView == a.jobsView {
+		a.jobGrid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
+	}
+	a.app.SetFocus(a.searchBox)
+}
+
+func (a *App) hideSearchBox() {
+	if a.searchActive {
+		return // Keep visible if search has content
+	}
+	
+	if a.currentTableView == a.nodesView {
+		a.nodeGrid.RemoveItem(a.searchBox)
+	} else if a.currentTableView == a.jobsView {
+		a.jobGrid.RemoveItem(a.searchBox)
+	}
 }
 
 func (a *App) setupViews() {
@@ -130,22 +169,20 @@ func (a *App) setupViews() {
 		Background(tcell.ColorDarkSlateGray).
 		Foreground(tcell.ColorWhite))
 	
-	nodeGrid := tview.NewGrid().
-		SetRows(1, 0). // 1 for search box, 0 for table
+	a.nodeGrid = tview.NewGrid().
+		SetRows(0). // Just table initially
 		SetColumns(0).
-		AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.nodesView, 1, 0, 1, 1, 0, 0, true)
-	a.pages.AddPage("nodes", nodeGrid, true, true)
+		AddItem(a.nodesView, 0, 0, 1, 1, 0, 0, true)
+	a.pages.AddPage("nodes", a.nodeGrid, true, true)
 	a.currentTableView = a.nodesView
 
 	// Jobs View
 	a.setupJobsView()
-	jobGrid := tview.NewGrid().
-		SetRows(1, 0). // 1 for search box, 0 for table
+	a.jobGrid = tview.NewGrid().
+		SetRows(0). // Just table initially
 		SetColumns(0).
-		AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.jobsView, 1, 0, 1, 1, 0, 0, true)
-	a.pages.AddPage("jobs", jobGrid, true, false)
+		AddItem(a.jobsView, 0, 0, 1, 1, 0, 0, true)
+	a.pages.AddPage("jobs", a.jobGrid, true, false)
 
 	// Scheduler View
 	a.schedView = tview.NewTextView()
@@ -213,7 +250,7 @@ func (a *App) setupKeybinds() {
 			a.currentTableView = nil
 		case '/':
 			if a.currentTableView != nil {
-				a.app.SetFocus(a.searchBox)
+				a.showSearchBox()
 				return nil
 			}
 		}
