@@ -63,9 +63,9 @@ func main() {
 
 func (a *App) setupSearchBox() {
 	a.searchBox = tview.NewInputField().
-		SetLabel("Regex search: ").
+		SetLabel("  Regex search (case-insensitive): ").
+		SetFieldBackgroundColor(tcell.ColorDarkSlateGray).
 		SetFieldWidth(0).
-		SetPlaceholder("case-insensitive regex pattern").
 		SetChangedFunc(func(text string) {
 			a.searchPattern = strings.TrimSpace(text)
 			a.searchActive = a.searchPattern != ""
