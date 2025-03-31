@@ -26,6 +26,7 @@ type App struct {
 	schedView       *tview.TextView
 	footer          *tview.TextView
 	footerStatus    *tview.TextView
+	statusLine      *tview.TextView // Combined status line
 	footerSeparator *tview.Box
 	mainGrid        *tview.Grid
 	refreshInterval time.Duration
@@ -162,19 +163,19 @@ func (a *App) setupViews() {
 		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
 
 	// Combined status line
-	statusLine := tview.NewTextView().
+	a.statusLine = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter)
 
 	// Parse slurm config to get scheduler info
 	schedulerHost, schedulerIP := a.getSchedulerInfo()
-	a.updateStatusLine(statusLine, schedulerHost, schedulerIP)
+	a.updateStatusLine(a.statusLine, schedulerHost, schedulerIP)
 
 	footerGrid := tview.NewGrid().
 		SetRows(1, 1). // 1 for tabs, 1 for combined status
 		SetColumns(0). // Single column
 		AddItem(a.footer, 0, 0, 1, 1, 0, 0, false).
-		AddItem(statusLine, 1, 0, 1, 1, 0, 0, false)
+		AddItem(a.statusLine, 1, 0, 1, 1, 0, 0, false)
 	footerGrid.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
 
@@ -437,7 +438,7 @@ func (a *App) updateAllViews() {
 
 	// Update status line immediately
 	schedulerHost, schedulerIP := a.getSchedulerInfo()
-	a.updateStatusLine(statusLine, schedulerHost, schedulerIP)
+	a.updateStatusLine(a.statusLine, schedulerHost, schedulerIP)
 
 	// TODO: Add jobs and scheduler updates
 }
