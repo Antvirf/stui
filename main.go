@@ -589,7 +589,7 @@ func (a *App) showNodeDetails(nodeName string) {
 	nodeDetailView := tview.NewTextView().
 		SetDynamicColors(true).
 		SetScrollable(true).
-		SetWrap(false).
+		SetWrap(true).  // Enable text wrapping
 		SetTextAlign(tview.AlignLeft)
 	nodeDetailView.SetText(details)
 
