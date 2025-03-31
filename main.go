@@ -42,6 +42,10 @@ type App struct {
 	currentTableView *tview.Table // Points to either nodesView or jobsView
 	nodeGrid         *tview.Grid  // Grid containing nodes view and search
 	jobGrid          *tview.Grid  // Grid containing jobs view and search
+
+	// Node detail view
+	nodeDetailView  *tview.TextView
+	nodeDetailModal *tview.Flex
 }
 
 func main() {
@@ -140,8 +144,32 @@ func (a *App) hideSearchBox() {
 	a.app.SetFocus(a.currentTableView)
 }
 
+func (a *App) setupNodeDetailView() {
+	a.nodeDetailView = tview.NewTextView().
+		SetDynamicColors(true).
+		SetScrollable(true).
+		SetWrap(false).
+		SetTextAlign(tview.AlignLeft)
+	
+	// Create a modal flex container with border
+	a.nodeDetailModal = tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(tview.NewTextView().
+			SetTextAlign(tview.AlignCenter).
+			SetText(" Node Details (ESC to close) ").
+			SetTextColor(tcell.ColorWhite).
+			SetBackgroundColor(tcell.ColorDarkSlateGray), 
+			1, 0, false).
+		AddItem(a.nodeDetailView, 0, 1, true)
+	
+	a.nodeDetailModal.SetBorder(true).
+		SetBorderColor(tcell.ColorWhite).
+		SetBackgroundColor(tcell.ColorBlack)
+}
+
 func (a *App) setupViews() {
 	a.setupSearchBox()
+	a.setupNodeDetailView()
 	// Footer components
 	a.footerStatus = tview.NewTextView().
 		SetDynamicColors(true).
@@ -262,6 +290,11 @@ func (a *App) setupKeybinds() {
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
+			if a.nodeDetailModal.HasFocus() {
+				a.pages.RemovePage("nodeDetail")
+				a.app.SetFocus(a.currentTableView)
+				return nil
+			}
 			if a.searchActive || a.searchBox.HasFocus() {
 				a.hideSearchBox()
 				a.updateTableView(a.currentTableView)
@@ -282,6 +315,15 @@ func (a *App) setupKeybinds() {
 			a.pages.SwitchToPage("scheduler")
 			a.footer.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
 			a.currentTableView = nil
+		case tcell.KeyEnter:
+			if a.currentTableView == a.nodesView {
+				row, _ := a.nodesView.GetSelection()
+				if row > 0 { // Skip header row
+					nodeName := a.nodesView.GetCell(row, 0).Text
+					a.showNodeDetails(nodeName)
+					return nil
+				}
+			}
 		case '/':
 			if a.currentTableView != nil {
 				a.showSearchBox()
@@ -509,6 +551,43 @@ func (a *App) fetchJobsWithTimeout() (TableData, error) {
 		Headers: headers,
 		Rows:    rows,
 	}, nil
+}
+
+func (a *App) showNodeDetails(nodeName string) {
+	details, err := a.fetchNodeDetailsWithTimeout(nodeName)
+	if err != nil {
+		details = fmt.Sprintf("Error fetching node details:\n%s", err.Error())
+	}
+	
+	a.nodeDetailView.SetText(details)
+	
+	// Create a centered modal
+	modal := tview.NewFlex().
+		AddItem(nil, 0, 1, false).
+		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+			AddItem(nil, 0, 1, false).
+			AddItem(a.nodeDetailModal, 0, 1, true).
+			AddItem(nil, 0, 1, false),
+			0, 1, false).
+		AddItem(nil, 0, 1, false)
+	
+	a.pages.AddAndSwitchToPage("nodeDetail", modal, true)
+	a.app.SetFocus(a.nodeDetailView)
+}
+
+func (a *App) fetchNodeDetailsWithTimeout(nodeName string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "scontrol", "show", "node", nodeName)
+	out, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("timeout after %v", a.requestTimeout)
+		}
+		return "", fmt.Errorf("scontrol failed: %v", err)
+	}
+	return string(out), nil
 }
 
 func (a *App) fetchSdiagWithTimeout() (string, error) {
