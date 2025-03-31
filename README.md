@@ -6,10 +6,8 @@ Terminal User Interface (TUI) for viewing and managing Slurm nodes and jobs.
 
 ## TODO
 
-- Generic (scrollable) textview with auto updates: `sdiag`
 - Generic table model, similar to k9s: Able to show any tables
 - Generic DAO/view approach similar to k9s for data updates
-- Nodes table with background refresh
 - Persistent footer
   - Tabs at the bottom to switch views (nodes / jobs / scheduler)
   - Current version

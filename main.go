@@ -8,9 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"net"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"net"
 )
 
 type TableData struct {
@@ -77,12 +78,12 @@ func (a *App) setupSearchBox() {
 			a.searchPattern = strings.TrimSpace(text)
 			wasActive := a.searchActive
 			a.searchActive = a.searchPattern != ""
-			
+
 			// Hide if search was cleared
 			if wasActive && !a.searchActive {
 				a.hideSearchBox()
 			}
-			
+
 			if a.currentTableView != nil {
 				a.updateTableView(a.currentTableView)
 			}
@@ -121,8 +122,8 @@ func (a *App) showSearchBox() {
 
 	// Clear and rebuild the grid with search box
 	grid.Clear()
-	grid.SetRows(1, 0) // 1 row for search, rest for table
-	grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, false) // Don't focus by default
+	grid.SetRows(1, 0)                                       // 1 row for search, rest for table
+	grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, false)       // Don't focus by default
 	grid.AddItem(a.currentTableView, 1, 0, 1, 1, 0, 0, true) // Keep table focused
 
 	a.searchActive = true
@@ -172,23 +173,19 @@ func (a *App) setupViews() {
 	a.updateStatusLine(a.statusLine, schedulerHost, schedulerIP)
 
 	footerGrid := tview.NewGrid().
-		SetRows(1, 1). // 1 for tabs, 1 for combined status
-		SetColumns(0). // Single column
 		AddItem(a.footer, 0, 0, 1, 1, 0, 0, false).
 		AddItem(a.statusLine, 1, 0, 1, 1, 0, 0, false)
+
 	footerGrid.SetBorder(true).
-		SetBorderPadding(0, 0, 1, 0)
+		SetBorderPadding(0, 0, 0, 0)
 
 	a.footerSeparator = tview.NewBox().
-		SetBorder(true).
-		SetBorderAttributes(tcell.AttrBold).
-		SetBorderStyle(tcell.StyleDefault.
-			Foreground(tcell.ColorGray).
-			Background(tcell.ColorBlack))
+		SetBorder(false).
+		SetBorderAttributes(tcell.AttrBold)
 
 	// Main grid layout
 	a.mainGrid = tview.NewGrid().
-		SetRows(0, 1, 5). // 0 for pages (flexible), 1 for separator, 5 for footer (more height)
+		SetRows(0, 0, 5). // 0 for pages (flexible), 0 for separator, 5 for footer (more height)
 		SetColumns(0).    // Single column
 		AddItem(a.pages, 0, 0, 1, 1, 0, 0, true).
 		AddItem(a.footerSeparator, 1, 0, 1, 1, 0, 0, false).
@@ -590,7 +587,7 @@ func (a *App) showNodeDetails(nodeName string) {
 	nodeDetailView := tview.NewTextView().
 		SetDynamicColors(true).
 		SetScrollable(true).
-		SetWrap(true).  // Enable text wrapping
+		SetWrap(true). // Enable text wrapping
 		SetTextAlign(tview.AlignLeft)
 	nodeDetailView.SetText(details)
 
@@ -602,7 +599,7 @@ func (a *App) showNodeDetails(nodeName string) {
 			SetTextColor(tcell.ColorWhite),
 			2, 0, false).
 		AddItem(nodeDetailView, 0, 1, true)
-	
+
 	modal.SetBorder(true).
 		SetBorderColor(tcell.ColorDarkOrange).
 		SetBackgroundColor(tcell.ColorBlack)
@@ -611,9 +608,9 @@ func (a *App) showNodeDetails(nodeName string) {
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(nil, 0, 2, false).
+			AddItem(nil, 0, 1, false).
 			AddItem(modal, 0, 8, true).
-			AddItem(nil, 0, 2, false),
+			AddItem(nil, 0, 1, false),
 			0, 8, false).
 		AddItem(nil, 0, 1, false)
 
