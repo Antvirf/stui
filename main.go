@@ -397,15 +397,17 @@ func (a *App) renderTable(table *tview.Table, data TableData) {
 	// First clear the table but preserve column widths
 	table.Clear()
 	
-	// Set headers with fixed widths
+	// Set headers with fixed widths and padding
 	for col, header := range data.Headers {
-		table.SetCell(0, col, tview.NewTableCell(header).
+		// Pad header with spaces to maintain width
+		paddedHeader := fmt.Sprintf("%-*s", columnWidths[col], header)
+		table.SetCell(0, col, tview.NewTableCell(paddedHeader).
 			SetSelectable(false).
 			SetAlign(tview.AlignLeft).
 			SetMaxWidth(columnWidths[col]).
 			SetBackgroundColor(tcell.ColorBlack).
 			SetTextColor(tcell.ColorWhite).
-			SetAttributes(tcell.AttrBold))
+			SetAttributes(tcell.AttrBold)
 	}
 
 	// Filter rows if search is active
@@ -432,12 +434,14 @@ func (a *App) renderTable(table *tview.Table, data TableData) {
 		}
 	}
 
-	// If no rows, set empty cells to maintain column widths
+	// If no rows, set empty cells with spaces to maintain column widths
 	if len(filteredRows) == 0 {
-		for col := range data.Headers {
-			table.SetCell(1, col, tview.NewTableCell("").
+		for col, width := range columnWidths {
+			// Create a cell with spaces to maintain width
+			spaces := strings.Repeat(" ", width)
+			table.SetCell(1, col, tview.NewTableCell(spaces).
 				SetAlign(tview.AlignLeft).
-				SetMaxWidth(columnWidths[col]).
+				SetMaxWidth(width).
 				SetExpansion(1))
 		}
 	}
