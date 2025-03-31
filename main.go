@@ -171,7 +171,7 @@ func (a *App) setupViews() {
 	schedulerInfo.SetText(fmt.Sprintf("Scheduler: %s (%s)", schedulerHost, schedulerIP))
 
 	footerGrid := tview.NewGrid().
-		SetRows(1, 1, 1). // 1 for status, 1 for tabs, 1 for scheduler info
+		SetRows(1, 1, 2). // 1 for status, 1 for tabs, 2 for scheduler info (more height)
 		SetColumns(0). // Single column
 		AddItem(a.footerStatus, 0, 0, 1, 1, 0, 0, false).
 		AddItem(a.footer, 1, 0, 1, 1, 0, 0, false).
@@ -188,7 +188,7 @@ func (a *App) setupViews() {
 
 	// Main grid layout
 	a.mainGrid = tview.NewGrid().
-		SetRows(0, 1, 4). // 0 for pages (flexible), 1 for separator, 4 for footer
+		SetRows(0, 1, 5). // 0 for pages (flexible), 1 for separator, 5 for footer (more height)
 		SetColumns(0).    // Single column
 		AddItem(a.pages, 0, 0, 1, 1, 0, 0, true).
 		AddItem(a.footerSeparator, 1, 0, 1, 1, 0, 0, false).
