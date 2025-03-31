@@ -264,11 +264,6 @@ func (a *App) setupKeybinds() {
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
-			if a.nodeDetailModal.HasFocus() {
-				a.pages.RemovePage("nodeDetail")
-				a.app.SetFocus(a.currentTableView)
-				return nil
-			}
 			if a.searchActive || a.searchBox.HasFocus() {
 				a.hideSearchBox()
 				a.updateTableView(a.currentTableView)
