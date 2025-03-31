@@ -301,6 +301,12 @@ func (a *App) setupKeybinds() {
 				a.showNodeDetails(nodeName)
 				return nil
 			}
+		case tcell.KeyEsc:
+			if a.searchActive {
+				a.hideSearchBox()
+				a.updateTableView(a.nodesView)
+				return nil
+			}
 		}
 		return event
 	})
@@ -311,6 +317,15 @@ func (a *App) setupKeybinds() {
 			a.showSearchBox()
 			a.updateTableView(a.jobsView)
 			return nil
+		}
+
+		switch event.Key() {
+		case tcell.KeyEsc:
+			if a.searchActive {
+				a.hideSearchBox()
+				a.updateTableView(a.jobsView)
+				return nil
+			}
 		}
 		return event
 	})
