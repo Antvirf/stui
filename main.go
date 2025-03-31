@@ -68,6 +68,7 @@ func main() {
 func (a *App) setupSearchBox() {
 	a.searchBox = tview.NewInputField().
 		SetLabel("  Regex search (case-insensitive): ").
+		SetLabelColor(tcell.ColorDarkOrange).
 		SetFieldBackgroundColor(tcell.ColorDarkSlateGray).
 		SetFieldWidth(0).
 		SetChangedFunc(func(text string) {
@@ -541,23 +542,22 @@ func (a *App) showNodeDetails(nodeName string) {
 		AddItem(tview.NewTextView().
 			SetTextAlign(tview.AlignCenter).
 			SetText(fmt.Sprintf(" Node Details: %s (ESC to close) ", nodeName)).
-			SetTextColor(tcell.ColorWhite).
-			SetBackgroundColor(tcell.ColorDarkSlateGray), 
-			1, 0, false).
+			SetTextColor(tcell.ColorWhite),
+			2, 0, false).
 		AddItem(nodeDetailView, 0, 1, true)
 	
 	modal.SetBorder(true).
-		SetBorderColor(tcell.ColorWhite).
+		SetBorderColor(tcell.ColorDarkOrange).
 		SetBackgroundColor(tcell.ColorBlack)
 
 	// Create centered container with fixed size (50% width, 80% height)
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(nil, 0, 1, false).
-			AddItem(modal, 0, 1, true).
-			AddItem(nil, 0, 1, false),
-			0, 1, false).
+			AddItem(nil, 0, 2, false).
+			AddItem(modal, 0, 8, true).
+			AddItem(nil, 0, 2, false),
+			0, 8, false).
 		AddItem(nil, 0, 1, false)
 
 	// Store current page before showing modal
