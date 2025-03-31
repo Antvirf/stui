@@ -73,7 +73,14 @@ func (a *App) setupSearchBox() {
 		SetFieldWidth(0).
 		SetChangedFunc(func(text string) {
 			a.searchPattern = strings.TrimSpace(text)
+			wasActive := a.searchActive
 			a.searchActive = a.searchPattern != ""
+			
+			// Hide if search was cleared
+			if wasActive && !a.searchActive {
+				a.hideSearchBox()
+			}
+			
 			if a.currentTableView != nil {
 				a.updateTableView(a.currentTableView)
 			}
@@ -272,8 +279,10 @@ func (a *App) setupKeybinds() {
 			a.pages.SwitchToPage("nodes")
 			a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 			a.currentTableView = a.nodesView
-			if a.searchActive {
+			if a.searchPattern != "" {
 				a.showSearchBox()
+			} else {
+				a.hideSearchBox()
 			}
 			a.app.SetFocus(a.nodesView)
 			return nil
@@ -281,8 +290,10 @@ func (a *App) setupKeybinds() {
 			a.pages.SwitchToPage("jobs")
 			a.footer.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
 			a.currentTableView = a.jobsView
-			if a.searchActive {
+			if a.searchPattern != "" {
 				a.showSearchBox()
+			} else {
+				a.hideSearchBox()
 			}
 			a.app.SetFocus(a.jobsView)
 			return nil
