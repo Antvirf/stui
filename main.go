@@ -43,9 +43,7 @@ type App struct {
 	nodeGrid         *tview.Grid  // Grid containing nodes view and search
 	jobGrid          *tview.Grid  // Grid containing jobs view and search
 
-	// Node detail view
-	nodeDetailView  *tview.TextView
-	nodeDetailModal *tview.Flex
+	// Node detail view (created fresh each time)
 }
 
 func main() {
@@ -144,32 +142,8 @@ func (a *App) hideSearchBox() {
 	a.app.SetFocus(a.currentTableView)
 }
 
-func (a *App) setupNodeDetailView() {
-	a.nodeDetailView = tview.NewTextView().
-		SetDynamicColors(true).
-		SetScrollable(true).
-		SetWrap(false).
-		SetTextAlign(tview.AlignLeft)
-	
-	// Create a modal flex container with border
-	a.nodeDetailModal = tview.NewFlex().
-		SetDirection(tview.FlexRow).
-		AddItem(tview.NewTextView().
-			SetTextAlign(tview.AlignCenter).
-			SetText(" Node Details (ESC to close) ").
-			SetTextColor(tcell.ColorWhite).
-			SetBackgroundColor(tcell.ColorDarkSlateGray), 
-			1, 0, false).
-		AddItem(a.nodeDetailView, 0, 1, true)
-	
-	a.nodeDetailModal.SetBorder(true).
-		SetBorderColor(tcell.ColorWhite).
-		SetBackgroundColor(tcell.ColorBlack)
-}
-
 func (a *App) setupViews() {
 	a.setupSearchBox()
-	a.setupNodeDetailView()
 	// Footer components
 	a.footerStatus = tview.NewTextView().
 		SetDynamicColors(true).
@@ -558,21 +532,59 @@ func (a *App) showNodeDetails(nodeName string) {
 	if err != nil {
 		details = fmt.Sprintf("Error fetching node details:\n%s", err.Error())
 	}
-	
-	a.nodeDetailView.SetText(details)
-	
-	// Create a centered modal
+
+	// Create new modal components each time (don't reuse)
+	nodeDetailView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetScrollable(true).
+		SetWrap(false).
+		SetTextAlign(tview.AlignLeft)
+	nodeDetailView.SetText(details)
+
 	modal := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(tview.NewTextView().
+			SetTextAlign(tview.AlignCenter).
+			SetText(fmt.Sprintf(" Node Details: %s (ESC to close) ", nodeName)).
+			SetTextColor(tcell.ColorWhite).
+			SetBackgroundColor(tcell.ColorDarkSlateGray), 
+			1, 0, false).
+		AddItem(nodeDetailView, 0, 1, true)
+	
+	modal.SetBorder(true).
+		SetBorderColor(tcell.ColorWhite).
+		SetBackgroundColor(tcell.ColorBlack)
+
+	// Create centered container with fixed size (50% width, 80% height)
+	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(nil, 0, 1, false).
-			AddItem(a.nodeDetailModal, 0, 1, true).
+			AddItem(modal, 0, 1, true).
 			AddItem(nil, 0, 1, false),
 			0, 1, false).
 		AddItem(nil, 0, 1, false)
-	
-	a.pages.AddAndSwitchToPage("nodeDetail", modal, true)
-	a.app.SetFocus(a.nodeDetailView)
+
+	// Store current page before showing modal
+	currentPage := "nodes"
+	if a.currentTableView == a.jobsView {
+		currentPage = "jobs"
+	}
+
+	// Add as overlay without switching pages
+	a.pages.AddPage("nodeDetail", centered, true, true)
+	a.app.SetFocus(nodeDetailView)
+
+	// Set up handler to return to correct view when closed
+	nodeDetailView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEsc {
+			a.pages.RemovePage("nodeDetail")
+			a.pages.SwitchToPage(currentPage)
+			a.app.SetFocus(a.currentTableView)
+			return nil
+		}
+		return event
+	})
 }
 
 func (a *App) fetchNodeDetailsWithTimeout(nodeName string) (string, error) {
