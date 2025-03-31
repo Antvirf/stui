@@ -393,6 +393,11 @@ func (a *App) updateTableView(table *tview.Table) {
 func (a *App) renderTable(table *tview.Table, data TableData) {
 	// Set headers with fixed width
 	columnWidths := []int{10, 10, 10, 6, 8, 8, 20, 6, 6, 6, 15} // Adjust as needed
+	
+	// First clear the table but preserve column widths
+	table.Clear()
+	
+	// Set headers with fixed widths
 	for col, header := range data.Headers {
 		table.SetCell(0, col, tview.NewTableCell(header).
 			SetSelectable(false).
@@ -421,6 +426,16 @@ func (a *App) renderTable(table *tview.Table, data TableData) {
 	for row, rowData := range filteredRows {
 		for col, cell := range rowData {
 			table.SetCell(row+1, col, tview.NewTableCell(cell).
+				SetAlign(tview.AlignLeft).
+				SetMaxWidth(columnWidths[col]).
+				SetExpansion(1))
+		}
+	}
+
+	// If no rows, set empty cells to maintain column widths
+	if len(filteredRows) == 0 {
+		for col := range data.Headers {
+			table.SetCell(1, col, tview.NewTableCell("").
 				SetAlign(tview.AlignLeft).
 				SetMaxWidth(columnWidths[col]).
 				SetExpansion(1))
