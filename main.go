@@ -10,6 +10,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"net"
 )
 
 type TableData struct {
@@ -160,11 +161,21 @@ func (a *App) setupViews() {
 		SetTextAlign(tview.AlignCenter).
 		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
 
+	// Scheduler info line
+	schedulerInfo := tview.NewTextView().
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignCenter)
+
+	// Parse slurm config to get scheduler info
+	schedulerHost, schedulerIP := a.getSchedulerInfo()
+	schedulerInfo.SetText(fmt.Sprintf("Scheduler: %s (%s)", schedulerHost, schedulerIP))
+
 	footerGrid := tview.NewGrid().
-		SetRows(1, 1). // 1 for status, 1 for tabs
+		SetRows(1, 1, 1). // 1 for status, 1 for tabs, 1 for scheduler info
 		SetColumns(0). // Single column
 		AddItem(a.footerStatus, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.footer, 1, 0, 1, 1, 0, 0, false)
+		AddItem(a.footer, 1, 0, 1, 1, 0, 0, false).
+		AddItem(schedulerInfo, 2, 0, 1, 1, 0, 0, false)
 	footerGrid.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
 
@@ -651,6 +662,33 @@ func (a *App) fetchNodeDetailsWithTimeout(nodeName string) (string, error) {
 		return "", fmt.Errorf("scontrol failed: %v", err)
 	}
 	return string(out), nil
+}
+
+func (a *App) getSchedulerInfo() (string, string) {
+	// Try to get scheduler host from slurm.conf
+	cmd := exec.Command("scontrol", "show", "config")
+	out, err := cmd.Output()
+	if err != nil {
+		return "unknown", "unknown"
+	}
+
+	// Parse output for controller host
+	lines := strings.Split(string(out), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "ControlMachine") {
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				host := strings.TrimSpace(parts[1])
+				// Lookup IP
+				addrs, err := net.LookupHost(host)
+				if err == nil && len(addrs) > 0 {
+					return host, addrs[0]
+				}
+				return host, "unknown"
+			}
+		}
+	}
+	return "unknown", "unknown"
 }
 
 func (a *App) fetchSdiagWithTimeout() (string, error) {
