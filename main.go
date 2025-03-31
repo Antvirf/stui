@@ -260,6 +260,15 @@ func (a *App) setupKeybinds() {
 	appInstance = a
 	
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyEsc:
+			if a.searchActive || a.searchBox.HasFocus() {
+				a.hideSearchBox()
+				a.updateTableView(a.currentTableView)
+				return nil
+			}
+		}
+		
 		switch event.Rune() {
 		case '1':
 			a.pages.SwitchToPage("nodes")
