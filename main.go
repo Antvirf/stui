@@ -113,13 +113,9 @@ func (a *App) showSearchBox() {
 	// Clear and rebuild the grid with search box
 	grid.Clear()
 	grid.SetRows(1, 0) // 1 row for search, rest for table
-	grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
-	grid.AddItem(a.currentTableView, 1, 0, 1, 1, 0, 0, false)
+	grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, false) // Don't focus by default
+	grid.AddItem(a.currentTableView, 1, 0, 1, 1, 0, 0, true) // Keep table focused
 
-	// Set focus to search box if it's not active
-	if !a.searchBox.HasFocus() {
-		a.app.SetFocus(a.searchBox)
-	}
 	a.searchActive = true
 }
 
@@ -264,28 +260,25 @@ func GetApp() *App {
 func (a *App) setupKeybinds() {
 	appInstance = a
 
-	// Global keybinds (work anywhere)
+	// Global keybinds (work anywhere except when typing in search)
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// Don't allow pane switching while typing in search
+		if a.searchBox.HasFocus() {
+			return event
+		}
+
 		switch event.Rune() {
 		case '1':
 			a.pages.SwitchToPage("nodes")
 			a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 			a.currentTableView = a.nodesView
-			if a.searchActive {
-				a.showSearchBox()
-			} else {
-				a.app.SetFocus(a.nodesView)
-			}
+			a.app.SetFocus(a.nodesView)
 			return nil
 		case '2':
 			a.pages.SwitchToPage("jobs")
 			a.footer.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
 			a.currentTableView = a.jobsView
-			if a.searchActive {
-				a.showSearchBox()
-			} else {
-				a.app.SetFocus(a.jobsView)
-			}
+			a.app.SetFocus(a.jobsView)
 			return nil
 		case '3':
 			a.pages.SwitchToPage("scheduler")
@@ -303,6 +296,7 @@ func (a *App) setupKeybinds() {
 		case '/':
 			a.showSearchBox()
 			a.updateTableView(a.nodesView)
+			a.app.SetFocus(a.searchBox) // Only focus search when / is pressed
 			return nil
 		}
 
@@ -329,6 +323,7 @@ func (a *App) setupKeybinds() {
 		case '/':
 			a.showSearchBox()
 			a.updateTableView(a.jobsView)
+			a.app.SetFocus(a.searchBox) // Only focus search when / is pressed
 			return nil
 		}
 
