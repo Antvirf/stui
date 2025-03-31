@@ -34,14 +34,14 @@ type App struct {
 	lastReqDuration time.Duration
 	lastReqError    error
 	debugMultiplier int // Number of times to multiply node entries for debugging
-	
+
 	// Search state
-	searchBox       *tview.InputField
-	searchActive    bool
-	searchPattern   string
+	searchBox        *tview.InputField
+	searchActive     bool
+	searchPattern    string
 	currentTableView *tview.Table // Points to either nodesView or jobsView
-	nodeGrid        *tview.Grid   // Grid containing nodes view and search
-	jobGrid         *tview.Grid   // Grid containing jobs view and search
+	nodeGrid         *tview.Grid  // Grid containing nodes view and search
+	jobGrid          *tview.Grid  // Grid containing jobs view and search
 }
 
 func main() {
@@ -76,7 +76,7 @@ func (a *App) setupSearchBox() {
 			}
 		})
 	a.searchBox.SetBorder(false)
-	
+
 	// Set up input capture for search box
 	a.searchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
@@ -112,7 +112,7 @@ func (a *App) showSearchBox() {
 	grid.SetRows(1, 0) // 1 row for search, rest for table
 	grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
 	grid.AddItem(a.currentTableView, 1, 0, 1, 1, 0, 0, false)
-	
+
 	// Set focus and ensure search box is visible
 	a.app.SetFocus(a.searchBox)
 	a.searchActive = true
@@ -133,7 +133,7 @@ func (a *App) hideSearchBox() {
 	grid.Clear()
 	grid.SetRows(0) // Just table
 	grid.AddItem(a.currentTableView, 0, 0, 1, 1, 0, 0, true)
-	
+
 	// Reset search state
 	a.searchBox.SetText("")
 	a.searchActive = false
@@ -193,7 +193,7 @@ func (a *App) setupViews() {
 	a.nodesView.SetSelectedStyle(tcell.StyleDefault.
 		Background(tcell.ColorDarkSlateGray).
 		Foreground(tcell.ColorWhite))
-	
+
 	a.nodeGrid = tview.NewGrid().
 		SetRows(0). // Just table initially
 		SetColumns(0).
@@ -258,7 +258,7 @@ func GetApp() *App {
 
 func (a *App) setupKeybinds() {
 	appInstance = a
-	
+
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
@@ -268,7 +268,7 @@ func (a *App) setupKeybinds() {
 				return nil
 			}
 		}
-		
+
 		switch event.Rune() {
 		case '1':
 			a.pages.SwitchToPage("nodes")
@@ -393,10 +393,10 @@ func (a *App) updateTableView(table *tview.Table) {
 func (a *App) renderTable(table *tview.Table, data TableData) {
 	// Set headers with fixed width
 	columnWidths := []int{10, 10, 10, 6, 8, 8, 20, 6, 6, 6, 15} // Adjust as needed
-	
+
 	// First clear the table but preserve column widths
 	table.Clear()
-	
+
 	// Set headers with fixed widths and padding
 	for col, header := range data.Headers {
 		// Pad header with spaces to maintain width
@@ -407,7 +407,7 @@ func (a *App) renderTable(table *tview.Table, data TableData) {
 			SetMaxWidth(columnWidths[col]).
 			SetBackgroundColor(tcell.ColorBlack).
 			SetTextColor(tcell.ColorWhite).
-			SetAttributes(tcell.AttrBold)
+			SetAttributes(tcell.AttrBold))
 	}
 
 	// Filter rows if search is active
