@@ -244,7 +244,7 @@ func RenderTable(table *tview.Table, data TableData) {
 	for col, header := range data.Headers {
 		table.SetCell(0, col, tview.NewTableCell(header).
 			SetSelectable(false).
-			SetAlign(tview.AlignCenter).
+			SetAlign(tview.AlignLeft).  // Changed from AlignCenter to AlignLeft
 			SetMaxWidth(columnWidths[col]).
 			SetBackgroundColor(tcell.ColorBlack).
 			SetTextColor(tcell.ColorWhite).
