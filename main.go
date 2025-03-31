@@ -101,37 +101,29 @@ func (a *App) showSearchBox() {
 		return
 	}
 
-	// Rebuild the grid with search box and table
-	if a.currentTableView == a.nodesView {
-		a.nodeGrid.SetRows(1, 0) // 1 row for search, rest for table
-		a.nodeGrid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
-		a.nodeGrid.AddItem(a.nodesView, 1, 0, 1, 1, 0, 0, false)
-	} else if a.currentTableView == a.jobsView {
-		a.jobGrid.SetRows(1, 0) // 1 row for search, rest for table
-		a.jobGrid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
-		a.jobGrid.AddItem(a.jobsView, 1, 0, 1, 1, 0, 0, false)
+	// Always rebuild the grid to ensure proper layout
+	grid := a.nodeGrid
+	if a.currentTableView == a.jobsView {
+		grid = a.jobGrid
 	}
-	a.app.SetFocus(a.searchBox)
+
+	grid.Clear()
+	if a.searchActive || a.searchBox.HasFocus() {
+		grid.SetRows(1, 0) // Show search box
+		grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
+		grid.AddItem(a.currentTableView, 1, 0, 1, 1, 0, 0, false)
+		a.app.SetFocus(a.searchBox)
+	} else {
+		grid.SetRows(0) // Hide search box
+		grid.AddItem(a.currentTableView, 0, 0, 1, 1, 0, 0, true)
+		a.app.SetFocus(a.currentTableView)
+	}
 }
 
 func (a *App) hideSearchBox() {
-	if a.currentTableView == nil {
-		return
-	}
-
-	// Rebuild the grid with just the table
-	if a.currentTableView == a.nodesView {
-		a.nodeGrid.Clear()
-		a.nodeGrid.SetRows(0) // Just table
-		a.nodeGrid.AddItem(a.nodesView, 0, 0, 1, 1, 0, 0, true)
-	} else if a.currentTableView == a.jobsView {
-		a.jobGrid.Clear()
-		a.jobGrid.SetRows(0) // Just table
-		a.jobGrid.AddItem(a.jobsView, 0, 0, 1, 1, 0, 0, true)
-	}
 	a.searchBox.SetText("")
 	a.searchActive = false
-	a.app.SetFocus(a.currentTableView)
+	a.showSearchBox() // This will now properly hide if empty
 }
 
 func (a *App) setupViews() {
@@ -270,7 +262,6 @@ func (a *App) setupKeybinds() {
 		case '/':
 			if a.currentTableView != nil {
 				a.showSearchBox()
-				a.updateTableView(a.currentTableView)
 				return nil
 			}
 		}
@@ -280,13 +271,15 @@ func (a *App) setupKeybinds() {
 	a.searchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
-			a.searchBox.SetText("")
-			a.searchActive = false
+			a.hideSearchBox()
 			a.updateTableView(a.currentTableView)
-			a.app.SetFocus(a.currentTableView)
 			return nil
 		case tcell.KeyEnter:
-			a.app.SetFocus(a.currentTableView)
+			if a.searchPattern == "" {
+				a.hideSearchBox()
+			} else {
+				a.app.SetFocus(a.currentTableView)
+			}
 			return nil
 		}
 		return event
