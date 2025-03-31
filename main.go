@@ -161,21 +161,20 @@ func (a *App) setupViews() {
 		SetTextAlign(tview.AlignCenter).
 		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
 
-	// Scheduler info line
-	schedulerInfo := tview.NewTextView().
+	// Combined status line
+	statusLine := tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter)
 
 	// Parse slurm config to get scheduler info
 	schedulerHost, schedulerIP := a.getSchedulerInfo()
-	schedulerInfo.SetText(fmt.Sprintf("Scheduler: %s (%s)", schedulerHost, schedulerIP))
+	a.updateStatusLine(statusLine, schedulerHost, schedulerIP)
 
 	footerGrid := tview.NewGrid().
-		SetRows(1, 1, 2). // 1 for status, 1 for tabs, 2 for scheduler info (more height)
+		SetRows(1, 1). // 1 for tabs, 1 for combined status
 		SetColumns(0). // Single column
-		AddItem(a.footerStatus, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.footer, 1, 0, 1, 1, 0, 0, false).
-		AddItem(schedulerInfo, 2, 0, 1, 1, 0, 0, false)
+		AddItem(a.footer, 0, 0, 1, 1, 0, 0, false).
+		AddItem(statusLine, 1, 0, 1, 1, 0, 0, false)
 	footerGrid.SetBorder(true).
 		SetBorderPadding(0, 0, 1, 0)
 
@@ -436,20 +435,9 @@ func (a *App) updateAllViews() {
 	a.lastUpdate = time.Now()
 	a.nextUpdate = a.lastUpdate.Add(a.refreshInterval)
 
-	// Update status footer immediately
-	a.updateStatusFooter()
-
-	// Start a ticker to update the countdown in real-time
-	go func() {
-		ticker := time.NewTicker(1 * time.Second)
-		defer ticker.Stop()
-		for range ticker.C {
-			if time.Now().After(a.nextUpdate) {
-				return
-			}
-			a.app.QueueUpdateDraw(a.updateStatusFooter)
-		}
-	}()
+	// Update status line immediately
+	schedulerHost, schedulerIP := a.getSchedulerInfo()
+	a.updateStatusLine(statusLine, schedulerHost, schedulerIP)
 
 	// TODO: Add jobs and scheduler updates
 }
@@ -531,24 +519,25 @@ func RenderTable(table *tview.Table, data TableData) {
 	app.renderTable(table, data)
 }
 
-func (a *App) updateStatusFooter() {
-	timeLeft := time.Until(a.nextUpdate).Round(time.Second)
+func (a *App) updateStatusLine(statusLine *tview.TextView, host, ip string) {
 	var status string
 	if a.lastReqError != nil {
 		status = fmt.Sprintf(
-			"[::i]Data as of %s (FAILED) - updating in %s[::-]",
+			"Scheduler: %s (%s) | Data as of %s (FAILED)",
+			host,
+			ip,
 			a.lastUpdate.Format("15:04:05"),
-			timeLeft,
 		)
 	} else {
 		status = fmt.Sprintf(
-			"[::i]Data as of %s (%d ms) - updating in %s[::-]",
+			"Scheduler: %s (%s) | Data as of %s (%d ms)",
+			host,
+			ip,
 			a.lastUpdate.Format("15:04:05"),
 			a.lastReqDuration.Milliseconds(),
-			timeLeft,
 		)
 	}
-	a.footerStatus.SetText(status)
+	statusLine.SetText(status)
 }
 
 func (a *App) fetchJobsWithTimeout() (TableData, error) {
