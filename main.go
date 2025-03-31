@@ -81,13 +81,15 @@ func (a *App) setupSearchBox() {
 	a.searchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
-			a.searchBox.SetText("")
-			a.searchActive = false
 			a.hideSearchBox()
 			a.updateTableView(a.currentTableView)
 			return nil
 		case tcell.KeyEnter:
-			a.app.SetFocus(a.currentTableView)
+			if a.searchPattern == "" {
+				a.hideSearchBox()
+			} else {
+				a.app.SetFocus(a.currentTableView)
+			}
 			return nil
 		}
 		return event
@@ -95,24 +97,41 @@ func (a *App) setupSearchBox() {
 }
 
 func (a *App) showSearchBox() {
+	if a.currentTableView == nil {
+		return
+	}
+
+	// Rebuild the grid with search box and table
 	if a.currentTableView == a.nodesView {
+		a.nodeGrid.SetRows(1, 0) // 1 row for search, rest for table
 		a.nodeGrid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
+		a.nodeGrid.AddItem(a.nodesView, 1, 0, 1, 1, 0, 0, false)
 	} else if a.currentTableView == a.jobsView {
+		a.jobGrid.SetRows(1, 0) // 1 row for search, rest for table
 		a.jobGrid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
+		a.jobGrid.AddItem(a.jobsView, 1, 0, 1, 1, 0, 0, false)
 	}
 	a.app.SetFocus(a.searchBox)
 }
 
 func (a *App) hideSearchBox() {
-	if a.searchActive {
-		return // Keep visible if search has content
+	if a.currentTableView == nil {
+		return
 	}
-	
+
+	// Rebuild the grid with just the table
 	if a.currentTableView == a.nodesView {
-		a.nodeGrid.RemoveItem(a.searchBox)
+		a.nodeGrid.Clear()
+		a.nodeGrid.SetRows(0) // Just table
+		a.nodeGrid.AddItem(a.nodesView, 0, 0, 1, 1, 0, 0, true)
 	} else if a.currentTableView == a.jobsView {
-		a.jobGrid.RemoveItem(a.searchBox)
+		a.jobGrid.Clear()
+		a.jobGrid.SetRows(0) // Just table
+		a.jobGrid.AddItem(a.jobsView, 0, 0, 1, 1, 0, 0, true)
 	}
+	a.searchBox.SetText("")
+	a.searchActive = false
+	a.app.SetFocus(a.currentTableView)
 }
 
 func (a *App) setupViews() {
@@ -251,6 +270,7 @@ func (a *App) setupKeybinds() {
 		case '/':
 			if a.currentTableView != nil {
 				a.showSearchBox()
+				a.updateTableView(a.currentTableView)
 				return nil
 			}
 		}
