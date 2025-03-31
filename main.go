@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
@@ -33,6 +34,12 @@ type App struct {
 	lastReqDuration time.Duration
 	lastReqError    error
 	debugMultiplier int // Number of times to multiply node entries for debugging
+	
+	// Search state
+	searchBox      *tview.InputField
+	searchActive   bool
+	searchPattern  string
+	currentTableView *tview.Table // Points to either nodesView or jobsView
 }
 
 func main() {
@@ -54,7 +61,23 @@ func main() {
 	}
 }
 
+func (a *App) setupSearchBox() {
+	a.searchBox = tview.NewInputField().
+		SetLabel("Regex search: ").
+		SetFieldWidth(0).
+		SetPlaceholder("case-insensitive regex pattern").
+		SetChangedFunc(func(text string) {
+			a.searchPattern = strings.TrimSpace(text)
+			a.searchActive = a.searchPattern != ""
+			if a.currentTableView != nil {
+				a.updateTableView(a.currentTableView)
+			}
+		})
+	a.searchBox.SetBorder(false)
+}
+
 func (a *App) setupViews() {
+	a.setupSearchBox()
 	// Footer components
 	a.footerStatus = tview.NewTextView().
 		SetDynamicColors(true).
@@ -106,11 +129,23 @@ func (a *App) setupViews() {
 	a.nodesView.SetSelectedStyle(tcell.StyleDefault.
 		Background(tcell.ColorDarkSlateGray).
 		Foreground(tcell.ColorWhite))
-	a.pages.AddPage("nodes", a.nodesView, true, true)
+	
+	nodeGrid := tview.NewGrid().
+		SetRows(1, 0). // 1 for search box, 0 for table
+		SetColumns(0).
+		AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, false).
+		AddItem(a.nodesView, 1, 0, 1, 1, 0, 0, true)
+	a.pages.AddPage("nodes", nodeGrid, true, true)
+	a.currentTableView = a.nodesView
 
 	// Jobs View
 	a.setupJobsView()
-	a.pages.AddPage("jobs", a.jobsView, true, false)
+	jobGrid := tview.NewGrid().
+		SetRows(1, 0). // 1 for search box, 0 for table
+		SetColumns(0).
+		AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, false).
+		AddItem(a.jobsView, 1, 0, 1, 1, 0, 0, true)
+	a.pages.AddPage("jobs", jobGrid, true, false)
 
 	// Scheduler View
 	a.schedView = tview.NewTextView()
@@ -153,18 +188,49 @@ func (a *App) setupJobsView() {
 	}
 }
 
+var appInstance *App
+
+func GetApp() *App {
+	return appInstance
+}
+
 func (a *App) setupKeybinds() {
+	appInstance = a
+	
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case '1':
 			a.pages.SwitchToPage("nodes")
 			a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
+			a.currentTableView = a.nodesView
 		case '2':
 			a.pages.SwitchToPage("jobs")
 			a.footer.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
+			a.currentTableView = a.jobsView
 		case '3':
 			a.pages.SwitchToPage("scheduler")
 			a.footer.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
+			a.currentTableView = nil
+		case '/':
+			if a.currentTableView != nil {
+				a.app.SetFocus(a.searchBox)
+				return nil
+			}
+		}
+		return event
+	})
+
+	a.searchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyEsc:
+			a.searchBox.SetText("")
+			a.searchActive = false
+			a.updateTableView(a.currentTableView)
+			a.app.SetFocus(a.currentTableView)
+			return nil
+		case tcell.KeyEnter:
+			a.app.SetFocus(a.currentTableView)
+			return nil
 		}
 		return event
 	})
@@ -235,23 +301,50 @@ func (a *App) updateAllViews() {
 	// TODO: Add jobs and scheduler updates
 }
 
-func RenderTable(table *tview.Table, data TableData) {
-	table.Clear()
+func (a *App) updateTableView(table *tview.Table) {
+	var data TableData
+	switch table {
+	case a.nodesView:
+		data, _ = a.fetchNodesWithTimeout()
+	case a.jobsView:
+		data, _ = a.fetchJobsWithTimeout()
+	default:
+		return
+	}
 
+	table.Clear()
+	a.renderTable(table, data)
+}
+
+func (a *App) renderTable(table *tview.Table, data TableData) {
 	// Set headers with fixed width
 	columnWidths := []int{10, 10, 10, 6, 8, 8, 20, 6, 6, 6, 15} // Adjust as needed
 	for col, header := range data.Headers {
 		table.SetCell(0, col, tview.NewTableCell(header).
 			SetSelectable(false).
-			SetAlign(tview.AlignLeft).  // Changed from AlignCenter to AlignLeft
+			SetAlign(tview.AlignLeft).
 			SetMaxWidth(columnWidths[col]).
 			SetBackgroundColor(tcell.ColorBlack).
 			SetTextColor(tcell.ColorWhite).
 			SetAttributes(tcell.AttrBold))
 	}
 
+	// Filter rows if search is active
+	filteredRows := data.Rows
+	if a.searchActive {
+		filteredRows = [][]string{}
+		for _, row := range data.Rows {
+			for _, cell := range row {
+				if matched, _ := regexp.MatchString("(?i)"+a.searchPattern, cell); matched {
+					filteredRows = append(filteredRows, row)
+					break
+				}
+			}
+		}
+	}
+
 	// Set rows with text wrapping
-	for row, rowData := range data.Rows {
+	for row, rowData := range filteredRows {
 		for col, cell := range rowData {
 			table.SetCell(row+1, col, tview.NewTableCell(cell).
 				SetAlign(tview.AlignLeft).
@@ -259,6 +352,11 @@ func RenderTable(table *tview.Table, data TableData) {
 				SetExpansion(1))
 		}
 	}
+}
+
+func RenderTable(table *tview.Table, data TableData) {
+	app := GetApp() // Need to add this function
+	app.renderTable(table, data)
 }
 
 func (a *App) updateStatusFooter() {
