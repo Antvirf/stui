@@ -101,29 +101,43 @@ func (a *App) showSearchBox() {
 		return
 	}
 
-	// Always rebuild the grid to ensure proper layout
+	// Get the appropriate grid
 	grid := a.nodeGrid
 	if a.currentTableView == a.jobsView {
 		grid = a.jobGrid
 	}
 
+	// Clear and rebuild the grid with search box
 	grid.Clear()
-	if a.searchActive || a.searchBox.HasFocus() {
-		grid.SetRows(1, 0) // Show search box
-		grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
-		grid.AddItem(a.currentTableView, 1, 0, 1, 1, 0, 0, false)
-		a.app.SetFocus(a.searchBox)
-	} else {
-		grid.SetRows(0) // Hide search box
-		grid.AddItem(a.currentTableView, 0, 0, 1, 1, 0, 0, true)
-		a.app.SetFocus(a.currentTableView)
-	}
+	grid.SetRows(1, 0) // 1 row for search, rest for table
+	grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
+	grid.AddItem(a.currentTableView, 1, 0, 1, 1, 0, 0, false)
+	
+	// Set focus and ensure search box is visible
+	a.app.SetFocus(a.searchBox)
+	a.searchActive = true
 }
 
 func (a *App) hideSearchBox() {
+	if a.currentTableView == nil {
+		return
+	}
+
+	// Get the appropriate grid
+	grid := a.nodeGrid
+	if a.currentTableView == a.jobsView {
+		grid = a.jobGrid
+	}
+
+	// Clear and rebuild grid without search box
+	grid.Clear()
+	grid.SetRows(0) // Just table
+	grid.AddItem(a.currentTableView, 0, 0, 1, 1, 0, 0, true)
+	
+	// Reset search state
 	a.searchBox.SetText("")
 	a.searchActive = false
-	a.showSearchBox() // This will now properly hide if empty
+	a.app.SetFocus(a.currentTableView)
 }
 
 func (a *App) setupViews() {
@@ -262,6 +276,7 @@ func (a *App) setupKeybinds() {
 		case '/':
 			if a.currentTableView != nil {
 				a.showSearchBox()
+				a.updateTableView(a.currentTableView) // Refresh to show empty state
 				return nil
 			}
 		}
