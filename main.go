@@ -300,6 +300,15 @@ func (a *App) setupKeybinds() {
 				a.updateTableView(a.currentTableView)
 				return nil
 			}
+		case tcell.KeyEnter:
+			if a.currentTableView == a.nodesView {
+				row, _ := a.nodesView.GetSelection()
+				if row > 0 { // Skip header row
+					nodeName := a.nodesView.GetCell(row, 0).Text
+					a.showNodeDetails(nodeName)
+					return nil
+				}
+			}
 		}
 
 		switch event.Rune() {
@@ -315,15 +324,6 @@ func (a *App) setupKeybinds() {
 			a.pages.SwitchToPage("scheduler")
 			a.footer.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
 			a.currentTableView = nil
-		case tcell.KeyEnter:
-			if a.currentTableView == a.nodesView {
-				row, _ := a.nodesView.GetSelection()
-				if row > 0 { // Skip header row
-					nodeName := a.nodesView.GetCell(row, 0).Text
-					a.showNodeDetails(nodeName)
-					return nil
-				}
-			}
 		case '/':
 			if a.currentTableView != nil {
 				a.showSearchBox()
