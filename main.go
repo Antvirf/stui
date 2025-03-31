@@ -91,8 +91,7 @@ func (a *App) setupViews() {
 	a.mainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrBold).
 		SetTitle(" S9S - Slurm Management TUI ").
-		SetTitleAlign(tview.AlignCenter).
-		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
+		SetTitleAlign(tview.AlignCenter)
 
 	// Nodes View
 	a.nodesView = tview.NewTable()
