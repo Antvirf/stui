@@ -665,59 +665,24 @@ func (a *App) fetchNodeDetailsWithTimeout(nodeName string) (string, error) {
 }
 
 func (a *App) getSchedulerInfo() (string, string) {
-	// Try multiple methods to get scheduler host
-	methods := []struct {
-		cmd  string
-		args []string
-		parse func(string) string
-	}{
-		{
-			"scontrol", 
-			[]string{"show", "config"},
-			func(output string) string {
-				for _, line := range strings.Split(output, "\n") {
-					if strings.HasPrefix(line, "SlurmctldHost") {
-						parts := strings.SplitN(line, "=", 2)
-						if len(parts) == 2 {
-							// Extract host from SlurmctldHost[0]=hostname
-							host := strings.TrimSpace(parts[1])
-							if strings.Contains(host, "[") {
-								host = strings.Split(host, "[")[0]
-							}
-							return host
-						}
-					}
-				}
-				return ""
-			},
-		},
-		{
-			"sinfo", 
-			[]string{"-h", "-o%P"},
-			func(output string) string {
-				parts := strings.Split(strings.TrimSpace(output), ",")
-				if len(parts) > 0 {
-					return parts[0] + "-ctrl" // Common convention
-				}
-				return ""
-			},
-		},
-		{
-			"hostname",
-			[]string{"-s"},
-			func(output string) string {
-				return strings.TrimSpace(output) + "-ctrl" // Common convention
-			},
-		},
+	// Get scheduler host from slurm config
+	cmd := exec.Command("scontrol", "show", "config")
+	out, err := cmd.Output()
+	if err != nil {
+		return "unknown", "unknown"
 	}
 
+	// Parse output for controller host
 	var host string
-	for _, method := range methods {
-		cmd := exec.Command(method.cmd, method.args...)
-		out, err := cmd.Output()
-		if err == nil {
-			host = method.parse(string(out))
-			if host != "" {
+	for _, line := range strings.Split(string(out), "\n") {
+		if strings.HasPrefix(line, "SlurmctldHost") {
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				// Extract host from SlurmctldHost[0]=hostname
+				host = strings.TrimSpace(parts[1])
+				if strings.Contains(host, "[") {
+					host = strings.Split(host, "[")[0]
+				}
 				break
 			}
 		}
