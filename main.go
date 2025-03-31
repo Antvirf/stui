@@ -665,30 +665,79 @@ func (a *App) fetchNodeDetailsWithTimeout(nodeName string) (string, error) {
 }
 
 func (a *App) getSchedulerInfo() (string, string) {
-	// Try to get scheduler host from slurm.conf
-	cmd := exec.Command("scontrol", "show", "config")
-	out, err := cmd.Output()
-	if err != nil {
-		return "unknown", "unknown"
+	// Try multiple methods to get scheduler host
+	methods := []struct {
+		cmd  string
+		args []string
+		parse func(string) string
+	}{
+		{
+			"scontrol", 
+			[]string{"show", "config"},
+			func(output string) string {
+				for _, line := range strings.Split(output, "\n") {
+					if strings.HasPrefix(line, "ControlMachine") {
+						parts := strings.SplitN(line, "=", 2)
+						if len(parts) == 2 {
+							return strings.TrimSpace(parts[1])
+						}
+					}
+				}
+				return ""
+			},
+		},
+		{
+			"sinfo", 
+			[]string{"-h", "-o%P"},
+			func(output string) string {
+				parts := strings.Split(strings.TrimSpace(output), ",")
+				if len(parts) > 0 {
+					return parts[0] + "-ctrl" // Common convention
+				}
+				return ""
+			},
+		},
+		{
+			"hostname",
+			[]string{"-s"},
+			func(output string) string {
+				return strings.TrimSpace(output) + "-ctrl" // Common convention
+			},
+		},
 	}
 
-	// Parse output for controller host
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
-		if strings.HasPrefix(line, "ControlMachine") {
-			parts := strings.SplitN(line, "=", 2)
-			if len(parts) == 2 {
-				host := strings.TrimSpace(parts[1])
-				// Lookup IP
-				addrs, err := net.LookupHost(host)
-				if err == nil && len(addrs) > 0 {
-					return host, addrs[0]
-				}
-				return host, "unknown"
+	var host string
+	for _, method := range methods {
+		cmd := exec.Command(method.cmd, method.args...)
+		out, err := cmd.Output()
+		if err == nil {
+			host = method.parse(string(out))
+			if host != "" {
+				break
 			}
 		}
 	}
-	return "unknown", "unknown"
+
+	if host == "" {
+		return "unknown", "unknown"
+	}
+
+	// Try to get IP
+	addrs, err := net.LookupHost(host)
+	if err == nil && len(addrs) > 0 {
+		return host, addrs[0]
+	}
+
+	// Try short hostname if FQDN failed
+	if strings.Contains(host, ".") {
+		shortHost := strings.Split(host, ".")[0]
+		addrs, err = net.LookupHost(shortHost)
+		if err == nil && len(addrs) > 0 {
+			return host, addrs[0]
+		}
+	}
+
+	return host, "unknown"
 }
 
 func (a *App) fetchSdiagWithTimeout() (string, error) {
