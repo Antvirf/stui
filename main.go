@@ -262,48 +262,60 @@ func GetApp() *App {
 func (a *App) setupKeybinds() {
 	appInstance = a
 
+	// Global keybinds (work anywhere)
 	a.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyEsc:
-			if a.searchActive || a.searchBox.HasFocus() {
-				a.hideSearchBox()
-				a.updateTableView(a.currentTableView)
-				return nil
-			}
-		case tcell.KeyEnter:
-			if a.currentTableView == a.nodesView {
-				row, _ := a.nodesView.GetSelection()
-				if row > 0 { // Skip header row
-					nodeName := a.nodesView.GetCell(row, 0).Text
-					a.showNodeDetails(nodeName)
-					return nil
-				}
-			}
-		}
-
 		switch event.Rune() {
 		case '1':
 			a.pages.SwitchToPage("nodes")
 			a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 			a.currentTableView = a.nodesView
+			return nil
 		case '2':
 			a.pages.SwitchToPage("jobs")
 			a.footer.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
 			a.currentTableView = a.jobsView
+			return nil
 		case '3':
 			a.pages.SwitchToPage("scheduler")
 			a.footer.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
 			a.currentTableView = nil
+			return nil
+		}
+		return event
+	})
+
+	// Table view keybinds
+	a.nodesView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Rune() {
 		case '/':
-			if a.currentTableView != nil {
-				a.showSearchBox()
-				a.updateTableView(a.currentTableView) // Refresh to show empty state
+			a.showSearchBox()
+			a.updateTableView(a.nodesView)
+			return nil
+		}
+
+		switch event.Key() {
+		case tcell.KeyEnter:
+			row, _ := a.nodesView.GetSelection()
+			if row > 0 { // Skip header row
+				nodeName := a.nodesView.GetCell(row, 0).Text
+				a.showNodeDetails(nodeName)
 				return nil
 			}
 		}
 		return event
 	})
 
+	a.jobsView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Rune() {
+		case '/':
+			a.showSearchBox()
+			a.updateTableView(a.jobsView)
+			return nil
+		}
+		return event
+	})
+
+	// Search box keybinds
 	a.searchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
@@ -320,6 +332,8 @@ func (a *App) setupKeybinds() {
 		}
 		return event
 	})
+
+	// Node detail view keybinds are set in showNodeDetails()
 }
 
 func (a *App) startRefresh() {
