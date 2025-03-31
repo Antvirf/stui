@@ -676,10 +676,15 @@ func (a *App) getSchedulerInfo() (string, string) {
 			[]string{"show", "config"},
 			func(output string) string {
 				for _, line := range strings.Split(output, "\n") {
-					if strings.HasPrefix(line, "ControlMachine") {
+					if strings.HasPrefix(line, "SlurmctldHost") {
 						parts := strings.SplitN(line, "=", 2)
 						if len(parts) == 2 {
-							return strings.TrimSpace(parts[1])
+							// Extract host from SlurmctldHost[0]=hostname
+							host := strings.TrimSpace(parts[1])
+							if strings.Contains(host, "[") {
+								host = strings.Split(host, "[")[0]
+							}
+							return host
 						}
 					}
 				}
