@@ -273,6 +273,8 @@ func (a *App) setupKeybinds() {
 			a.currentTableView = a.nodesView
 			if a.searchActive {
 				a.showSearchBox()
+			} else {
+				a.app.SetFocus(a.nodesView)
 			}
 			return nil
 		case '2':
@@ -281,6 +283,8 @@ func (a *App) setupKeybinds() {
 			a.currentTableView = a.jobsView
 			if a.searchActive {
 				a.showSearchBox()
+			} else {
+				a.app.SetFocus(a.jobsView)
 			}
 			return nil
 		case '3':
