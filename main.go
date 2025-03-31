@@ -116,8 +116,10 @@ func (a *App) showSearchBox() {
 	grid.AddItem(a.searchBox, 0, 0, 1, 1, 0, 0, true)
 	grid.AddItem(a.currentTableView, 1, 0, 1, 1, 0, 0, false)
 
-	// Set focus and ensure search box is visible
-	a.app.SetFocus(a.searchBox)
+	// Set focus to search box if it's not active
+	if !a.searchBox.HasFocus() {
+		a.app.SetFocus(a.searchBox)
+	}
 	a.searchActive = true
 }
 
@@ -269,16 +271,23 @@ func (a *App) setupKeybinds() {
 			a.pages.SwitchToPage("nodes")
 			a.footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 			a.currentTableView = a.nodesView
+			if a.searchActive {
+				a.showSearchBox()
+			}
 			return nil
 		case '2':
 			a.pages.SwitchToPage("jobs")
 			a.footer.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
 			a.currentTableView = a.jobsView
+			if a.searchActive {
+				a.showSearchBox()
+			}
 			return nil
 		case '3':
 			a.pages.SwitchToPage("scheduler")
 			a.footer.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
 			a.currentTableView = nil
+			a.hideSearchBox()
 			return nil
 		}
 		return event
