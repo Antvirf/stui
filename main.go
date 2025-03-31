@@ -285,6 +285,7 @@ func (a *App) setupKeybinds() {
 				a.hideSearchBox()
 			}
 			a.app.SetFocus(a.nodesView)
+			a.updateTableView(a.nodesView) // Trigger immediate refresh
 			return nil
 		case '2':
 			a.pages.SwitchToPage("jobs")
@@ -296,6 +297,7 @@ func (a *App) setupKeybinds() {
 				a.hideSearchBox()
 			}
 			a.app.SetFocus(a.jobsView)
+			a.updateTableView(a.jobsView) // Trigger immediate refresh
 			return nil
 		case '3':
 			a.pages.SwitchToPage("scheduler")
