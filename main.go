@@ -355,6 +355,13 @@ func (a *App) setupKeybinds() {
 		}
 
 		switch event.Key() {
+		case tcell.KeyEnter:
+			row, _ := a.jobsView.GetSelection()
+			if row > 0 { // Skip header row
+				jobID := a.jobsView.GetCell(row, 0).Text
+				a.showJobDetails(jobID)
+				return nil
+			}
 		case tcell.KeyEsc:
 			if a.searchActive {
 				a.hideSearchBox()
@@ -577,28 +584,23 @@ func (a *App) fetchJobsWithTimeout() (TableData, error) {
 	}, nil
 }
 
-func (a *App) showNodeDetails(nodeName string) {
-	details, err := a.fetchNodeDetailsWithTimeout(nodeName)
-	if err != nil {
-		details = fmt.Sprintf("Error fetching node details:\n%s", err.Error())
-	}
-
+func (a *App) showDetailsModal(title, details string) {
 	// Create new modal components each time (don't reuse)
-	nodeDetailView := tview.NewTextView().
+	detailView := tview.NewTextView().
 		SetDynamicColors(true).
 		SetScrollable(true).
 		SetWrap(true). // Enable text wrapping
 		SetTextAlign(tview.AlignLeft)
-	nodeDetailView.SetText(details)
+	detailView.SetText(details)
 
 	modal := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(tview.NewTextView().
 			SetTextAlign(tview.AlignCenter).
-			SetText(fmt.Sprintf(" Node Details: %s (ESC to close) ", nodeName)).
+			SetText(fmt.Sprintf(" %s (ESC to close) ", title)).
 			SetTextColor(tcell.ColorWhite),
 			2, 0, false).
-		AddItem(nodeDetailView, 0, 1, true)
+		AddItem(detailView, 0, 1, true)
 
 	modal.SetBorder(true).
 		SetBorderColor(tcell.ColorDarkOrange).
@@ -621,13 +623,14 @@ func (a *App) showNodeDetails(nodeName string) {
 	}
 
 	// Add as overlay without switching pages
-	a.pages.AddPage("nodeDetail", centered, true, true)
-	a.app.SetFocus(nodeDetailView)
+	pageName := "detailView"
+	a.pages.AddPage(pageName, centered, true, true)
+	a.app.SetFocus(detailView)
 
 	// Set up handler to return to correct view when closed
-	nodeDetailView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	detailView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEsc {
-			a.pages.RemovePage("nodeDetail")
+			a.pages.RemovePage(pageName)
 			a.pages.SwitchToPage(currentPage)
 			a.app.SetFocus(a.currentTableView)
 			return nil
@@ -636,11 +639,42 @@ func (a *App) showNodeDetails(nodeName string) {
 	})
 }
 
+func (a *App) showNodeDetails(nodeName string) {
+	details, err := a.fetchNodeDetailsWithTimeout(nodeName)
+	if err != nil {
+		details = fmt.Sprintf("Error fetching node details:\n%s", err.Error())
+	}
+	a.showDetailsModal(fmt.Sprintf("Node Details: %s", nodeName), details)
+}
+
+func (a *App) showJobDetails(jobID string) {
+	details, err := a.fetchJobDetailsWithTimeout(jobID)
+	if err != nil {
+		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
+	}
+	a.showDetailsModal(fmt.Sprintf("Job Details: %s", jobID), details)
+}
+
 func (a *App) fetchNodeDetailsWithTimeout(nodeName string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "scontrol", "show", "node", nodeName)
+	out, err := cmd.Output()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("timeout after %v", a.requestTimeout)
+		}
+		return "", fmt.Errorf("scontrol failed: %v", err)
+	}
+	return string(out), nil
+}
+
+func (a *App) fetchJobDetailsWithTimeout(jobID string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "scontrol", "show", "job", jobID)
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
