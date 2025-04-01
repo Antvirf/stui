@@ -1,4 +1,4 @@
-module github.com/antvirf/s9s-ai
+module github.com/antvirf/stui
 
 go 1.24.1
 

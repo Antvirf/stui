@@ -193,7 +193,7 @@ func (a *App) setupViews() {
 
 	a.mainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrBold).
-		SetTitle(" S9S - Slurm Management TUI ").
+		SetTitle(" stui - Slurm Management TUI ").
 		SetTitleAlign(tview.AlignCenter)
 
 	// Nodes View
