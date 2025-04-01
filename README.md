@@ -4,6 +4,11 @@
 
 Terminal User Interface (TUI) for viewing and managing Slurm nodes and jobs.
 
+```bash
+go install github.com/antvirf/stui@latest
+sudo mv ~/go/bin/stui /usr/bin
+```
+
 ## To-do
 
 - Proper code structure
