@@ -606,14 +606,14 @@ func (a *App) showDetailsModal(title, details string) {
 		SetBorderColor(tcell.ColorDarkOrange).
 		SetBackgroundColor(tcell.ColorBlack)
 
-	// Create centered container with fixed size (50% width, 80% height)
+	// Create centered container with fixed size (80% width, 90% height)
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
 			AddItem(nil, 0, 1, false).
-			AddItem(modal, 0, 8, true).
+			AddItem(modal, 0, 18, true).  // Increased height
 			AddItem(nil, 0, 1, false),
-			0, 8, false).
+			0, 16, false).  // Increased width
 		AddItem(nil, 0, 1, false)
 
 	// Store current page before showing modal
