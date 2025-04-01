@@ -29,7 +29,7 @@ type App struct {
 	footerStatus    *tview.TextView
 	statusLine      *tview.TextView // Combined status line
 	footerSeparator *tview.Box
-	mainGrid        *tview.Grid
+	mainGrid        *tview.Flex
 	refreshInterval time.Duration
 	requestTimeout  time.Duration
 	lastUpdate      time.Time
@@ -50,7 +50,7 @@ type App struct {
 }
 
 func main() {
-	debugMultiplier := 3 // Default multiplier value for debugging
+	debugMultiplier := 1 // Default multiplier value for debugging
 	app := &App{
 		app:             tview.NewApplication(),
 		pages:           tview.NewPages(),
@@ -183,13 +183,11 @@ func (a *App) setupViews() {
 		SetBorder(false).
 		SetBorderAttributes(tcell.AttrBold)
 
-	// Main grid layout
-	a.mainGrid = tview.NewGrid().
-		SetRows(0, 0, 5). // 0 for pages (flexible), 0 for separator, 5 for footer (more height)
-		SetColumns(0).    // Single column
-		AddItem(a.pages, 0, 0, 1, 1, 0, 0, true).
-		AddItem(a.footerSeparator, 1, 0, 1, 1, 0, 0, false).
-		AddItem(footerGrid, 2, 0, 1, 1, 0, 0, false)
+	// Main grid layout, implemented with Flex
+	a.mainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(a.pages, 0, 30, true).
+		AddItem(a.footerSeparator, 0, 1, false).
+		AddItem(footerGrid, 0, 3, false)
 
 	a.mainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrBold).
@@ -610,8 +608,8 @@ func (a *App) showDetailsModal(title, details string) {
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(modal, 40, 10, true),  // Increased height
-			0, 16, false).  // Increased width
+			AddItem(modal, 40, 10, true), // Increased height
+			0, 16, false). // Increased width
 		AddItem(nil, 0, 1, false)
 
 	// Store current page before showing modal
