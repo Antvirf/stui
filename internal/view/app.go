@@ -25,10 +25,8 @@ type App struct {
 	StatusLine      *tview.TextView // Combined status line
 	FooterSeparator *tview.Box
 	MainGrid        *tview.Flex
-	RefreshInterval time.Duration
 	RequestTimeout  time.Duration
 	LastUpdate      time.Time
-	NextUpdate      time.Time
 	LastReqDuration time.Duration
 	LastReqError    error
 	DebugMultiplier int // Number of times to multiply node entries for debugging
@@ -244,8 +242,8 @@ func (a *App) SetupJobsView() {
 	}
 }
 
-func (a *App) StartRefresh() {
-	ticker := time.NewTicker(a.RefreshInterval)
+func (a *App) StartRefresh(interval time.Duration) {
+	ticker := time.NewTicker(interval)
 	go func() {
 		for range ticker.C {
 			a.App.QueueUpdateDraw(func() {
@@ -289,7 +287,6 @@ func (a *App) UpdateAllViews() {
 
 	a.LastReqDuration = time.Since(start)
 	a.LastUpdate = time.Now()
-	a.NextUpdate = a.LastUpdate.Add(a.RefreshInterval)
 
 	// Update status line immediately
 	schedulerHost, schedulerIP := a.GetSchedulerInfo()
