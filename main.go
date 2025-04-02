@@ -10,14 +10,11 @@ import (
 
 	"net"
 
+	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-type TableData struct {
-	Headers []string
-	Rows    [][]string
-}
 
 type App struct {
 	app             *tview.Application
@@ -446,7 +443,7 @@ func (a *App) updateAllViews() {
 }
 
 func (a *App) updateTableView(table *tview.Table) {
-	var data TableData
+	var data model.TableData
 	switch table {
 	case a.nodesView:
 		data, _ = a.fetchNodesWithTimeout()
@@ -460,7 +457,7 @@ func (a *App) updateTableView(table *tview.Table) {
 	a.renderTable(table, data)
 }
 
-func (a *App) renderTable(table *tview.Table, data TableData) {
+func (a *App) renderTable(table *tview.Table, data model.TableData) {
 	// Set headers with fixed width
 	columnWidths := []int{10, 10, 10, 6, 8, 8, 20, 6, 6, 6, 15} // Adjust as needed
 
@@ -517,7 +514,7 @@ func (a *App) renderTable(table *tview.Table, data TableData) {
 	}
 }
 
-func RenderTable(table *tview.Table, data TableData) {
+func RenderTable(table *tview.Table, data model.TableData) {
 	app := GetApp() // Need to add this function
 	app.renderTable(table, data)
 }
@@ -543,7 +540,7 @@ func (a *App) updateStatusLine(statusLine *tview.TextView, host, ip string) {
 	statusLine.SetText(status)
 }
 
-func (a *App) fetchJobsWithTimeout() (TableData, error) {
+func (a *App) fetchJobsWithTimeout() (model.TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
 	defer cancel()
 
@@ -551,9 +548,9 @@ func (a *App) fetchJobsWithTimeout() (TableData, error) {
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return TableData{}, fmt.Errorf("timeout after %v", a.requestTimeout)
+			return model.TableData{}, fmt.Errorf("timeout after %v", a.requestTimeout)
 		}
-		return TableData{}, fmt.Errorf("squeue failed: %v", err)
+		return model.TableData{}, fmt.Errorf("squeue failed: %v", err)
 	}
 
 	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
@@ -576,7 +573,7 @@ func (a *App) fetchJobsWithTimeout() (TableData, error) {
 		}
 	}
 
-	return TableData{
+	return model.TableData{
 		Headers: headers,
 		Rows:    rows,
 	}, nil
@@ -743,7 +740,7 @@ func (a *App) fetchSdiagWithTimeout() (string, error) {
 	return string(out), nil
 }
 
-func (a *App) fetchNodesWithTimeout() (TableData, error) {
+func (a *App) fetchNodesWithTimeout() (model.TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), a.requestTimeout)
 	defer cancel()
 
@@ -751,9 +748,9 @@ func (a *App) fetchNodesWithTimeout() (TableData, error) {
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return TableData{}, fmt.Errorf("timeout after %v", a.requestTimeout)
+			return model.TableData{}, fmt.Errorf("timeout after %v", a.requestTimeout)
 		}
-		return TableData{}, fmt.Errorf("sinfo failed: %v", err)
+		return model.TableData{}, fmt.Errorf("sinfo failed: %v", err)
 	}
 
 	headers := []string{
@@ -787,7 +784,7 @@ func (a *App) fetchNodesWithTimeout() (TableData, error) {
 		}
 	}
 
-	return TableData{
+	return model.TableData{
 		Headers: headers,
 		Rows:    rows,
 	}, nil
