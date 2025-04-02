@@ -14,15 +14,18 @@ func main() {
 	var refreshInterval = flag.Int("refresh-interval", 30, "interval in seconds when to refetch data")
 	var requestTimeout = flag.Int("request-timeout", 15, "timeout setting for fetching data")
 	var debubMultiplier = flag.Int("debug-multiplier", 1, "multiplier for nodes, helpful when debugging and developing")
-	// TODO: Slurm.conf location
-	// TODO: Slurm binaries paths
-	// TODO: Slurm RESTD option, once available
+	var slurmBinariesPath = flag.String("slurm-binaries-path", "/usr/local/bin", "path where Slurm binaries like 'sinfo' and 'squeue' can be found")
+	var slurmConfLocation = flag.String("slurm-conf-location", "/etc/slurm/slurm.conf", "path to slurm.conf for the desired cluster")
+	var slurmRestdAddress = flag.String("slurm-restd-address", "", "URI for Slurm REST API if available, including protocol and port")
 	flag.Parse()
 
 	// Validate input and configs
 	if *requestTimeout > *refreshInterval {
 		log.Fatalf("Invalid arguments: request timeout of '%d' is longer than refresh interval of '%d'", *requestTimeout, *refreshInterval)
 	}
+	log.Printf("WARNING: flag value is currently unimplemented: slurm-binaries-path='%s'", *slurmBinariesPath)
+	log.Printf("WARNING: flag value is currently unimplemented: slurm-conf-location='%s'", *slurmConfLocation)
+	log.Printf("WARNING: flag value is currently unimplemented: slurm-restd-address='%s'", *slurmRestdAddress)
 
 	app := &view.App{
 		App:             tview.NewApplication(),
