@@ -13,7 +13,6 @@ sudo mv ~/go/bin/stui /usr/bin
 
 - Proper code structure
   - Configurability with `flag`
-  - Views into their own internal package
   - Data fetchers into their own internal package
 - General ability to 'select' rows (both jobs / nodes), first feature just `yank` the data
 - Control commands: Set node state and reason for all selected nodes
