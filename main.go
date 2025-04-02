@@ -54,8 +54,8 @@ func main() {
 	app := &App{
 		app:             tview.NewApplication(),
 		pages:           tview.NewPages(),
-		refreshInterval: 3 * time.Second,
-		requestTimeout:  2 * time.Second, // Must be less than refreshInterval
+		refreshInterval: 60 * time.Second,
+		requestTimeout:  5 * time.Second, // Must be less than refreshInterval
 		debugMultiplier: debugMultiplier,
 	}
 
