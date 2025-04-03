@@ -16,7 +16,6 @@ func (a *App) SetupKeybinds() {
 		case '1':
 			a.Pages.SwitchToPage("nodes")
 			a.Footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
-			a.PagesContainer.SetTitle(" Nodes (x / y) ")
 			a.CurrentTableView = a.NodesView
 			if a.SearchPattern != "" {
 				a.ShowSearchBox()
@@ -29,7 +28,6 @@ func (a *App) SetupKeybinds() {
 		case '2':
 			a.Pages.SwitchToPage("jobs")
 			a.Footer.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
-			a.PagesContainer.SetTitle(" Jobs (x / y) ")
 			a.CurrentTableView = a.JobsView
 			if a.SearchPattern != "" {
 				a.ShowSearchBox()

@@ -223,7 +223,6 @@ func (a *App) SetupViews() {
 		SetDynamicColors(true).
 		SetScrollable(true).
 		SetWrap(false).
-		SetTitle(" Scheduler (3) ").
 		SetTitleAlign(tview.AlignLeft).
 		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 	a.Pages.AddPage("scheduler", a.SchedView, true, false)
@@ -333,6 +332,20 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 	// First clear the table but preserve column widths
 	table.Clear()
 
+	// Update page title with counts
+	totalCount := len(data.Rows)
+	filteredCount := totalCount
+	if a.SearchActive {
+		filteredCount = 0 // Will be updated in the filtering loop below
+	}
+
+	// Set appropriate title based on which table we're rendering
+	if table == a.NodesView {
+		a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
+	} else if table == a.JobsView {
+		a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
+	}
+
 	// Set headers with fixed widths and padding
 	for col, header := range data.Headers {
 		// Pad header with spaces to maintain width
@@ -354,9 +367,16 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 			for _, cell := range row {
 				if matched, _ := regexp.MatchString("(?i)"+a.SearchPattern, cell); matched {
 					filteredRows = append(filteredRows, row)
+					filteredCount++
 					break
 				}
 			}
+		}
+		// Update title with filtered count
+		if table == a.NodesView {
+			a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
+		} else if table == a.JobsView {
+			a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
 		}
 	}
 
