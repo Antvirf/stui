@@ -11,6 +11,7 @@ import (
 
 func main() {
 	// Flags
+	var searchDebounceInterval = flag.Int("search-debounce-interval", 50, "interval in milliseconds to wait before searching")
 	var refreshInterval = flag.Int("refresh-interval", 30, "interval in seconds when to refetch data")
 	var requestTimeout = flag.Int("request-timeout", 15, "timeout setting for fetching data")
 	var debubMultiplier = flag.Int("debug-multiplier", 1, "multiplier for nodes, helpful when debugging and developing")
@@ -28,10 +29,11 @@ func main() {
 	log.Printf("WARNING: flag value is currently unimplemented: slurm-restd-address='%s'", *slurmRestdAddress)
 
 	app := &view.App{
-		App:             tview.NewApplication(),
-		Pages:           tview.NewPages(),
-		RequestTimeout:  time.Duration(*requestTimeout) * time.Second, // Must be less than refreshInterval
-		DebugMultiplier: *debubMultiplier,
+		App:                    tview.NewApplication(),
+		Pages:                  tview.NewPages(),
+		RequestTimeout:         time.Duration(*requestTimeout) * time.Second, // Must be less than refreshInterval
+		DebugMultiplier:        *debubMultiplier,
+		SearchDebounceInterval: time.Duration(*searchDebounceInterval) * time.Millisecond,
 	}
 
 	app.SetupViews()

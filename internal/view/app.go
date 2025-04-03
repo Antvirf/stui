@@ -15,22 +15,23 @@ import (
 )
 
 type App struct {
-	App             *tview.Application
-	Pages           *tview.Pages
-	PagesContainer  *tview.Flex // Container for pages with border title
-	NodesView       *tview.Table
-	JobsView        *tview.Table
-	SchedView       *tview.TextView
-	Footer          *tview.TextView
-	FooterStatus    *tview.TextView
-	StatusLine      *tview.TextView // Combined status line
-	FooterSeparator *tview.Box
-	MainGrid        *tview.Flex
-	RequestTimeout  time.Duration
-	LastUpdate      time.Time
-	LastReqDuration time.Duration
-	LastReqError    error
-	DebugMultiplier int // Number of times to multiply node entries for debugging
+	App                    *tview.Application
+	Pages                  *tview.Pages
+	PagesContainer         *tview.Flex // Container for pages with border title
+	NodesView              *tview.Table
+	JobsView               *tview.Table
+	SchedView              *tview.TextView
+	Footer                 *tview.TextView
+	FooterStatus           *tview.TextView
+	StatusLine             *tview.TextView // Combined status line
+	FooterSeparator        *tview.Box
+	MainGrid               *tview.Flex
+	SearchDebounceInterval time.Duration
+	RequestTimeout         time.Duration
+	LastUpdate             time.Time
+	LastReqDuration        time.Duration
+	LastReqError           error
+	DebugMultiplier        int // Number of times to multiply node entries for debugging
 
 	// Search state
 	SearchBox        *tview.InputField
@@ -38,6 +39,7 @@ type App struct {
 	SearchPattern    string
 	CurrentTableView *tview.Table // Points to either NodesView or JobsView
 	NodeGrid         *tview.Grid  // Grid containing nodes view and search
+	searchTimer      *time.Timer  // Timer for debouncing search updates
 	JobGrid          *tview.Grid  // Grid containing jobs view and search
 }
 
@@ -63,9 +65,19 @@ func (a *App) SetupSearchBox() {
 				a.HideSearchBox()
 			}
 
-			if a.CurrentTableView != nil {
-				a.UpdateTableView(a.CurrentTableView)
+			// Cancel any pending updates
+			if a.searchTimer != nil {
+				a.searchTimer.Stop()
 			}
+
+			// Schedule new update after delay
+			a.searchTimer = time.AfterFunc(a.SearchDebounceInterval, func() {
+				a.App.QueueUpdateDraw(func() {
+					if a.CurrentTableView != nil {
+						a.UpdateTableView(a.CurrentTableView)
+					}
+				})
+			})
 		})
 	a.SearchBox.SetBorder(false)
 
@@ -109,6 +121,12 @@ func (a *App) ShowSearchBox() {
 }
 
 func (a *App) HideSearchBox() {
+	// Stop any pending search updates
+	if a.searchTimer != nil {
+		a.searchTimer.Stop()
+		a.searchTimer = nil
+	}
+
 	if a.CurrentTableView == nil {
 		return
 	}
