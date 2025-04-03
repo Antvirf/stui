@@ -35,17 +35,20 @@ sudo mv ~/go/bin/stui /usr/bin
             interval in seconds when to refetch data (default 30)
       -request-timeout int
             timeout setting for fetching data (default 15)
+      -search-debounce-interval int
+            interval in milliseconds to wait before searching (default 50)
       -slurm-binaries-path string
             path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
       -slurm-conf-location string
             path to slurm.conf for the desired cluster (default "/etc/slurm/slurm.conf")
       -slurm-restd-address string
             URI for Slurm REST API if available, including protocol and port
-
     ```
 
 ## To-do
 
+- Customisable columns and query expression
+- Nodes view: show only 1 row per node, regardless of number of partitions
 - Proper code structure
   - Data fetchers into their own internal package, use config options from main
   - Separate out view and data models cleanly
