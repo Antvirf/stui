@@ -154,21 +154,36 @@ func (a *App) SetupViews() {
 		AddItem(a.Footer, 0, 0, 1, 1, 0, 0, false).
 		AddItem(a.StatusLine, 1, 0, 1, 1, 0, 0, false)
 
-	footerGrid.SetBorder(true).
+	footerGrid.SetBorder(true).SetBorderStyle(
+		tcell.StyleDefault.
+			Foreground(tcell.ColorGray).
+			Background(tcell.ColorBlack),
+	).
 		SetBorderPadding(0, 0, 0, 0)
 
 	a.FooterSeparator = tview.NewBox().
 		SetBorder(false).
 		SetBorderAttributes(tcell.AttrBold)
 
+	pagesContainer := tview.NewFlex().SetDirection(tview.FlexRow)
+
+	pagesContainer.AddItem(a.Pages, 0, 30, true).
+		SetBorder(true).
+		SetBorderStyle(
+			tcell.StyleDefault.
+				Foreground(tcell.ColorGray).
+				Background(tcell.ColorBlack),
+		).
+		SetTitle(" Nodes (x / y)")
+
 	// Main grid layout, implemented with Flex
 	a.MainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(a.Pages, 0, 30, true).
+		AddItem(pagesContainer, 0, 30, true).
 		AddItem(a.FooterSeparator, 0, 1, false).
 		AddItem(footerGrid, 0, 3, false)
 
 	a.MainGrid.SetBorder(true).
-		SetBorderAttributes(tcell.AttrBold).
+		SetBorderAttributes(tcell.AttrDim).
 		SetTitle(" stui - Slurm Management TUI ").
 		SetTitleAlign(tview.AlignCenter)
 
