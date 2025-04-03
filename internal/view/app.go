@@ -653,20 +653,24 @@ func (a *App) FetchNodesWithTimeout() (model.TableData, error) {
 	for _, line := range lines {
 		fields := strings.Split(line, "|")
 		if len(fields) >= 11 {
-			// Multiply the row according to DebugMultiplier
+			// Multiply each row according to DebugMultiplier
 			for i := 0; i < a.DebugMultiplier; i++ {
+				nodeName := strings.TrimPrefix(fields[0], "=")
+				if a.DebugMultiplier > 1 {
+					nodeName = fmt.Sprintf("%s-%d", nodeName, i+1)
+				}
 				row := []string{
-					strings.TrimPrefix(fields[0], "="), // Node
-					fields[1],                          // Partition
-					fields[2],                          // State
-					fields[3],                          // CPUs
-					fields[4],                          // Memory
-					fields[5],                          // CPULoad
-					fields[6],                          // Reason
-					fields[7],                          // Sockets
-					fields[8],                          // Cores
-					fields[9],                          // Threads
-					fields[10],                         // GRES
+					nodeName,   // Node
+					fields[1],  // Partition
+					fields[2],  // State
+					fields[3],  // CPUs
+					fields[4],  // Memory
+					fields[5],  // CPULoad
+					fields[6],  // Reason
+					fields[7],  // Sockets
+					fields[8],  // Cores
+					fields[9],  // Threads
+					fields[10], // GRES
 				}
 				rows = append(rows, row)
 			}
