@@ -14,10 +14,16 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	selectionColor = tcell.ColorDarkOrange // The orange color used for selections
+)
+
 type App struct {
 	App                    *tview.Application
 	Pages                  *tview.Pages
-	PagesContainer         *tview.Flex // Container for pages with border title
+	SelectedNodes          map[string]bool // Track selected nodes by name
+	SelectedJobs           map[string]bool // Track selected jobs by ID
+	PagesContainer         *tview.Flex     // Container for pages with border title
 	NodesView              *tview.Table
 	JobsView               *tview.Table
 	SchedView              *tview.TextView
@@ -150,6 +156,11 @@ func (a *App) HideSearchBox() {
 
 func (a *App) SetupViews() {
 	a.SetupSearchBox()
+
+	// Initialize selection tracking
+	a.SelectedNodes = make(map[string]bool)
+	a.SelectedJobs = make(map[string]bool)
+
 	// Footer components
 	a.FooterStatus = tview.NewTextView().
 		SetDynamicColors(true).
@@ -219,6 +230,7 @@ func (a *App) SetupViews() {
 	a.NodesView.SetSelectedStyle(tcell.StyleDefault.
 		Background(tcell.ColorDarkSlateGray).
 		Foreground(tcell.ColorWhite))
+	a.NodesView.SetBackgroundColor(tcell.ColorBlack) // Add this line
 
 	a.NodeGrid = tview.NewGrid().
 		SetRows(0). // Just table initially
@@ -263,6 +275,7 @@ func (a *App) SetupJobsView() {
 	a.JobsView.SetSelectedStyle(tcell.StyleDefault.
 		Background(tcell.ColorDarkSlateGray).
 		Foreground(tcell.ColorWhite))
+	a.JobsView.SetBackgroundColor(tcell.ColorBlack) // Add this line
 
 	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
 	for i, h := range headers {
@@ -402,10 +415,21 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 	// Set rows with text wrapping
 	for row, rowData := range filteredRows {
 		for col, cell := range rowData {
-			table.SetCell(row+1, col, tview.NewTableCell(cell).
+			cellView := tview.NewTableCell(cell).
 				SetAlign(tview.AlignLeft).
 				SetMaxWidth(columnWidths[col]).
-				SetExpansion(1))
+				SetExpansion(1)
+
+			// Highlight selected rows
+			if table == a.NodesView && a.SelectedNodes[rowData[0]] {
+				cellView.SetBackgroundColor(selectionColor)
+			} else if table == a.JobsView && a.SelectedJobs[rowData[0]] {
+				cellView.SetBackgroundColor(selectionColor)
+			} else {
+				cellView.SetBackgroundColor(tcell.ColorBlack) // Explicitly set default when not selected
+			}
+
+			table.SetCell(row+1, col, cellView)
 		}
 	}
 

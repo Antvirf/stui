@@ -56,6 +56,25 @@ func (a *App) SetupKeybinds() {
 			a.UpdateTableView(a.NodesView)
 			a.App.SetFocus(a.SearchBox) // Only focus search when / is pressed
 			return nil
+		case ' ':
+			row, _ := a.NodesView.GetSelection()
+			if row > 0 { // Skip header row
+				nodeName := a.NodesView.GetCell(row, 0).Text
+				if a.SelectedNodes[nodeName] {
+					delete(a.SelectedNodes, nodeName)
+					// Set all cells in row to default background
+					for col := 0; col < a.NodesView.GetColumnCount(); col++ {
+						a.NodesView.GetCell(row, col).SetBackgroundColor(tcell.ColorBlack)
+					}
+				} else {
+					a.SelectedNodes[nodeName] = true
+					// Set all cells in row to orange background
+					for col := 0; col < a.NodesView.GetColumnCount(); col++ {
+						a.NodesView.GetCell(row, col).SetBackgroundColor(selectionColor)
+					}
+				}
+			}
+			return nil
 		}
 
 		switch event.Key() {
@@ -82,6 +101,25 @@ func (a *App) SetupKeybinds() {
 			a.ShowSearchBox()
 			a.UpdateTableView(a.JobsView)
 			a.App.SetFocus(a.SearchBox) // Only focus search when / is pressed
+			return nil
+		case ' ':
+			row, _ := a.JobsView.GetSelection()
+			if row > 0 { // Skip header row
+				jobID := a.JobsView.GetCell(row, 0).Text
+				if a.SelectedJobs[jobID] {
+					delete(a.SelectedJobs, jobID)
+					// Set all cells in row to default background
+					for col := 0; col < a.JobsView.GetColumnCount(); col++ {
+						a.JobsView.GetCell(row, col).SetBackgroundColor(tcell.ColorBlack)
+					}
+				} else {
+					a.SelectedJobs[jobID] = true
+					// Set all cells in row to orange background
+					for col := 0; col < a.JobsView.GetColumnCount(); col++ {
+						a.JobsView.GetCell(row, col).SetBackgroundColor(selectionColor)
+					}
+				}
+			}
 			return nil
 		}
 

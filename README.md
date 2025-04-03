@@ -47,6 +47,7 @@ sudo mv ~/go/bin/stui /usr/bin
 
 ## To-do
 
+- Debug multiplier param for jobs for easier development
 - Customisable columns and query expression
 - Nodes view: show only 1 row per node, regardless of number of partitions
 - Proper code structure
