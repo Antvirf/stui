@@ -364,12 +364,11 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 	if a.SearchActive {
 		filteredRows = [][]string{}
 		for _, row := range data.Rows {
-			for _, cell := range row {
-				if matched, _ := regexp.MatchString("(?i)"+a.SearchPattern, cell); matched {
-					filteredRows = append(filteredRows, row)
-					filteredCount++
-					break
-				}
+			// Combine the entire row into a single string for regex matching
+			rowString := strings.Join(row, " ")
+			if matched, _ := regexp.MatchString("(?i)"+a.SearchPattern, rowString); matched {
+				filteredRows = append(filteredRows, row)
+				filteredCount++
 			}
 		}
 		// Update title with filtered count
