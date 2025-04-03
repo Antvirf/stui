@@ -193,7 +193,7 @@ func (a *App) SetupViews() {
 				Foreground(tcell.ColorGray).
 				Background(tcell.ColorBlack),
 		).
-		SetTitle(" Nodes (x / y)") // Initial title
+		SetTitle(" Nodes (0 / 0)") // Initial title matching nodes view
 
 	// Main grid layout, implemented with Flex
 	a.MainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
@@ -357,11 +357,13 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 		filteredCount = 0 // Will be updated in the filtering loop below
 	}
 
-	// Set appropriate title based on which table we're rendering
-	if table == a.NodesView {
-		a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
-	} else if table == a.JobsView {
-		a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
+	// Only update title if this is the currently active view
+	if table == a.CurrentTableView {
+		if table == a.NodesView {
+			a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
+		} else if table == a.JobsView {
+			a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
+		}
 	}
 
 	// Set headers with fixed widths and padding
