@@ -17,6 +17,7 @@ import (
 type App struct {
 	App             *tview.Application
 	Pages           *tview.Pages
+	PagesContainer  *tview.Flex // Container for pages with border title
 	NodesView       *tview.Table
 	JobsView        *tview.Table
 	SchedView       *tview.TextView
@@ -165,20 +166,20 @@ func (a *App) SetupViews() {
 		SetBorder(false).
 		SetBorderAttributes(tcell.AttrBold)
 
-	pagesContainer := tview.NewFlex().SetDirection(tview.FlexRow)
+	a.PagesContainer = tview.NewFlex().SetDirection(tview.FlexRow)
 
-	pagesContainer.AddItem(a.Pages, 0, 30, true).
+	a.PagesContainer.AddItem(a.Pages, 0, 30, true).
 		SetBorder(true).
 		SetBorderStyle(
 			tcell.StyleDefault.
 				Foreground(tcell.ColorGray).
 				Background(tcell.ColorBlack),
 		).
-		SetTitle(" Nodes (x / y)")
+		SetTitle(" Nodes (x / y)") // Initial title
 
 	// Main grid layout, implemented with Flex
 	a.MainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(pagesContainer, 0, 30, true).
+		AddItem(a.PagesContainer, 0, 30, true).
 		AddItem(a.FooterSeparator, 0, 1, false).
 		AddItem(footerGrid, 0, 3, false)
 
