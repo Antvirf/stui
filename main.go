@@ -12,8 +12,8 @@ import (
 func main() {
 	// Flags
 	var searchDebounceInterval = flag.Int("search-debounce-interval", 50, "interval in milliseconds to wait before searching")
-	var refreshInterval = flag.Int("refresh-interval", 30, "interval in seconds when to refetch data")
-	var requestTimeout = flag.Int("request-timeout", 15, "timeout setting for fetching data")
+	var refreshInterval = flag.Int("refresh-interval", 15, "interval in seconds when to refetch data")
+	var requestTimeout = flag.Int("request-timeout", 4, "timeout setting for fetching data")
 	var debubMultiplier = flag.Int("debug-multiplier", 1, "multiplier for nodes and jobs, helpful when debugging and developing")
 	var slurmBinariesPath = flag.String("slurm-binaries-path", "/usr/local/bin", "path where Slurm binaries like 'sinfo' and 'squeue' can be found")
 	var slurmConfLocation = flag.String("slurm-conf-location", "/etc/slurm/slurm.conf", "path to slurm.conf for the desired cluster")
