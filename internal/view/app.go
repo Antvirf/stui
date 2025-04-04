@@ -26,13 +26,16 @@ type App struct {
 	NodesView       *tview.Table
 	JobsView        *tview.Table
 	SchedView       *tview.TextView
-	Footer          *tview.TextView
-	FooterStatus    *tview.TextView
 	StatusLine      *tview.TextView // Combined status line
-	FooterSeparator *tview.Box
 	MainGrid        *tview.Flex
 	LastUpdate      time.Time
 	LastReqDuration time.Duration
+
+	// Footer
+	FooterPaneLocationSeparator *tview.Box
+	FooterPaneLocation          *tview.TextView
+	FooterDataStatus            *tview.TextView
+	FooterMessage               *tview.TextView
 
 	// Search state
 	SearchBox        *tview.InputField
@@ -72,15 +75,19 @@ func InitializeApplication() (a *App) {
 func (a *App) SetupViews() {
 	a.SetupSearchBox()
 
-	// Footer components
-	a.FooterStatus = tview.NewTextView().
+	// FooterPaneLocation components
+	a.FooterMessage = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter)
 
-	a.Footer = tview.NewTextView().
+	a.FooterPaneLocation = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignCenter).
 		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
+
+	a.FooterDataStatus = tview.NewTextView().
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignCenter)
 
 	// Combined status line
 	a.StatusLine = tview.NewTextView().
@@ -91,18 +98,19 @@ func (a *App) SetupViews() {
 	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
 	a.UpdateStatusLine(a.StatusLine, schedulerHost, schedulerIP)
 
-	footerGrid := tview.NewGrid().
-		AddItem(a.Footer, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.StatusLine, 1, 0, 1, 1, 0, 0, false)
+	FooterPaneLocationGrid := tview.NewGrid().
+		AddItem(a.FooterMessage, 0, 0, 1, 1, 0, 0, false).
+		AddItem(a.FooterPaneLocation, 1, 0, 1, 1, 0, 0, false).
+		AddItem(a.StatusLine, 2, 0, 1, 1, 0, 0, false)
 
-	footerGrid.SetBorder(true).SetBorderStyle(
+	FooterPaneLocationGrid.SetBorder(true).SetBorderStyle(
 		tcell.StyleDefault.
 			Foreground(tcell.ColorGray).
 			Background(tcell.ColorBlack),
 	).
 		SetBorderPadding(0, 0, 0, 0)
 
-	a.FooterSeparator = tview.NewBox().
+	a.FooterPaneLocationSeparator = tview.NewBox().
 		SetBorder(false).
 		SetBorderAttributes(tcell.AttrBold)
 
@@ -120,8 +128,8 @@ func (a *App) SetupViews() {
 	// Main grid layout, implemented with Flex
 	a.MainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(a.PagesContainer, 0, 30, true).
-		AddItem(a.FooterSeparator, 0, 1, false).
-		AddItem(footerGrid, 0, 3, false)
+		AddItem(a.FooterPaneLocationSeparator, 0, 1, false).
+		AddItem(FooterPaneLocationGrid, 0, 3, false)
 
 	a.MainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrDim).
@@ -191,8 +199,8 @@ func (a *App) SetupViews() {
 	a.Pages.AddPage("scheduler", a.SchedView, true, false)
 
 	// Set initial active tab highlight and status
-	a.Footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
-	a.FooterStatus.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
+	a.FooterPaneLocation.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
+	a.FooterDataStatus.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
 }
 
 func (a *App) StartRefresh(interval time.Duration) {

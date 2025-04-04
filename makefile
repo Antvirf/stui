@@ -8,7 +8,7 @@ lint:
 	find -name "*.go" | xargs -I{} go fmt {}
 	go mod tidy
 
-build:
+build: lint
 	go build
 
 update-readme: build

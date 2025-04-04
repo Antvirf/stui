@@ -1,6 +1,14 @@
 package view
 
-import "github.com/gdamore/tcell/v2"
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/antvirf/stui/internal/config"
+	"github.com/gdamore/tcell/v2"
+	"golang.design/x/clipboard"
+)
 
 func (a *App) SetupKeybinds() {
 	// Global keybinds (work anywhere except when typing in search)
@@ -13,7 +21,7 @@ func (a *App) SetupKeybinds() {
 		switch event.Rune() {
 		case '1':
 			a.Pages.SwitchToPage("nodes")
-			a.Footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
+			a.FooterPaneLocation.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 			a.CurrentTableView = a.NodesView
 			if a.SearchPattern != "" {
 				a.ShowSearchBox()
@@ -24,7 +32,7 @@ func (a *App) SetupKeybinds() {
 			return nil
 		case '2':
 			a.Pages.SwitchToPage("jobs")
-			a.Footer.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
+			a.FooterPaneLocation.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
 			a.CurrentTableView = a.JobsView
 			if a.SearchPattern != "" {
 				a.ShowSearchBox()
@@ -36,7 +44,7 @@ func (a *App) SetupKeybinds() {
 		case '3':
 			a.Pages.SwitchToPage("scheduler")
 			a.PagesContainer.SetTitle(" Scheduler status (sdiag) ")
-			a.Footer.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
+			a.FooterPaneLocation.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
 			a.CurrentTableView = nil
 			a.HideSearchBox()
 			return nil
@@ -71,6 +79,31 @@ func (a *App) SetupKeybinds() {
 				}
 			}
 			return nil
+		case 'y':
+			if len(a.SelectedNodes) > 0 {
+				var sb strings.Builder
+				for nodeName := range a.SelectedNodes {
+					// Find the node in our table data
+					for _, row := range a.NodesTableData.Rows {
+						if row[0] == nodeName { // NodeName is first column
+							if config.CopyFirstColumnOnly {
+								sb.WriteString(row[0])
+							} else {
+								sb.WriteString(strings.Join(row, " "))
+							}
+							sb.WriteString(config.CopiedLinesSeparator)
+							break
+						}
+					}
+				}
+				clipboard.Write(clipboard.FmtText, []byte(sb.String()))
+				count := len(a.SelectedNodes)
+				a.ShowNotification(
+					fmt.Sprintf("[green]Copied %d selected node(s) to clipboard[white]", count),
+					2*time.Second,
+				)
+				return nil
+			}
 		}
 
 		switch event.Key() {
@@ -117,6 +150,31 @@ func (a *App) SetupKeybinds() {
 				}
 			}
 			return nil
+		case 'y':
+			if len(a.SelectedJobs) > 0 {
+				var sb strings.Builder
+				for jobID := range a.SelectedJobs {
+					// Find the job in our table data
+					for _, row := range a.JobsTableData.Rows {
+						if row[0] == jobID { // JobID is first column
+							if config.CopyFirstColumnOnly {
+								sb.WriteString(row[0])
+							} else {
+								sb.WriteString(strings.Join(row, " "))
+							}
+							sb.WriteString(config.CopiedLinesSeparator)
+							break
+						}
+					}
+				}
+				clipboard.Write(clipboard.FmtText, []byte(sb.String()))
+				count := len(a.SelectedJobs)
+				a.ShowNotification(
+					fmt.Sprintf("[green]Copied %d selected job(s) to clipboard[white]", count),
+					5*time.Second,
+				)
+				return nil
+			}
 		}
 
 		switch event.Key() {

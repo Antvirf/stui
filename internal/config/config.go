@@ -18,6 +18,8 @@ var (
 	SlurmRestdAddress      string
 	NodeViewColumns        string
 	JobViewColumns         string
+	CopyFirstColumnOnly    bool
+	CopiedLinesSeparator   string
 )
 
 func Configure() {
@@ -30,6 +32,8 @@ func Configure() {
 	flag.StringVar(&SlurmRestdAddress, "slurm-restd-address", "", "URI for Slurm REST API if available, including protocol and port")
 	flag.StringVar(&NodeViewColumns, "node-view-columns", "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres", "comma-separated list of scontrol fields to show in node view")
 	flag.StringVar(&JobViewColumns, "job-view-columns", "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList", "comma-separated list of scontrol fields to show in job view")
+	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", true, "if true, only copy the first column of the table to clipboard when copying")
+	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", "\n", "string to use when separating copied lines in clipboard")
 	flag.Parse()
 
 	// Set up durations with correct units
