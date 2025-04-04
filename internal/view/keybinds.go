@@ -29,6 +29,7 @@ func (a *App) SetupKeybinds() {
 				a.HideSearchBox()
 			}
 			a.App.SetFocus(a.NodesView)
+			a.RerenderTableView(a.NodesView)
 			return nil
 		case '2':
 			a.Pages.SwitchToPage("jobs")
@@ -40,6 +41,7 @@ func (a *App) SetupKeybinds() {
 				a.HideSearchBox()
 			}
 			a.App.SetFocus(a.JobsView)
+			a.RerenderTableView(a.JobsView)
 			return nil
 		case '3':
 			a.Pages.SwitchToPage("scheduler")
