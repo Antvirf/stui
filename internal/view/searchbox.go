@@ -17,13 +17,7 @@ func (a *App) SetupSearchBox() {
 		SetFieldWidth(0).
 		SetChangedFunc(func(text string) {
 			a.SearchPattern = strings.TrimSpace(text)
-			wasActive := a.SearchActive
 			a.SearchActive = a.SearchPattern != ""
-
-			// Hide if search was cleared
-			if wasActive && !a.SearchActive {
-				a.HideSearchBox()
-			}
 
 			// Cancel any pending updates
 			if a.searchTimer != nil {
