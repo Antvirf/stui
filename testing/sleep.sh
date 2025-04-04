@@ -1,2 +1,2 @@
 #!/bin/sh
-sleep $1
+sleep 600 # 10 minutes
