@@ -64,7 +64,6 @@ make setup              # install pre-commit and download Go deps
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time
 - Make slurm conf bit actually work - set env vars during calls to slurm binaries
 - Customisable columns and query expression
-- Nodes view: show only 1 row per node, regardless of number of partitions
 - Proper code structure
   - Data fetchers into their own internal package, use config options from main
   - Separate out view and data models cleanly
