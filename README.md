@@ -45,7 +45,7 @@ sudo mv ~/go/bin/stui /usr/bin
             URI for Slurm REST API if available, including protocol and port
     ```
 
-## Developing `stui` - mock environment creation
+## Developing `stui`
 
 The below helpers configure a locally running cluster with `888` virtual nodes across several partitions to help work on `stui` with realistic data.
 
@@ -55,6 +55,8 @@ make config-cluster     # copy mock config to /etc/slurm/
 make run-cluster        # start `slurmctld` and `slurmd`
 make launch-jobs        # launch few hundred sleep jobs
 make stop-cluster       # stop cluster
+
+make setup              # install pre-commit and download Go deps
 ```
 
 ## To-do

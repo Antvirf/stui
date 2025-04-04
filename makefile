@@ -1,14 +1,13 @@
-.PHONY: lint
+.PHONY: setup lint
+setup:
+	pip install pre-commit
+	pre-commit install
+	go mod download
+
+
 lint:
 	find -name "*.go" | xargs -I{} go fmt {}
-
-
-.PHONY: save
-save:
-	git add .
-	git commit --amend --no-edit
-	git push --force
-
+	go mod tidy
 
 .PHONY: build-cluster config-cluster run-cluster launch-jobs stop-cluster
 build-cluster:
