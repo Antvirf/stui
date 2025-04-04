@@ -30,7 +30,7 @@ sudo mv ~/go/bin/stui /usr/bin
     $ stui -help
     Usage of ~/go/bin/stui:
       -debug-multiplier int
-            multiplier for nodes, helpful when debugging and developing (default 1)
+            multiplier for nodes and jobs, helpful when debugging and developing (default 1)
       -refresh-interval int
             interval in seconds when to refetch data (default 30)
       -request-timeout int
@@ -47,7 +47,6 @@ sudo mv ~/go/bin/stui /usr/bin
 
 ## To-do
 
-- Debug multiplier param for jobs for easier development
 - Customisable columns and query expression
 - Nodes view: show only 1 row per node, regardless of number of partitions
 - Proper code structure

@@ -492,16 +492,23 @@ func (a *App) FetchJobsWithTimeout() (model.TableData, error) {
 	for _, line := range lines {
 		fields := strings.Split(line, "|")
 		if len(fields) >= 7 {
-			row := []string{
-				strings.TrimPrefix(fields[0], "="), // Job ID
-				strings.TrimPrefix(fields[1], "="), // User
-				strings.TrimPrefix(fields[2], "="), // Partition
-				strings.TrimPrefix(fields[3], "="), // Name
-				strings.TrimPrefix(fields[4], "="), // State
-				strings.TrimPrefix(fields[5], "="), // Time
-				strings.TrimPrefix(fields[6], "="), // Nodes
+			// Multiply each row according to DebugMultiplier
+			for i := 0; i < a.DebugMultiplier; i++ {
+				jobID := strings.TrimPrefix(fields[0], "=")
+				if a.DebugMultiplier > 1 {
+					jobID = fmt.Sprintf("%s-%d", jobID, i+1)
+				}
+				row := []string{
+					jobID,                              // Job ID
+					strings.TrimPrefix(fields[1], "="), // User
+					strings.TrimPrefix(fields[2], "="), // Partition
+					strings.TrimPrefix(fields[3], "="), // Name
+					strings.TrimPrefix(fields[4], "="), // State
+					strings.TrimPrefix(fields[5], "="), // Time
+					strings.TrimPrefix(fields[6], "="), // Nodes
+				}
+				rows = append(rows, row)
 			}
-			rows = append(rows, row)
 		}
 	}
 
@@ -596,10 +603,16 @@ func (a *App) FetchNodeDetailsWithTimeout(nodeName string) (string, error) {
 }
 
 func (a *App) FetchJobDetailsWithTimeout(jobID string) (string, error) {
+	// Strip any debug multiplier suffix
+	baseJobID := jobID
+	if idx := strings.LastIndex(jobID, "-"); idx != -1 {
+		baseJobID = jobID[:idx]
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), a.RequestTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "scontrol", "show", "job", jobID)
+	cmd := exec.CommandContext(ctx, "scontrol", "show", "job", baseJobID)
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
