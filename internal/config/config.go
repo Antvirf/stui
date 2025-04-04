@@ -16,6 +16,8 @@ var (
 	SlurmBinariesPath      string
 	SlurmConfLocation      string
 	SlurmRestdAddress      string
+	NodeViewColumns        string
+	JobViewColumns         string
 )
 
 func Configure() {
@@ -26,6 +28,8 @@ func Configure() {
 	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", "/usr/local/bin", "path where Slurm binaries like 'sinfo' and 'squeue' can be found")
 	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", "/etc/slurm/slurm.conf", "path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable")
 	flag.StringVar(&SlurmRestdAddress, "slurm-restd-address", "", "URI for Slurm REST API if available, including protocol and port")
+	flag.StringVar(&NodeViewColumns, "node-view-columns", "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres", "comma-separated list of scontrol fields to show in node view")
+	flag.StringVar(&JobViewColumns, "job-view-columns", "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList", "comma-separated list of scontrol fields to show in job view")
 	flag.Parse()
 
 	// Set up durations with correct units

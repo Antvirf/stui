@@ -43,6 +43,10 @@ sudo mv ~/go/bin/stui /usr/bin
             path to slurm.conf for the desired cluster (default "/etc/slurm/slurm.conf")
       -slurm-restd-address string
             URI for Slurm REST API if available, including protocol and port
+      -job-view-columns string
+            comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
+      -node-view-columns string
+            comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
     ```
 
 ## Developing `stui`

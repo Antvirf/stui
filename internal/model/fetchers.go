@@ -31,32 +31,28 @@ func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData
 	// Parse the output into node entries
 	nodes := parseScontrolOutput("NodeName=", string(out))
 
-	headers := []string{
-		"Node", "Partitions", "State", "CPUs", "Memory",
-		"CPULoad", "Reason", "Sockets", "Cores", "Threads", "GRES",
+	// Get configured columns
+	columns := strings.Split(config.NodeViewColumns, ",")
+	headers := make([]string, len(columns))
+	for i, col := range columns {
+		headers[i] = col // Use raw field names as headers initially
 	}
-	var rows [][]string
 
+	var rows [][]string
 	for _, node := range nodes {
-		// Multiply each row according to DebugMultiplier
 		for i := 0; i < debugMultiplier; i++ {
 			nodeName := node["NodeName"]
 			if debugMultiplier > 1 {
 				nodeName = fmt.Sprintf("%s-%d", nodeName, i+1)
 			}
 
-			row := []string{
-				nodeName, // Node
-				safeGetFromMap(node, "Partitions"),
-				safeGetFromMap(node, "State"),
-				safeGetFromMap(node, "CPUTot"),
-				safeGetFromMap(node, "RealMemory"),
-				safeGetFromMap(node, "CPULoad"),
-				safeGetFromMap(node, "Reason"),
-				safeGetFromMap(node, "Sockets"),
-				safeGetFromMap(node, "CoresPerSocket"),
-				safeGetFromMap(node, "ThreadsPerCore"),
-				safeGetFromMap(node, "Gres"),
+			row := make([]string, len(columns))
+			for j, col := range columns {
+				if col == "NodeName" {
+					row[j] = nodeName
+				} else {
+					row[j] = safeGetFromMap(node, col)
+				}
 			}
 			rows = append(rows, row)
 		}
@@ -87,25 +83,28 @@ func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData,
 	// Parse the output into job entries
 	jobs := parseScontrolOutput("JobId=", string(out))
 
-	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
-	var rows [][]string
+	// Get configured columns
+	columns := strings.Split(config.JobViewColumns, ",")
+	headers := make([]string, len(columns))
+	for i, col := range columns {
+		headers[i] = col // Use raw field names as headers initially
+	}
 
+	var rows [][]string
 	for _, job := range jobs {
-		// Multiply each row according to DebugMultiplier
 		for i := 0; i < debugMultiplier; i++ {
 			jobID := job["JobId"]
 			if debugMultiplier > 1 {
 				jobID = fmt.Sprintf("%s-%d", jobID, i+1)
 			}
 
-			row := []string{
-				jobID, // Job ID
-				safeGetFromMap(job, "UserId"),
-				safeGetFromMap(job, "Partition"),
-				safeGetFromMap(job, "JobName"),
-				safeGetFromMap(job, "JobState"),
-				safeGetFromMap(job, "RunTime"),
-				safeGetFromMap(job, "NodeList"),
+			row := make([]string, len(columns))
+			for j, col := range columns {
+				if col == "JobId" {
+					row[j] = jobID
+				} else {
+					row[j] = safeGetFromMap(job, col)
+				}
 			}
 			rows = append(rows, row)
 		}
