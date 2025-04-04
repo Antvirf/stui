@@ -45,8 +45,22 @@ sudo mv ~/go/bin/stui /usr/bin
             URI for Slurm REST API if available, including protocol and port
     ```
 
+## Developing `stui` - mock environment creation
+
+The below helpers configure a locally running cluster with `888` virtual nodes across several partitions to help work on `stui` with realistic data.
+
+```bash
+make build-cluster      # build Slurm with required options
+make config-cluster     # copy mock config to /etc/slurm/
+make run-cluster        # start `slurmctld` and `slurmd`
+make launch-jobs        # launch few hundred sleep jobs
+make stop-cluster       # stop cluster
+```
+
 ## To-do
 
+- Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time
+- Make slurm conf bit actually work - set env vars during calls to slurm binaries
 - Customisable columns and query expression
 - Nodes view: show only 1 row per node, regardless of number of partitions
 - Proper code structure
