@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/antvirf/stui/internal/config"
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -16,25 +17,26 @@ const (
 )
 
 type App struct {
-	App                    *tview.Application
-	Pages                  *tview.Pages
-	SelectedNodes          map[string]bool // Track selected nodes by name
-	SelectedJobs           map[string]bool // Track selected jobs by ID
-	PagesContainer         *tview.Flex     // Container for pages with border title
-	NodesView              *tview.Table
-	JobsView               *tview.Table
-	SchedView              *tview.TextView
-	Footer                 *tview.TextView
-	FooterStatus           *tview.TextView
-	StatusLine             *tview.TextView // Combined status line
-	FooterSeparator        *tview.Box
-	MainGrid               *tview.Flex
-	SearchDebounceInterval time.Duration
-	RequestTimeout         time.Duration
-	LastUpdate             time.Time
-	LastReqDuration        time.Duration
-	LastReqError           error
-	DebugMultiplier        int // Number of times to multiply node entries for debugging
+	App             *tview.Application
+	Pages           *tview.Pages
+	SelectedNodes   map[string]bool // Track selected nodes by name
+	SelectedJobs    map[string]bool // Track selected jobs by ID
+	PagesContainer  *tview.Flex     // Container for pages with border title
+	NodesView       *tview.Table
+	JobsView        *tview.Table
+	SchedView       *tview.TextView
+	Footer          *tview.TextView
+	FooterStatus    *tview.TextView
+	StatusLine      *tview.TextView // Combined status line
+	FooterSeparator *tview.Box
+	MainGrid        *tview.Flex
+	LastUpdate      time.Time
+	LastReqDuration time.Duration
+	LastReqError    error
+	// Config options, to be removed from here
+	// DebugMultiplier        int // Number of times to multiply node entries for debugging
+	// SearchDebounceInterval time.Duration
+	// RequestTimeout         time.Duration
 
 	// Search state
 	SearchBox        *tview.InputField
@@ -46,117 +48,21 @@ type App struct {
 	JobGrid          *tview.Grid  // Grid containing jobs view and search
 }
 
-var appInstance *App
-
-func GetApp() *App {
-	return appInstance
-}
-
-func (a *App) SetupSearchBox() {
-	a.SearchBox = tview.NewInputField().
-		SetLabel("  Regex search (case-insensitive): ").
-		SetLabelColor(tcell.ColorDarkOrange).
-		SetFieldBackgroundColor(tcell.ColorDarkSlateGray).
-		SetFieldWidth(0).
-		SetChangedFunc(func(text string) {
-			a.SearchPattern = strings.TrimSpace(text)
-			wasActive := a.SearchActive
-			a.SearchActive = a.SearchPattern != ""
-
-			// Hide if search was cleared
-			if wasActive && !a.SearchActive {
-				a.HideSearchBox()
-			}
-
-			// Cancel any pending updates
-			if a.searchTimer != nil {
-				a.searchTimer.Stop()
-			}
-
-			// Schedule new update after delay
-			a.searchTimer = time.AfterFunc(a.SearchDebounceInterval, func() {
-				a.App.QueueUpdateDraw(func() {
-					if a.CurrentTableView != nil {
-						a.UpdateTableView(a.CurrentTableView)
-					}
-				})
-			})
-		})
-	a.SearchBox.SetBorder(false)
-
-	// Set up input capture for search box
-	a.SearchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyEsc:
-			a.HideSearchBox()
-			a.UpdateTableView(a.CurrentTableView)
-			return nil
-		case tcell.KeyEnter:
-			if a.SearchPattern == "" {
-				a.HideSearchBox()
-			} else {
-				a.App.SetFocus(a.CurrentTableView)
-			}
-			return nil
-		}
-		return event
-	})
-}
-
-func (a *App) ShowSearchBox() {
-	if a.CurrentTableView == nil {
-		return
+// Initializes a `stui` instance tview Application using the config module
+func InitializeApplication() (a *App) {
+	application := App{
+		App:   tview.NewApplication(),
+		Pages: tview.NewPages(),
 	}
 
-	// Get the appropriate grid
-	grid := a.NodeGrid
-	if a.CurrentTableView == a.JobsView {
-		grid = a.JobGrid
-	}
-
-	// Clear and rebuild the grid with search box
-	grid.Clear()
-	grid.SetRows(1, 0)                                       // 1 row for search, rest for table
-	grid.AddItem(a.SearchBox, 0, 0, 1, 1, 0, 0, false)       // Don't focus by default
-	grid.AddItem(a.CurrentTableView, 1, 0, 1, 1, 0, 0, true) // Keep table focused
-
-	a.SearchActive = true
-}
-
-func (a *App) HideSearchBox() {
-	// Stop any pending search updates
-	if a.searchTimer != nil {
-		a.searchTimer.Stop()
-		a.searchTimer = nil
-	}
-
-	if a.CurrentTableView == nil {
-		return
-	}
-
-	// Get the appropriate grid
-	grid := a.NodeGrid
-	if a.CurrentTableView == a.JobsView {
-		grid = a.JobGrid
-	}
-
-	// Clear and rebuild grid without search box
-	grid.Clear()
-	grid.SetRows(0) // Just table
-	grid.AddItem(a.CurrentTableView, 0, 0, 1, 1, 0, 0, true)
-
-	// Reset search state
-	a.SearchBox.SetText("")
-	a.SearchActive = false
-	a.App.SetFocus(a.CurrentTableView)
+	// Init selectors
+	application.SelectedNodes = make(map[string]bool)
+	application.SelectedJobs = make(map[string]bool)
+	return &application
 }
 
 func (a *App) SetupViews() {
 	a.SetupSearchBox()
-
-	// Initialize selection tracking
-	a.SelectedNodes = make(map[string]bool)
-	a.SelectedJobs = make(map[string]bool)
 
 	// Footer components
 	a.FooterStatus = tview.NewTextView().
@@ -237,29 +143,6 @@ func (a *App) SetupViews() {
 	a.CurrentTableView = a.NodesView
 
 	// Jobs View
-	a.SetupJobsView()
-	a.JobGrid = tview.NewGrid().
-		SetRows(0). // Just table initially
-		SetColumns(0).
-		AddItem(a.JobsView, 0, 0, 1, 1, 0, 0, true)
-	a.Pages.AddPage("jobs", a.JobGrid, true, false)
-
-	// Scheduler View
-	a.SchedView = tview.NewTextView()
-	a.SchedView.
-		SetDynamicColors(true).
-		SetScrollable(true).
-		SetWrap(false).
-		SetTitleAlign(tview.AlignLeft).
-		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-	a.Pages.AddPage("scheduler", a.SchedView, true, false)
-
-	// Set initial active tab highlight and status
-	a.Footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
-	a.FooterStatus.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
-}
-
-func (a *App) SetupJobsView() {
 	a.JobsView = tview.NewTable()
 	a.JobsView.
 		SetBorders(false). // Remove all borders
@@ -283,6 +166,25 @@ func (a *App) SetupJobsView() {
 			SetTextColor(tcell.ColorWhite).
 			SetAttributes(tcell.AttrBold))
 	}
+	a.JobGrid = tview.NewGrid().
+		SetRows(0). // Just table initially
+		SetColumns(0).
+		AddItem(a.JobsView, 0, 0, 1, 1, 0, 0, true)
+	a.Pages.AddPage("jobs", a.JobGrid, true, false)
+
+	// Scheduler View
+	a.SchedView = tview.NewTextView()
+	a.SchedView.
+		SetDynamicColors(true).
+		SetScrollable(true).
+		SetWrap(false).
+		SetTitleAlign(tview.AlignLeft).
+		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
+	a.Pages.AddPage("scheduler", a.SchedView, true, false)
+
+	// Set initial active tab highlight and status
+	a.Footer.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
+	a.FooterStatus.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
 }
 
 func (a *App) StartRefresh(interval time.Duration) {
@@ -310,20 +212,20 @@ func (a *App) UpdateAllViews() {
 
 	start := time.Now()
 
-	nodeData, err := model.GetNodesWithTimeout(a.RequestTimeout, a.DebugMultiplier)
+	nodeData, err := model.GetNodesWithTimeout(config.RequestTimeout, config.DebugMultiplier)
 	a.LastReqError = err
 	if err == nil {
-		RenderTable(a.NodesView, nodeData)
+		a.RenderTable(a.NodesView, nodeData)
 	}
 
 	// Update jobs view with squeue output
-	jobData, err := model.GetJobsWithTimeout(a.RequestTimeout, a.DebugMultiplier)
+	jobData, err := model.GetJobsWithTimeout(config.RequestTimeout, config.DebugMultiplier)
 	if err == nil {
-		RenderTable(a.JobsView, jobData)
+		a.RenderTable(a.JobsView, jobData)
 	}
 
 	// Update scheduler view with sdiag output
-	sdiagOutput, err := model.GetSdiagWithTimeout(a.RequestTimeout)
+	sdiagOutput, err := model.GetSdiagWithTimeout(config.RequestTimeout)
 	if err == nil {
 		a.SchedView.SetText(sdiagOutput)
 	}
@@ -334,17 +236,15 @@ func (a *App) UpdateAllViews() {
 	// Update status line immediately
 	schedulerHost, schedulerIP := model.GetSchedulerInfo()
 	a.UpdateStatusLine(a.StatusLine, schedulerHost, schedulerIP)
-
-	// TODO: Add jobs and scheduler updates
 }
 
 func (a *App) UpdateTableView(table *tview.Table) {
 	var data model.TableData
 	switch table {
 	case a.NodesView:
-		data, _ = model.GetNodesWithTimeout(a.RequestTimeout, a.DebugMultiplier)
+		data, _ = model.GetNodesWithTimeout(config.RequestTimeout, config.DebugMultiplier)
 	case a.JobsView:
-		data, _ = model.GetJobsWithTimeout(a.RequestTimeout, a.DebugMultiplier)
+		data, _ = model.GetJobsWithTimeout(config.RequestTimeout, config.DebugMultiplier)
 	default:
 		return
 	}
@@ -443,11 +343,6 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 	}
 }
 
-func RenderTable(table *tview.Table, data model.TableData) {
-	app := GetApp() // Need to add this function
-	app.RenderTable(table, data)
-}
-
 func (a *App) UpdateStatusLine(StatusLine *tview.TextView, host, ip string) {
 	var status string
 	if a.LastReqError != nil {
@@ -523,7 +418,7 @@ func (a *App) ShowDetailsModal(title, details string) {
 }
 
 func (a *App) ShowNodeDetails(nodeName string) {
-	details, err := model.GetNodeDetailsWithTimeout(nodeName, a.RequestTimeout)
+	details, err := model.GetNodeDetailsWithTimeout(nodeName, config.RequestTimeout)
 	if err != nil {
 		details = fmt.Sprintf("Error fetching node details:\n%s", err.Error())
 	}
@@ -531,7 +426,7 @@ func (a *App) ShowNodeDetails(nodeName string) {
 }
 
 func (a *App) ShowJobDetails(jobID string) {
-	details, err := model.GetJobDetailsWithTimeout(jobID, a.RequestTimeout)
+	details, err := model.GetJobDetailsWithTimeout(jobID, config.RequestTimeout)
 	if err != nil {
 		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
 	}

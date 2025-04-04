@@ -27,6 +27,11 @@ func Configure() {
 	flag.StringVar(&SlurmRestdAddress, "slurm-restd-address", "", "URI for Slurm REST API if available, including protocol and port")
 	flag.Parse()
 
+	// Set up durations with correct units
+	SearchDebounceInterval = SearchDebounceInterval * time.Millisecond
+	RefreshInterval = RefreshInterval * time.Second
+	RequestTimeout = RequestTimeout * time.Second
+
 	// Validate input and configs
 	if RequestTimeout > RefreshInterval {
 		log.Fatalf("Invalid arguments: request timeout of '%d' is longer than refresh interval of '%d'", RequestTimeout, RefreshInterval)

@@ -3,8 +3,6 @@ package view
 import "github.com/gdamore/tcell/v2"
 
 func (a *App) SetupKeybinds() {
-	appInstance = a
-
 	// Global keybinds (work anywhere except when typing in search)
 	a.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		// Don't allow pane switching while typing in search
