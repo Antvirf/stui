@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (TableData, error) {
+func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -17,9 +17,9 @@ func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (TableData,
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return TableData{}, fmt.Errorf("timeout after %v", timeout)
+			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
 		}
-		return TableData{}, fmt.Errorf("sinfo failed: %v", err)
+		return &TableData{}, fmt.Errorf("sinfo failed: %v", err)
 	}
 
 	headers := []string{
@@ -57,13 +57,13 @@ func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (TableData,
 		}
 	}
 
-	return TableData{
+	return &TableData{
 		Headers: headers,
 		Rows:    rows,
 	}, nil
 }
 
-func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (TableData, error) {
+func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -71,9 +71,9 @@ func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (TableData, 
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return TableData{}, fmt.Errorf("timeout after %v", timeout)
+			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
 		}
-		return TableData{}, fmt.Errorf("squeue failed: %v", err)
+		return &TableData{}, fmt.Errorf("squeue failed: %v", err)
 	}
 
 	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
@@ -103,7 +103,7 @@ func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (TableData, 
 		}
 	}
 
-	return TableData{
+	return &TableData{
 		Headers: headers,
 		Rows:    rows,
 	}, nil

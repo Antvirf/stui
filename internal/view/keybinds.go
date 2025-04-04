@@ -21,7 +21,6 @@ func (a *App) SetupKeybinds() {
 				a.HideSearchBox()
 			}
 			a.App.SetFocus(a.NodesView)
-			a.UpdateTableView(a.NodesView) // Trigger immediate refresh
 			return nil
 		case '2':
 			a.Pages.SwitchToPage("jobs")
@@ -33,7 +32,6 @@ func (a *App) SetupKeybinds() {
 				a.HideSearchBox()
 			}
 			a.App.SetFocus(a.JobsView)
-			a.UpdateTableView(a.JobsView) // Trigger immediate refresh
 			return nil
 		case '3':
 			a.Pages.SwitchToPage("scheduler")
@@ -51,7 +49,7 @@ func (a *App) SetupKeybinds() {
 		switch event.Rune() {
 		case '/':
 			a.ShowSearchBox()
-			a.UpdateTableView(a.NodesView)
+			a.RerenderTableView(a.NodesView)
 			a.App.SetFocus(a.SearchBox) // Only focus search when / is pressed
 			return nil
 		case ' ':
@@ -86,7 +84,7 @@ func (a *App) SetupKeybinds() {
 		case tcell.KeyEsc:
 			if a.SearchActive {
 				a.HideSearchBox()
-				a.UpdateTableView(a.NodesView)
+				a.RerenderTableView(a.NodesView)
 				return nil
 			}
 		}
@@ -97,7 +95,7 @@ func (a *App) SetupKeybinds() {
 		switch event.Rune() {
 		case '/':
 			a.ShowSearchBox()
-			a.UpdateTableView(a.JobsView)
+			a.RerenderTableView(a.JobsView)
 			a.App.SetFocus(a.SearchBox) // Only focus search when / is pressed
 			return nil
 		case ' ':
@@ -132,7 +130,7 @@ func (a *App) SetupKeybinds() {
 		case tcell.KeyEsc:
 			if a.SearchActive {
 				a.HideSearchBox()
-				a.UpdateTableView(a.JobsView)
+				a.RerenderTableView(a.JobsView)
 				return nil
 			}
 		}
@@ -144,7 +142,7 @@ func (a *App) SetupKeybinds() {
 		switch event.Key() {
 		case tcell.KeyEsc:
 			a.HideSearchBox()
-			a.UpdateTableView(a.CurrentTableView)
+			a.RerenderTableView(a.CurrentTableView)
 			return nil
 		case tcell.KeyEnter:
 			if a.SearchPattern == "" {

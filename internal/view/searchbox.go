@@ -34,7 +34,7 @@ func (a *App) SetupSearchBox() {
 			a.searchTimer = time.AfterFunc(config.SearchDebounceInterval, func() {
 				a.App.QueueUpdateDraw(func() {
 					if a.CurrentTableView != nil {
-						a.UpdateTableView(a.CurrentTableView)
+						a.RerenderTableView(a.CurrentTableView)
 					}
 				})
 			})
@@ -46,7 +46,7 @@ func (a *App) SetupSearchBox() {
 		switch event.Key() {
 		case tcell.KeyEsc:
 			a.HideSearchBox()
-			a.UpdateTableView(a.CurrentTableView)
+			a.RerenderTableView(a.CurrentTableView)
 			return nil
 		case tcell.KeyEnter:
 			if a.SearchPattern == "" {

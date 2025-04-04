@@ -46,6 +46,10 @@ type App struct {
 	NodeGrid         *tview.Grid  // Grid containing nodes view and search
 	searchTimer      *time.Timer  // Timer for debouncing search updates
 	JobGrid          *tview.Grid  // Grid containing jobs view and search
+
+	// Stored Data
+	NodesTableData *model.TableData
+	JobsTableData  *model.TableData
 }
 
 // Initializes a `stui` instance tview Application using the config module
@@ -190,18 +194,12 @@ func (a *App) SetupViews() {
 func (a *App) StartRefresh(interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	go func() {
-		for range ticker.C {
+		// This fires a tick immediately, and then on an interval afterwards.
+		for ; true; <-ticker.C {
 			a.App.QueueUpdateDraw(func() {
 				a.UpdateAllViews()
 			})
 		}
-	}()
-	// Trigger initial update immediately
-	go func() {
-		time.Sleep(100 * time.Millisecond) // Small delay to let app start
-		a.App.QueueUpdateDraw(func() {
-			a.UpdateAllViews()
-		})
 	}()
 }
 
@@ -211,17 +209,19 @@ func (a *App) UpdateAllViews() {
 	}
 
 	start := time.Now()
+	var err error
+	a.NodesTableData, err = model.GetNodesWithTimeout(config.RequestTimeout, config.DebugMultiplier)
 
-	nodeData, err := model.GetNodesWithTimeout(config.RequestTimeout, config.DebugMultiplier)
 	a.LastReqError = err
 	if err == nil {
-		a.RenderTable(a.NodesView, nodeData)
+		a.RenderTable(a.NodesView, *a.NodesTableData)
 	}
+	// TODO? Panic?
 
 	// Update jobs view with squeue output
-	jobData, err := model.GetJobsWithTimeout(config.RequestTimeout, config.DebugMultiplier)
+	a.JobsTableData, err = model.GetJobsWithTimeout(config.RequestTimeout, config.DebugMultiplier)
 	if err == nil {
-		a.RenderTable(a.JobsView, jobData)
+		a.RenderTable(a.JobsView, *a.JobsTableData)
 	}
 
 	// Update scheduler view with sdiag output
@@ -238,19 +238,17 @@ func (a *App) UpdateAllViews() {
 	a.UpdateStatusLine(a.StatusLine, schedulerHost, schedulerIP)
 }
 
-func (a *App) UpdateTableView(table *tview.Table) {
-	var data model.TableData
+func (a *App) RerenderTableView(table *tview.Table) {
+	table.Clear()
 	switch table {
 	case a.NodesView:
-		data, _ = model.GetNodesWithTimeout(config.RequestTimeout, config.DebugMultiplier)
+		a.RenderTable(table, *a.NodesTableData)
 	case a.JobsView:
-		data, _ = model.GetJobsWithTimeout(config.RequestTimeout, config.DebugMultiplier)
+		a.RenderTable(table, *a.JobsTableData)
 	default:
 		return
 	}
 
-	table.Clear()
-	a.RenderTable(table, data)
 }
 
 func (a *App) RenderTable(table *tview.Table, data model.TableData) {
