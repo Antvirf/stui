@@ -30,27 +30,29 @@ sudo mv ~/go/bin/stui /usr/bin
     ```
     Usage of ./stui:
       -copied-lines-separator string
-         string to use when separating copied lines in clipboard (default "\n")
+        	string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
-         if true, only copy the first column of the table to clipboard when copying (default true)
+        	if true, only copy the first column of the table to clipboard when copying (default true)
       -debug-multiplier int
-         multiplier for nodes and jobs, helpful when debugging and developing (default 1)
+        	multiplier for nodes and jobs, helpful when debugging and developing (default 1)
       -job-view-columns string
-         comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
+        	comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
       -node-view-columns string
-         comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
+        	comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
+      -partition-filter string
+        	comma-separated list of partitions to filter views by, leave empty to show all partitions
       -refresh-interval duration
-         interval in seconds when to refetch data (default 15ns)
+        	interval in seconds when to refetch data (default 15ns)
       -request-timeout duration
-         timeout setting for fetching data (default 4ns)
+        	timeout setting for fetching data (default 4ns)
       -search-debounce-interval duration
-         interval in milliseconds to wait before searching (default 50ns)
+        	interval in milliseconds to wait before searching (default 50ns)
       -slurm-binaries-path string
-         path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
+        	path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
       -slurm-conf-location string
-         path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
+        	path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
       -slurm-restd-address string
-         URI for Slurm REST API if available, including protocol and port
+        	URI for Slurm REST API if available, including protocol and port
     ```
     <!-- REPLACE_END -->
 
@@ -70,7 +72,10 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Selector/limit by partition across both job and node views
+- Refactor get jobs/nodes:
+  - use `--oneliner` for cleaner parsing logic
+  - Less repetition - most logic is shared at the moment
+- Partition selector as an option controllable within the UI (refreshes all data on chnage)
 - Control commands: Set node state and reason for all selected nodes
 - Control commands: Cancel jobs / Send to top of queue for all selected jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time

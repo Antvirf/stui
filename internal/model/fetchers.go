@@ -17,7 +17,7 @@ func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData
 	defer cancel()
 	cmd := exec.CommandContext(ctx,
 		path.Join(config.SlurmBinariesPath, "scontrol"),
-		"show", "node",
+		"show", "node", "--detail", "--all",
 	)
 
 	out, err := cmd.Output()
@@ -46,6 +46,22 @@ func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData
 				nodeName = fmt.Sprintf("%s-%d", nodeName, i+1)
 			}
 
+			// Apply partition filter if set
+			if config.PartitionFilter != "" {
+				matched := false
+				filteredPartitions := strings.Split(config.PartitionFilter, ",")
+				for _, partition := range filteredPartitions {
+					if strings.Contains(node["Partitions"], partition) {
+						matched = true
+						break
+					}
+
+				}
+				if !matched {
+					continue
+				}
+			}
+
 			row := make([]string, len(columns))
 			for j, col := range columns {
 				if col == "NodeName" {
@@ -70,7 +86,7 @@ func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData,
 
 	cmd := exec.CommandContext(ctx,
 		path.Join(config.SlurmBinariesPath, "scontrol"),
-		"show", "job",
+		"show", "job", "--detail", "--all",
 	)
 	out, err := cmd.Output()
 	if err != nil {
@@ -96,6 +112,22 @@ func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData,
 			jobID := job["JobId"]
 			if debugMultiplier > 1 {
 				jobID = fmt.Sprintf("%s-%d", jobID, i+1)
+			}
+
+			// Apply partition filter if set
+			if config.PartitionFilter != "" {
+				matched := false
+				filteredPartitions := strings.Split(config.PartitionFilter, ",")
+				for _, partition := range filteredPartitions {
+					if strings.Contains(job["Partition"], partition) {
+						matched = true
+						break
+					}
+
+				}
+				if !matched {
+					continue
+				}
 			}
 
 			row := make([]string, len(columns))
