@@ -64,9 +64,6 @@ make setup              # install pre-commit and download Go deps
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time
 - Make slurm conf bit actually work - set env vars during calls to slurm binaries
 - Customisable columns and query expression
-- Proper code structure
-  - Data fetchers into their own internal package, use config options from main
-  - Separate out view and data models cleanly
 - General ability to 'select' rows (both jobs / nodes), first feature just `yank` the data
 - Control commands: Set node state and reason for all selected nodes
 - Control commands: Cancel jobs / Send to top of queue for all selected jobs

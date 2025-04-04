@@ -29,7 +29,7 @@ func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData
 	}
 
 	// Parse the output into node entries
-	nodes := parseScontrolOutput(string(out))
+	nodes := parseScontrolOutput("NodeName=", string(out))
 
 	headers := []string{
 		"Node", "Partitions", "State", "CPUs", "Memory",
@@ -45,28 +45,18 @@ func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData
 				nodeName = fmt.Sprintf("%s-%d", nodeName, i+1)
 			}
 
-			reason := "N/A"
-			if r, ok := node["Reason"]; ok && r != "(null)" {
-				reason = r
-			}
-
-			gres := "(null)"
-			if g, ok := node["Gres"]; ok {
-				gres = g
-			}
-
 			row := []string{
-				nodeName,               // Node
-				node["Partitions"],     // Partitions
-				node["State"],          // State
-				node["CPUTot"],         // CPUs
-				node["RealMemory"],     // Memory
-				node["CPULoad"],        // CPULoad
-				reason,                 // Reason
-				node["Sockets"],        // Sockets
-				node["CoresPerSocket"], // Cores
-				node["ThreadsPerCore"], // Threads
-				gres,                   // GRES
+				nodeName, // Node
+				safeGetFromMap(node, "Partitions"),
+				safeGetFromMap(node, "State"),
+				safeGetFromMap(node, "CPUTot"),
+				safeGetFromMap(node, "RealMemory"),
+				safeGetFromMap(node, "CPULoad"),
+				safeGetFromMap(node, "Reason"),
+				safeGetFromMap(node, "Sockets"),
+				safeGetFromMap(node, "CoresPerSocket"),
+				safeGetFromMap(node, "ThreadsPerCore"),
+				safeGetFromMap(node, "Gres"),
 			}
 			rows = append(rows, row)
 		}
@@ -78,85 +68,46 @@ func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData
 	}, nil
 }
 
-// parseScontrolOutput parses the scontrol show node output into a slice of maps
-func parseScontrolOutput(output string) []map[string]string {
-	var nodes []map[string]string
-	currentNode := make(map[string]string)
-
-	lines := strings.Split(output, "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-
-		// Check if this is a new node entry
-		if strings.HasPrefix(line, "NodeName=") {
-			if len(currentNode) > 0 {
-				nodes = append(nodes, currentNode)
-			}
-			currentNode = make(map[string]string)
-		}
-
-		// Parse key=value pairs
-		pairs := strings.Fields(line)
-		for _, pair := range pairs {
-			if idx := strings.Index(pair, "="); idx > 0 {
-				key := pair[:idx]
-				value := pair[idx+1:]
-				currentNode[key] = value
-			}
-		}
-	}
-
-	// Add the last node if it exists
-	if len(currentNode) > 0 {
-		nodes = append(nodes, currentNode)
-	}
-
-	return nodes
-}
-
 func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx,
-		path.Join(config.SlurmBinariesPath, "squeue"),
-		"--noheader", "-o=%i|%u|%P|%j|%T|%M|%N",
+		path.Join(config.SlurmBinariesPath, "scontrol"),
+		"show", "job",
 	)
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
 		}
-		return &TableData{}, fmt.Errorf("squeue failed: %v", err)
+		return &TableData{}, fmt.Errorf("scontrol failed: %v", err)
 	}
+
+	// Parse the output into job entries
+	jobs := parseScontrolOutput("JobId=", string(out))
 
 	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
 	var rows [][]string
 
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
-		fields := strings.Split(line, "|")
-		if len(fields) >= 7 {
-			// Multiply each row according to DebugMultiplier
-			for i := 0; i < debugMultiplier; i++ {
-				jobID := strings.TrimPrefix(fields[0], "=")
-				if debugMultiplier > 1 {
-					jobID = fmt.Sprintf("%s-%d", jobID, i+1)
-				}
-				row := []string{
-					jobID,                              // Job ID
-					strings.TrimPrefix(fields[1], "="), // User
-					strings.TrimPrefix(fields[2], "="), // Partition
-					strings.TrimPrefix(fields[3], "="), // Name
-					strings.TrimPrefix(fields[4], "="), // State
-					strings.TrimPrefix(fields[5], "="), // Time
-					strings.TrimPrefix(fields[6], "="), // Nodes
-				}
-				rows = append(rows, row)
+	for _, job := range jobs {
+		// Multiply each row according to DebugMultiplier
+		for i := 0; i < debugMultiplier; i++ {
+			jobID := job["JobId"]
+			if debugMultiplier > 1 {
+				jobID = fmt.Sprintf("%s-%d", jobID, i+1)
 			}
+
+			row := []string{
+				jobID, // Job ID
+				safeGetFromMap(job, "UserId"),
+				safeGetFromMap(job, "Partition"),
+				safeGetFromMap(job, "JobName"),
+				safeGetFromMap(job, "JobState"),
+				safeGetFromMap(job, "RunTime"),
+				safeGetFromMap(job, "NodeList"),
+			}
+			rows = append(rows, row)
 		}
 	}
 

@@ -251,7 +251,7 @@ func (a *App) RerenderTableView(table *tview.Table) {
 
 func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 	// Set headers with fixed width
-	columnWidths := []int{15, 15, 15, 6, 8, 8, 20, 6, 6, 6, 20} // Wider columns for Node, Partitions, State and GRES
+	columnWidths := []int{15, 15, 15, 20, 15, 10, 20, 6, 6, 6, 20} // Wider columns for Job Name, State and Nodes
 
 	// First clear the table but preserve column widths
 	table.Clear()
