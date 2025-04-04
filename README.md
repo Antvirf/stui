@@ -26,28 +26,29 @@ sudo mv ~/go/bin/stui /usr/bin
 
 2. Run `stui` / `go run main.go` in the repo. See `-help` for arguments.
 
+    <!-- REPLACE_START -->
     ```
-    $ stui -help
-    Usage of ~/go/bin/stui:
+    Usage of ./stui:
       -debug-multiplier int
-            multiplier for nodes and jobs, helpful when debugging and developing (default 1)
-      -refresh-interval int
-            interval in seconds when to refetch data (default 30)
-      -request-timeout int
-            timeout setting for fetching data (default 15)
-      -search-debounce-interval int
-            interval in milliseconds to wait before searching (default 50)
-      -slurm-binaries-path string
-            path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
-      -slurm-conf-location string
-            path to slurm.conf for the desired cluster (default "/etc/slurm/slurm.conf")
-      -slurm-restd-address string
-            URI for Slurm REST API if available, including protocol and port
+        	multiplier for nodes and jobs, helpful when debugging and developing (default 1)
       -job-view-columns string
-            comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
+        	comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
       -node-view-columns string
-            comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
+        	comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
+      -refresh-interval duration
+        	interval in seconds when to refetch data (default 15ns)
+      -request-timeout duration
+        	timeout setting for fetching data (default 4ns)
+      -search-debounce-interval duration
+        	interval in milliseconds to wait before searching (default 50ns)
+      -slurm-binaries-path string
+        	path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
+      -slurm-conf-location string
+        	path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
+      -slurm-restd-address string
+        	URI for Slurm REST API if available, including protocol and port
     ```
+    <!-- REPLACE_END -->
 
 ## Developing `stui`
 
@@ -67,7 +68,6 @@ make setup              # install pre-commit and download Go deps
 
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time
 - Make slurm conf bit actually work - set env vars during calls to slurm binaries
-- Customisable columns and query expression
 - General ability to 'select' rows (both jobs / nodes), first feature just `yank` the data
 - Control commands: Set node state and reason for all selected nodes
 - Control commands: Cancel jobs / Send to top of queue for all selected jobs

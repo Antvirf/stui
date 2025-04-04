@@ -1,13 +1,26 @@
-.PHONY: setup lint
+.PHONY: setup lint build update-readme
 setup:
 	pip install pre-commit
 	pre-commit install
 	go mod download
 
-
 lint:
 	find -name "*.go" | xargs -I{} go fmt {}
 	go mod tidy
+
+build:
+	go build
+
+update-readme: build
+	@echo "Updating README.md with current help output..."
+	@(echo "    stui help"; ./stui -help 2>&1) | \
+		sed -e '1d' -e 's/^/    /' | \
+		awk 'BEGIN {print "    ```"} {print} END {print "    ```"}' > .help.tmp
+	@sed -i '/<!-- REPLACE_START -->/,/<!-- REPLACE_END -->/{//!d}' README.md
+	@sed -i '/<!-- REPLACE_START -->/r .help.tmp' README.md
+	@rm -f .help.tmp
+	@echo "README.md updated successfully"
+
 
 .PHONY: build-cluster config-cluster run-cluster launch-jobs stop-cluster
 build-cluster:

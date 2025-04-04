@@ -1,9 +1,15 @@
 repos:
-- repo: local
-  hooks:
-    - id: make-lint
-      name: Run make lint
-      entry: make lint
-      language: system
-      stages: [commit]
-      verbose: true
+  - repo: local
+    hooks:
+      - id: make-lint
+        name: Run make lint
+        entry: make lint
+        language: system
+        stages: [commit]
+        verbose: true
+      - id: update-readme
+        name: Run make update-readme
+        entry: make update-readme
+        language: system
+        stages: [commit]
+        verbose: true
