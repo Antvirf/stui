@@ -5,15 +5,21 @@ import (
 	"fmt"
 	"net"
 	"os/exec"
+	"path"
 	"strings"
 	"time"
+
+	"github.com/antvirf/stui/internal/config"
 )
 
 func GetNodesWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+	cmd := exec.CommandContext(ctx,
+		path.Join(config.SlurmBinariesPath, "sinfo"),
+		"--Node", "--noheader", "-o=%N|%P|%T|%c|%m|%L|%E|%f|%F|%G|%X|%Y|%Z",
+	)
 
-	cmd := exec.CommandContext(ctx, "sinfo", "--Node", "--noheader", "-o=%N|%P|%T|%c|%m|%L|%E|%f|%F|%G|%X|%Y|%Z")
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
@@ -67,7 +73,10 @@ func GetJobsWithTimeout(timeout time.Duration, debugMultiplier int) (*TableData,
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "squeue", "--noheader", "-o=%i|%u|%P|%j|%T|%M|%N")
+	cmd := exec.CommandContext(ctx,
+		path.Join(config.SlurmBinariesPath, "squeue"),
+		"--noheader", "-o=%i|%u|%P|%j|%T|%M|%N",
+	)
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
@@ -113,7 +122,10 @@ func GetNodeDetailsWithTimeout(nodeName string, timeout time.Duration) (string, 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "scontrol", "show", "node", nodeName)
+	cmd := exec.CommandContext(ctx,
+		path.Join(config.SlurmBinariesPath, "scontrol"),
+		"show", "node", nodeName,
+	)
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
@@ -133,8 +145,10 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-
-	cmd := exec.CommandContext(ctx, "scontrol", "show", "job", baseJobID)
+	cmd := exec.CommandContext(ctx,
+		path.Join(config.SlurmBinariesPath, "scontrol"),
+		"show", "job", baseJobID,
+	)
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
@@ -145,9 +159,13 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 	return string(out), nil
 }
 
-func GetSchedulerInfo() (string, string) {
-	// Get scheduler host from slurm config
-	cmd := exec.Command("scontrol", "show", "config")
+func GetSchedulerInfoWithTimeout(timeout time.Duration) (string, string) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx,
+		path.Join(config.SlurmBinariesPath, "scontrol"),
+		"show", "config",
+	)
 	out, err := cmd.Output()
 	if err != nil {
 		return "unknown", "unknown"
@@ -195,7 +213,9 @@ func GetSdiagWithTimeout(timeout time.Duration) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "sdiag")
+	cmd := exec.CommandContext(ctx,
+		path.Join(config.SlurmBinariesPath, "sdiag"),
+	)
 	out, err := cmd.Output()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {

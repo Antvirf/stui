@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -32,11 +33,6 @@ type App struct {
 	MainGrid        *tview.Flex
 	LastUpdate      time.Time
 	LastReqDuration time.Duration
-	LastReqError    error
-	// Config options, to be removed from here
-	// DebugMultiplier        int // Number of times to multiply node entries for debugging
-	// SearchDebounceInterval time.Duration
-	// RequestTimeout         time.Duration
 
 	// Search state
 	SearchBox        *tview.InputField
@@ -50,6 +46,14 @@ type App struct {
 	// Stored Data
 	NodesTableData *model.TableData
 	JobsTableData  *model.TableData
+}
+
+// Exit and log error details
+func (a *App) closeOnError(err error) {
+	if err != nil {
+		a.App.Stop()
+		log.Fatal(err)
+	}
 }
 
 // Initializes a `stui` instance tview Application using the config module
@@ -84,7 +88,7 @@ func (a *App) SetupViews() {
 		SetTextAlign(tview.AlignCenter)
 
 	// Parse slurm config to get scheduler info
-	schedulerHost, schedulerIP := model.GetSchedulerInfo()
+	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
 	a.UpdateStatusLine(a.StatusLine, schedulerHost, schedulerIP)
 
 	footerGrid := tview.NewGrid().
@@ -211,30 +215,24 @@ func (a *App) UpdateAllViews() {
 	start := time.Now()
 	var err error
 	a.NodesTableData, err = model.GetNodesWithTimeout(config.RequestTimeout, config.DebugMultiplier)
-
-	a.LastReqError = err
-	if err == nil {
-		a.RenderTable(a.NodesView, *a.NodesTableData)
-	}
-	// TODO? Panic?
+	a.closeOnError(err)
+	a.RenderTable(a.NodesView, *a.NodesTableData)
 
 	// Update jobs view with squeue output
 	a.JobsTableData, err = model.GetJobsWithTimeout(config.RequestTimeout, config.DebugMultiplier)
-	if err == nil {
-		a.RenderTable(a.JobsView, *a.JobsTableData)
-	}
+	a.closeOnError(err)
+	a.RenderTable(a.JobsView, *a.JobsTableData)
 
 	// Update scheduler view with sdiag output
 	sdiagOutput, err := model.GetSdiagWithTimeout(config.RequestTimeout)
-	if err == nil {
-		a.SchedView.SetText(sdiagOutput)
-	}
+	a.closeOnError(err)
+	a.SchedView.SetText(sdiagOutput)
 
 	a.LastReqDuration = time.Since(start)
 	a.LastUpdate = time.Now()
 
 	// Update status line immediately
-	schedulerHost, schedulerIP := model.GetSchedulerInfo()
+	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
 	a.UpdateStatusLine(a.StatusLine, schedulerHost, schedulerIP)
 }
 
@@ -342,24 +340,15 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 }
 
 func (a *App) UpdateStatusLine(StatusLine *tview.TextView, host, ip string) {
-	var status string
-	if a.LastReqError != nil {
-		status = fmt.Sprintf(
-			"Scheduler: %s (%s) | Data as of %s (FAILED)",
-			host,
-			ip,
-			a.LastUpdate.Format("15:04:05"),
-		)
-	} else {
-		status = fmt.Sprintf(
+	StatusLine.SetText(
+		fmt.Sprintf(
 			"Scheduler: %s (%s) | Data as of %s (%d ms)",
 			host,
 			ip,
 			a.LastUpdate.Format("15:04:05"),
 			a.LastReqDuration.Milliseconds(),
-		)
-	}
-	StatusLine.SetText(status)
+		),
+	)
 }
 
 func (a *App) ShowDetailsModal(title, details string) {

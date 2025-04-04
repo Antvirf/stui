@@ -50,6 +50,5 @@ func Configure() {
 	}
 
 	// Warnings about incomplete features
-	log.Printf("WARNING: flag value is currently unimplemented: slurm-binaries-path='%s'", SlurmBinariesPath)
 	log.Printf("WARNING: flag value is currently unimplemented: slurm-restd-address='%s'", SlurmRestdAddress)
 }
