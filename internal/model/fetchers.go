@@ -20,7 +20,7 @@ func GetNodesWithTimeout(timeout time.Duration) (*TableData, error) {
 		headers[i] = col // Use raw field names as headers initially
 	}
 	data, err := GetScontrolDataWithTimeout(
-		"show node --detail --all",
+		"show node --detail --all --oneliner",
 		columns,
 		config.PartitionFilter,
 		"NodeName=",
@@ -37,7 +37,7 @@ func GetJobsWithTimeout(timeout time.Duration) (*TableData, error) {
 		headers[i] = col // Use raw field names as headers initially
 	}
 	data, err := GetScontrolDataWithTimeout(
-		"show job --detail --all",
+		"show job --detail --all --oneliner",
 		columns,
 		config.PartitionFilter,
 		"JobId=",

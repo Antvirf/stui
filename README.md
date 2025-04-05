@@ -70,10 +70,7 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Refactor get jobs/nodes:
-  - use `--oneliner` for cleaner parsing logic
-  - Less repetition - most logic is shared at the moment
-- Partition selector as an option controllable within the UI (refreshes all data on chnage)
+- Partition selector as an option controllable within the UI (refreshes all data on change)
 - Control commands: Set node state and reason for all selected nodes
 - Control commands: Cancel jobs / Send to top of queue for all selected jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time
