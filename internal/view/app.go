@@ -376,7 +376,7 @@ func (a *App) UpdateStatusLine(StatusLine *tview.TextView, host, ip string) {
 	)
 }
 
-func (a *App) ShowDetailsModal(title, details string) {
+func (a *App) ShowModalPopup(title, details string) {
 	// Create new modal components each time (don't reuse)
 	detailView := tview.NewTextView().
 		SetDynamicColors(true).
@@ -407,10 +407,8 @@ func (a *App) ShowDetailsModal(title, details string) {
 		AddItem(nil, 0, 1, false)
 
 	// Store current page before showing modal
-	currentPage := "nodes"
-	if a.CurrentTableView == a.JobsView {
-		currentPage = "jobs"
-	}
+	previousPageName, _ := a.Pages.GetFrontPage()
+	previousFocus := a.App.GetFocus()
 
 	// Add as overlay without switching pages
 	pageName := "detailView"
@@ -421,8 +419,8 @@ func (a *App) ShowDetailsModal(title, details string) {
 	detailView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEsc {
 			a.Pages.RemovePage(pageName)
-			a.Pages.SwitchToPage(currentPage)
-			a.App.SetFocus(a.CurrentTableView)
+			a.Pages.SwitchToPage(previousPageName)
+			a.App.SetFocus(previousFocus)
 			return nil
 		}
 		return event
@@ -434,7 +432,7 @@ func (a *App) ShowNodeDetails(nodeName string) {
 	if err != nil {
 		details = fmt.Sprintf("Error fetching node details:\n%s", err.Error())
 	}
-	a.ShowDetailsModal(fmt.Sprintf("Node Details: %s", nodeName), details)
+	a.ShowModalPopup(fmt.Sprintf("Node Details: %s", nodeName), details)
 }
 
 func (a *App) ShowJobDetails(jobID string) {
@@ -442,5 +440,5 @@ func (a *App) ShowJobDetails(jobID string) {
 	if err != nil {
 		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
 	}
-	a.ShowDetailsModal(fmt.Sprintf("Job Details: %s", jobID), details)
+	a.ShowModalPopup(fmt.Sprintf("Job Details: %s", jobID), details)
 }

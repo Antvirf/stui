@@ -19,6 +19,8 @@ func (a *App) SetupKeybinds() {
 		}
 
 		switch event.Rune() {
+		case '?':
+			a.ShowKeyboardShorcutsModal()
 		case '1':
 			a.Pages.SwitchToPage("nodes")
 			a.FooterPaneLocation.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
@@ -218,6 +220,10 @@ func (a *App) SetupKeybinds() {
 		}
 		return event
 	})
-
 	// Node detail view keybinds are set in ShowNodeDetails()
+}
+
+func (a *App) ShowKeyboardShorcutsModal() {
+	// START_SHORTCUTS
+	a.ShowModalPopup("Shortcuts", config.KEYBOARD_SHORTCUTS)
 }

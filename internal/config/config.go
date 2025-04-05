@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -22,7 +23,27 @@ var (
 	PartitionFilter        string
 )
 
+const (
+	KEYBOARD_SHORTCUTS = `General Shortcuts
+1        Switch to Nodes view
+2        Switch to Jobs view
+3        Switch to Scheduler view
+Up/Down  Move selection up/down
+k/j      Move selection up/down
+?        Show this help
+
+Shortcuts in Job/Node panes
+/        Open search bar to filter rows by regex
+p        Focus on partition selector (up/down to navigate, 'Enter' to select)
+Space    Select/deselect row
+y        Copy selected rows to clipboard
+Enter    Show details for selected row
+Esc      Close modal
+`
+)
+
 func Configure() {
+	// Config flags
 	flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", 50, "interval in milliseconds to wait before searching")
 	flag.DurationVar(&RefreshInterval, "refresh-interval", 15, "interval in seconds when to refetch data")
 	flag.DurationVar(&RequestTimeout, "request-timeout", 4, "timeout setting for fetching data")
@@ -34,7 +55,22 @@ func Configure() {
 	flag.StringVar(&PartitionFilter, "partition", "", "limit views to specific partition only, leave empty to show all partitions")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", true, "if true, only copy the first column of the table to clipboard when copying")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", "\n", "string to use when separating copied lines in clipboard")
+
+	// One-shot-and-exit flags
+	versionFlag := flag.Bool("version", false, "print version information and exit")
+	keyboardShortcutsFlag := flag.Bool("show-keyboard-shortcuts", false, "print keyboard shortcuts and exit")
+
 	flag.Parse()
+
+	// Handle oneshots
+	if *versionFlag {
+		fmt.Println("stui version 0.0.1")
+		os.Exit(0)
+	}
+	if *keyboardShortcutsFlag {
+		fmt.Println(KEYBOARD_SHORTCUTS)
+		os.Exit(0)
+	}
 
 	// Set up durations with correct units
 	SearchDebounceInterval = SearchDebounceInterval * time.Millisecond

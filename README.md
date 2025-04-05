@@ -45,14 +45,41 @@ sudo mv ~/go/bin/stui /usr/bin
         	timeout setting for fetching data (default 4ns)
       -search-debounce-interval duration
         	interval in milliseconds to wait before searching (default 50ns)
+      -show-keyboard-shortcuts
+        	print keyboard shortcuts and exit
       -slurm-binaries-path string
         	path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
       -slurm-conf-location string
         	path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
       -slurm-restd-address string
         	URI for Slurm REST API if available, including protocol and port
+      -version
+        	print version information and exit
     ```
     <!-- REPLACE_END -->
+
+3. Keyboard shorcuts within `stui`
+
+    <!-- REPLACE_SHORTCUTS_START -->
+    ```
+    General Shortcuts
+    1        Switch to Nodes view
+    2        Switch to Jobs view
+    3        Switch to Scheduler view
+    Up/Down  Move selection up/down
+    k/j      Move selection up/down
+    ?        Show this help
+    
+    Shortcuts in Job/Node panes
+    /        Open search bar to filter rows by regex
+    p        Focus on partition selector (up/down to navigate, 'Enter' to select)
+    Space    Select/deselect row
+    y        Copy selected rows to clipboard
+    Enter    Show details for selected row
+    Esc      Close modal
+    
+    ```
+    <!-- REPLACE_SHORTCUTS_END -->
 
 ## Developing `stui`
 
@@ -70,7 +97,6 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Docs: keyboard shortcuts modal with '?'
 - Control commands: Set node state and reason for all selected nodes
 - Control commands: Cancel jobs / Send to top of queue for all selected jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time

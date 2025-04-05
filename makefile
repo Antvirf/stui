@@ -19,6 +19,15 @@ update-readme: build
 	@sed -i '/<!-- REPLACE_START -->/,/<!-- REPLACE_END -->/{//!d}' README.md
 	@sed -i '/<!-- REPLACE_START -->/r .help.tmp' README.md
 	@rm -f .help.tmp
+
+	@echo "Updating README.md with current shortcuts output..."
+	@(echo "    stui shortcuts"; ./stui -show-keyboard-shortcuts 2>&1) | \
+		sed -e '1d' -e 's/^/    /' | \
+		awk 'BEGIN {print "    ```"} {print} END {print "    ```"}' > .help.tmp
+	@sed -i '/<!-- REPLACE_SHORTCUTS_START -->/,/<!-- REPLACE_SHORTCUTS_END -->/{//!d}' README.md
+	@sed -i '/<!-- REPLACE_SHORTCUTS_START -->/r .help.tmp' README.md
+	@rm -f .help.tmp
+
 	@echo "README.md updated successfully"
 
 
