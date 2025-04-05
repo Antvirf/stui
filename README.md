@@ -37,8 +37,8 @@ sudo mv ~/go/bin/stui /usr/bin
         	comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
       -node-view-columns string
         	comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
-      -partition-filter string
-        	comma-separated list of partitions to filter views by, leave empty to show all partitions
+      -partition string
+        	limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
         	interval in seconds when to refetch data (default 15ns)
       -request-timeout duration
@@ -70,7 +70,7 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Partition selector as an option controllable within the UI (refreshes all data on change)
+- Docs: keyboard shortcuts modal with '?'
 - Control commands: Set node state and reason for all selected nodes
 - Control commands: Cancel jobs / Send to top of queue for all selected jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time

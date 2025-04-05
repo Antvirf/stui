@@ -15,10 +15,6 @@ import (
 func GetNodesWithTimeout(timeout time.Duration) (*TableData, error) {
 	// Prep columns
 	columns := strings.Split(config.NodeViewColumns, ",")
-	headers := make([]string, len(columns))
-	for i, col := range columns {
-		headers[i] = col // Use raw field names as headers initially
-	}
 	data, err := GetScontrolDataWithTimeout(
 		"show node --detail --all --oneliner",
 		columns,
@@ -32,15 +28,22 @@ func GetNodesWithTimeout(timeout time.Duration) (*TableData, error) {
 func GetJobsWithTimeout(timeout time.Duration) (*TableData, error) {
 	// Prep columns
 	columns := strings.Split(config.JobViewColumns, ",")
-	headers := make([]string, len(columns))
-	for i, col := range columns {
-		headers[i] = col // Use raw field names as headers initially
-	}
 	data, err := GetScontrolDataWithTimeout(
 		"show job --detail --all --oneliner",
 		columns,
 		config.PartitionFilter,
 		"JobId=",
+		config.RequestTimeout,
+	)
+	return data, err
+}
+
+func GetAllPartitionsWithTimeout(timeout time.Duration) (*TableData, error) {
+	data, err := GetScontrolDataWithTimeout(
+		"show partitions --detail --all --oneliner",
+		[]string{"PartitionName"},
+		"", // No filter
+		"PartitionName=",
 		config.RequestTimeout,
 	)
 	return data, err
@@ -73,16 +76,8 @@ func GetScontrolDataWithTimeout(command string, columns []string, partitionFilte
 	var rows [][]string
 	for _, rawRow := range rawRows {
 		// Apply partition filter if set
-		if config.PartitionFilter != "" {
-			matched := false
-			filteredPartitions := strings.Split(config.PartitionFilter, ",")
-			for _, partition := range filteredPartitions {
-				if strings.Contains(rawRow[partitionFieldname], partition) {
-					matched = true
-					break
-				}
-			}
-			if !matched {
+		if partitionFilter != "" {
+			if !strings.Contains(rawRow[partitionFieldname], partitionFilter) {
 				continue
 			}
 		}

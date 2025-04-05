@@ -81,6 +81,8 @@ func (a *App) SetupKeybinds() {
 				}
 			}
 			return nil
+		case 'p':
+			a.App.SetFocus(a.PartitionSelector)
 		case 'y':
 			if len(a.SelectedNodes) > 0 {
 				var sb strings.Builder
@@ -152,6 +154,8 @@ func (a *App) SetupKeybinds() {
 				}
 			}
 			return nil
+		case 'p':
+			a.App.SetFocus(a.PartitionSelector)
 		case 'y':
 			if len(a.SelectedJobs) > 0 {
 				var sb strings.Builder

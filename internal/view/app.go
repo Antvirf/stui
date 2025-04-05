@@ -37,6 +37,10 @@ type App struct {
 	FooterDataStatus            *tview.TextView
 	FooterMessage               *tview.TextView
 
+	// Partition selector
+	PartitionSelector            *tview.DropDown
+	PartitionSelectorFirstUpdate bool
+
 	// Search state
 	SearchBox        *tview.InputField
 	SearchActive     bool
@@ -47,8 +51,10 @@ type App struct {
 	JobGrid          *tview.Grid  // Grid containing jobs view and search
 
 	// Stored Data
+	DataLoaded     chan struct{} // Channel to signal data has been loaded
 	NodesTableData *model.TableData
 	JobsTableData  *model.TableData
+	PartitionsData *model.TableData
 }
 
 // Exit and log error details
@@ -62,8 +68,10 @@ func (a *App) closeOnError(err error) {
 // Initializes a `stui` instance tview Application using the config module
 func InitializeApplication() (a *App) {
 	application := App{
-		App:   tview.NewApplication(),
-		Pages: tview.NewPages(),
+		App:                          tview.NewApplication(),
+		Pages:                        tview.NewPages(),
+		DataLoaded:                   make(chan struct{}),
+		PartitionSelectorFirstUpdate: true,
 	}
 
 	// Init selectors
@@ -74,6 +82,7 @@ func InitializeApplication() (a *App) {
 
 func (a *App) SetupViews() {
 	a.SetupSearchBox()
+	a.SetupPartitionSelector()
 
 	// FooterPaneLocation components
 	a.FooterMessage = tview.NewTextView().
@@ -127,6 +136,7 @@ func (a *App) SetupViews() {
 
 	// Main grid layout, implemented with Flex
 	a.MainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(a.PartitionSelector, 0, 1, false).
 		AddItem(a.PagesContainer, 0, 30, true).
 		AddItem(a.FooterPaneLocationSeparator, 0, 1, false).
 		AddItem(FooterPaneLocationGrid, 0, 3, false)
@@ -173,15 +183,6 @@ func (a *App) SetupViews() {
 		Foreground(tcell.ColorWhite))
 	a.JobsView.SetBackgroundColor(tcell.ColorBlack) // Add this line
 
-	headers := []string{"ID", "User", "Partition", "Name", "State", "Time", "Nodes"}
-	for i, h := range headers {
-		a.JobsView.SetCell(0, i, tview.NewTableCell(h).
-			SetSelectable(false).
-			SetAlign(tview.AlignCenter).
-			SetBackgroundColor(tcell.ColorBlack).
-			SetTextColor(tcell.ColorWhite).
-			SetAttributes(tcell.AttrBold))
-	}
 	a.JobGrid = tview.NewGrid().
 		SetRows(0). // Just table initially
 		SetColumns(0).
@@ -213,6 +214,12 @@ func (a *App) StartRefresh(interval time.Duration) {
 			})
 		}
 	}()
+
+	// Wait for the first tick to complete before setting up the partition selector
+	go func() {
+		<-a.DataLoaded
+		a.setupPartitionSelectorOptions()
+	}()
 }
 
 func (a *App) UpdateAllViews() {
@@ -222,6 +229,10 @@ func (a *App) UpdateAllViews() {
 
 	start := time.Now()
 	var err error
+
+	a.PartitionsData, err = model.GetAllPartitionsWithTimeout(config.RequestTimeout)
+	a.closeOnError(err)
+
 	a.NodesTableData, err = model.GetNodesWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 	a.RenderTable(a.NodesView, *a.NodesTableData)
@@ -242,6 +253,12 @@ func (a *App) UpdateAllViews() {
 	// Update status line immediately
 	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
 	a.UpdateStatusLine(a.StatusLine, schedulerHost, schedulerIP)
+
+	// Inform that data has been loaded
+	select {
+	case a.DataLoaded <- struct{}{}:
+	default:
+	}
 }
 
 func (a *App) RerenderTableView(table *tview.Table) {
