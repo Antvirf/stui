@@ -33,8 +33,6 @@ sudo mv ~/go/bin/stui /usr/bin
         	string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
         	if true, only copy the first column of the table to clipboard when copying (default true)
-      -debug-multiplier int
-        	multiplier for nodes and jobs, helpful when debugging and developing (default 1)
       -job-view-columns string
         	comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
       -node-view-columns string

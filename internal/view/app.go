@@ -222,12 +222,12 @@ func (a *App) UpdateAllViews() {
 
 	start := time.Now()
 	var err error
-	a.NodesTableData, err = model.GetNodesWithTimeout(config.RequestTimeout, config.DebugMultiplier)
+	a.NodesTableData, err = model.GetNodesWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 	a.RenderTable(a.NodesView, *a.NodesTableData)
 
 	// Update jobs view with squeue output
-	a.JobsTableData, err = model.GetJobsWithTimeout(config.RequestTimeout, config.DebugMultiplier)
+	a.JobsTableData, err = model.GetJobsWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 	a.RenderTable(a.JobsView, *a.JobsTableData)
 

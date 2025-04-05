@@ -12,7 +12,6 @@ var (
 	SearchDebounceInterval time.Duration
 	RefreshInterval        time.Duration
 	RequestTimeout         time.Duration
-	DebugMultiplier        int
 	SlurmBinariesPath      string
 	SlurmConfLocation      string
 	SlurmRestdAddress      string
@@ -27,7 +26,6 @@ func Configure() {
 	flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", 50, "interval in milliseconds to wait before searching")
 	flag.DurationVar(&RefreshInterval, "refresh-interval", 15, "interval in seconds when to refetch data")
 	flag.DurationVar(&RequestTimeout, "request-timeout", 4, "timeout setting for fetching data")
-	flag.IntVar(&DebugMultiplier, "debug-multiplier", 1, "multiplier for nodes and jobs, helpful when debugging and developing")
 	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", "/usr/local/bin", "path where Slurm binaries like 'sinfo' and 'squeue' can be found")
 	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", "/etc/slurm/slurm.conf", "path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable")
 	flag.StringVar(&SlurmRestdAddress, "slurm-restd-address", "", "URI for Slurm REST API if available, including protocol and port")
