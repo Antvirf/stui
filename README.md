@@ -40,11 +40,11 @@ sudo mv ~/go/bin/stui /usr/bin
       -partition string
          limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
-         interval in seconds when to refetch data (default 15ns)
+         interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 15s)
       -request-timeout duration
-         timeout setting for fetching data (default 4ns)
+         timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 4s)
       -search-debounce-interval duration
-         interval in milliseconds to wait before searching (default 50ns)
+         interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
       -show-keyboard-shortcuts
          print keyboard shortcuts and exit
       -slurm-binaries-path string

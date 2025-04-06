@@ -1,3 +1,5 @@
+## DEVELOPMENT HELPERS
+
 .PHONY: setup lint build update-readme
 setup:
 	pip install pre-commit
@@ -31,7 +33,9 @@ update-readme: build
 	@echo "README.md updated successfully"
 
 
-.PHONY: build-cluster config-cluster run-cluster launch-jobs stop-cluster
+## DEVELOPMENT SLURM CLUSTER
+
+.PHONY: build-cluster config-cluster run-cluster launch-jobs stop-cluster mock
 build-cluster:
 	mkdir -p ./build && \
 		cd ./build && \
@@ -64,8 +68,24 @@ launch-jobs:
 stop-cluster:
 	sudo kill $$(ps aux | grep '[s]lurm' | awk '{print $$2}')
 
-.PHONY: mock
 mock: config-cluster run-cluster launch-jobs
+
+
+## TESTING UTILITIES
+
+generate-test-data:
+	sdiag > ./internal/model/testdata/sdiag.txt
+	scontrol show nodes --all --oneliner > ./internal/model/testdata/nodes.txt
+	scontrol show jobs --all --oneliner > ./internal/model/testdata/jobs.txt
+	scontrol show partitions --all --oneliner > ./internal/model/testdata/partitions.txt
+
+test: launch-jobs
+	go test -v ./internal/model
+
+
+offline-test:
+	go test -v ./internal/model -run TestParse*
+
 
 
 
