@@ -6,7 +6,9 @@ Terminal User Interface (TUI) for viewing and managing Slurm nodes and jobs.
 
 ## Features
 
-- List and view nodes and jobs, quickly filter list with regexp
+- List and view nodes and jobs, across all partitions or a specific partition
+- Quickly filter list nodes/jobs list with regular expressions
+- Select multiple nodes/jobs and run `scontrol` commands on them
 - View individual node details (`scontrol show node` equivalent)
 - View individual job details (`scontrol show job` equivalent)
 - Show `sdiag` output
@@ -26,12 +28,15 @@ sudo chmod +x /usr/local/bin/stui
 stui -help
 ```
 
-### Build + install with Go
+### Build + install with Go (does not require root)
 
 With [`go 1.22`](https://go.dev/doc/install) or newer installed;
 
 ```bash
 go install github.com/antvirf/stui@latest
+alias stui=~/go/bin/stui
+
+# root required only if you want to move the binary to a system path
 sudo mv ~/go/bin/stui /usr/bin
 ```
 
@@ -45,31 +50,29 @@ sudo mv ~/go/bin/stui /usr/bin
     ```
     Usage of ./stui:
       -copied-lines-separator string
-         string to use when separating copied lines in clipboard (default "\n")
+        	string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
-         if true, only copy the first column of the table to clipboard when copying (default true)
+        	if true, only copy the first column of the table to clipboard when copying (default true)
       -job-view-columns string
-         comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
+        	comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
       -node-view-columns string
-         comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
+        	comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
       -partition string
-         limit views to specific partition only, leave empty to show all partitions
+        	limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
-         interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 15s)
+        	interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 15s)
       -request-timeout duration
-         timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 4s)
+        	timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 4s)
       -search-debounce-interval duration
-         interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
+        	interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
       -show-keyboard-shortcuts
-         print keyboard shortcuts and exit
+        	print keyboard shortcuts and exit
       -slurm-binaries-path string
-         path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
+        	path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
       -slurm-conf-location string
-         path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
-      -slurm-restd-address string
-         URI for Slurm REST API if available, including protocol and port
+        	path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
       -version
-         print version information and exit
+        	print version information and exit
     ```
     <!-- REPLACE_END -->
 
