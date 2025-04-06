@@ -215,10 +215,15 @@ func (a *App) StartRefresh(interval time.Duration) {
 		}
 	}()
 
-	// Wait for the first tick to complete before setting up the partition selector
+	// Things to do only after first tick of data has loaded
 	go func() {
 		<-a.DataLoaded
+		// Partition selector relies on partition data being available
 		a.setupPartitionSelectorOptions()
+
+		// Scroll to the beginning of tables once at the start
+		a.NodesView.ScrollToBeginning()
+		a.JobsView.ScrollToBeginning()
 	}()
 }
 
