@@ -114,6 +114,8 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
+- Feat: Footer should contain overall node/job counts by state
+- Feat: View stdout / tail output target of running jobs
 - Test: what happens at runtime if x11/lib.h or similar is not available? (dependency of clipboard copy)
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
 - Ability to use `slurmrestd` / REST API instead of Slurm binaries

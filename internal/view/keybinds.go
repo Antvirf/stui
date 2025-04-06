@@ -42,7 +42,7 @@ func (a *App) SetupKeybinds() {
 			a.ShowModalPopup("Shortcuts", config.KEYBOARD_SHORTCUTS)
 		case '1':
 			a.Pages.SwitchToPage("nodes")
-			a.FooterPaneLocation.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
+			a.FooterGrid.SetTitle(" [::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3) ")
 			a.CurrentTableView = a.NodesView
 			if a.SearchPattern != "" {
 				a.ShowSearchBox()
@@ -54,7 +54,7 @@ func (a *App) SetupKeybinds() {
 			return nil
 		case '2':
 			a.Pages.SwitchToPage("jobs")
-			a.FooterPaneLocation.SetText("Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3)")
+			a.FooterGrid.SetTitle(" Nodes (1) - [::b]Jobs (2)[::-] - Scheduler (3) ")
 			a.CurrentTableView = a.JobsView
 			if a.SearchPattern != "" {
 				a.ShowSearchBox()
@@ -67,7 +67,7 @@ func (a *App) SetupKeybinds() {
 		case '3':
 			a.Pages.SwitchToPage("scheduler")
 			a.PagesContainer.SetTitle(" Scheduler status (sdiag) ")
-			a.FooterPaneLocation.SetText("Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-]")
+			a.FooterGrid.SetTitle(" Nodes (1) - Jobs (2) - [::b]Scheduler (3)[::-] ")
 			a.CurrentTableView = nil
 			a.HideSearchBox()
 			return nil

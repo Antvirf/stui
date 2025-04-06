@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -20,6 +21,10 @@ var (
 	CopyFirstColumnOnly    bool          = true
 	CopiedLinesSeparator   string        = "\n"
 	PartitionFilter        string        = ""
+
+	// Derived config options
+	NodeStatusField string = "State"
+	JobStatusField  string = "JobState"
 )
 
 const (
@@ -86,5 +91,13 @@ func Configure() {
 	// Validate input and configs
 	if RequestTimeout > RefreshInterval {
 		log.Fatalf("Invalid arguments: request timeout of '%d' is longer than refresh interval of '%d'", RequestTimeout, RefreshInterval)
+	}
+
+	// Compute derived configs
+	if !strings.Contains(NodeViewColumns, NodeStatusField) {
+		NodeStatusField = ""
+	}
+	if !strings.Contains(JobViewColumns, JobStatusField) {
+		JobStatusField = ""
 	}
 }

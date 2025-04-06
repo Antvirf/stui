@@ -27,17 +27,15 @@ type App struct {
 	NodesView       *tview.Table
 	JobsView        *tview.Table
 	SchedView       *tview.TextView
-	StatusLine      *tview.TextView // Combined status line
 	MainGrid        *tview.Flex
 	LastUpdate      time.Time
 	LastReqDuration time.Duration
 	startTime       time.Time // Start time of the application
 
 	// Footer
-	FooterPaneLocationSeparator *tview.Box
-	FooterPaneLocation          *tview.TextView
-	FooterDataStatus            *tview.TextView
-	FooterMessage               *tview.TextView
+	FooterLineOne *tview.TextView
+	FooterLineTwo *tview.TextView // Combined status line
+	FooterMessage *tview.TextView
 
 	// Partition selector
 	PartitionSelector            *tview.DropDown
@@ -60,6 +58,11 @@ type App struct {
 	NodesTableData *model.TableData
 	JobsTableData  *model.TableData
 	PartitionsData *model.TableData
+
+	// Footer stats
+	FooterGrid      *tview.Grid
+	FooterNodeStats *tview.TextView
+	FooterJobStats  *tview.TextView
 }
 
 // Exit and log error details
@@ -90,44 +93,54 @@ func (a *App) SetupViews() {
 	a.SetupSearchBox()
 	a.SetupPartitionSelector()
 
-	// FooterPaneLocation components
+	// FooterLineOne components
 	a.FooterMessage = tview.NewTextView().
 		SetDynamicColors(true).
-		SetTextAlign(tview.AlignCenter)
+		SetTextAlign(tview.AlignLeft)
 
-	a.FooterPaneLocation = tview.NewTextView().
+	a.FooterLineOne = tview.NewTextView().
 		SetDynamicColors(true).
-		SetTextAlign(tview.AlignCenter).
-		SetText("Nodes (1) - Jobs (2) - Scheduler (3)")
-
-	a.FooterDataStatus = tview.NewTextView().
-		SetDynamicColors(true).
-		SetTextAlign(tview.AlignCenter)
+		SetTextAlign(tview.AlignLeft)
 
 	// Combined status line
-	a.StatusLine = tview.NewTextView().
+	a.FooterLineTwo = tview.NewTextView().
 		SetDynamicColors(true).
-		SetTextAlign(tview.AlignCenter)
+		SetTextAlign(tview.AlignLeft)
 
-	// Parse slurm config to get scheduler info
-	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
-	a.UpdateStatusLine(a.StatusLine, schedulerHost, schedulerIP)
-
-	FooterPaneLocationGrid := tview.NewGrid().
+	// Left footer section
+	footerLeft := tview.NewGrid().
+		SetRows(-1, -1).
 		AddItem(a.FooterMessage, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.FooterPaneLocation, 1, 0, 1, 1, 0, 0, false).
-		AddItem(a.StatusLine, 2, 0, 1, 1, 0, 0, false)
+		AddItem(a.FooterLineOne, 1, 0, 1, 1, 0, 0, false).
+		AddItem(a.FooterLineTwo, 2, 0, 1, 1, 0, 0, false)
 
-	FooterPaneLocationGrid.SetBorder(true).SetBorderStyle(
+	// Right footer section with stats
+	a.FooterNodeStats = tview.NewTextView().
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignRight)
+	a.FooterJobStats = tview.NewTextView().
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignRight)
+
+	footerRight := tview.NewGrid().
+		SetRows(-1, -1, -1).
+		AddItem(tview.NewBox(), 0, 0, 1, 1, 0, 0, false).
+		AddItem(a.FooterNodeStats, 1, 0, 1, 1, 0, 0, false).
+		AddItem(a.FooterJobStats, 2, 0, 1, 1, 0, 0, false)
+
+	// Combined footer grid
+	a.FooterGrid = tview.NewGrid().
+		SetColumns(-1, -10, -10, -1).
+		AddItem(tview.NewBox(), 0, 0, 1, 1, 0, 0, false).
+		AddItem(footerLeft, 0, 1, 1, 1, 0, 0, false).
+		AddItem(footerRight, 0, 2, 1, 1, 0, 0, false).
+		AddItem(tview.NewBox(), 0, 3, 1, 1, 0, 0, false)
+
+	a.FooterGrid.SetBorder(true).SetBorderStyle(
 		tcell.StyleDefault.
 			Foreground(tcell.ColorGray).
 			Background(tcell.ColorBlack),
-	).
-		SetBorderPadding(0, 0, 0, 0)
-
-	a.FooterPaneLocationSeparator = tview.NewBox().
-		SetBorder(false).
-		SetBorderAttributes(tcell.AttrBold)
+	)
 
 	a.PagesContainer = tview.NewFlex().SetDirection(tview.FlexRow)
 
@@ -144,8 +157,7 @@ func (a *App) SetupViews() {
 	a.MainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(a.PartitionSelector, 0, 1, false).
 		AddItem(a.PagesContainer, 0, 30, true).
-		AddItem(a.FooterPaneLocationSeparator, 0, 1, false).
-		AddItem(FooterPaneLocationGrid, 0, 3, false)
+		AddItem(a.FooterGrid, 0, 3, false)
 
 	a.MainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrDim).
@@ -206,8 +218,8 @@ func (a *App) SetupViews() {
 	a.Pages.AddPage("scheduler", a.SchedView, true, false)
 
 	// Set initial active tab highlight and status
-	a.FooterPaneLocation.SetText("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
-	a.FooterDataStatus.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
+	a.FooterGrid.SetTitle("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
+	a.FooterLineTwo.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
 }
 
 func (a *App) StartRefresh(interval time.Duration) {
@@ -263,7 +275,7 @@ func (a *App) UpdateAllViews() {
 
 	// Update status line immediately
 	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
-	a.UpdateStatusLine(a.StatusLine, schedulerHost, schedulerIP)
+	a.UpdateFooter(schedulerHost, schedulerIP)
 
 	// Inform that data has been loaded
 	select {
@@ -282,7 +294,6 @@ func (a *App) RerenderTableView(table *tview.Table) {
 	default:
 		return
 	}
-
 }
 
 func (a *App) RenderTable(table *tview.Table, data model.TableData) {
@@ -373,18 +384,6 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 				SetExpansion(1))
 		}
 	}
-}
-
-func (a *App) UpdateStatusLine(StatusLine *tview.TextView, host, ip string) {
-	StatusLine.SetText(
-		fmt.Sprintf(
-			"Scheduler: %s (%s) | Data as of %s (%d ms)",
-			host,
-			ip,
-			a.LastUpdate.Format("15:04:05"),
-			a.LastReqDuration.Milliseconds(),
-		),
-	)
 }
 
 func (a *App) ShowModalPopup(title, details string) {
