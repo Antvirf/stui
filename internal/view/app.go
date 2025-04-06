@@ -30,6 +30,7 @@ type App struct {
 	MainGrid        *tview.Flex
 	LastUpdate      time.Time
 	LastReqDuration time.Duration
+	startTime       time.Time // Start time of the application
 
 	// Footer
 	FooterPaneLocationSeparator *tview.Box
@@ -75,6 +76,7 @@ func InitializeApplication() (a *App) {
 		Pages:                        tview.NewPages(),
 		DataLoaded:                   make(chan struct{}),
 		PartitionSelectorFirstUpdate: true,
+		startTime:                    time.Now(),
 	}
 
 	// Init selectors

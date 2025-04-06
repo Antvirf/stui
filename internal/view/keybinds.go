@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -15,6 +16,21 @@ import (
 func (a *App) SetupKeybinds() {
 	// Global keybinds (work anywhere except when typing in search)
 	a.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+
+		if event.Key() == tcell.KeyCtrlC {
+			a.App.Stop()
+			duration := time.Since(a.startTime)
+			rpm := float64(model.FetchCounter.Count) / duration.Seconds() * 60
+			log.Printf(
+				"Session stats: duration=%s, total_scheduler_calls=%d, requests_per_minute=%.1f",
+				duration.Round(time.Second),
+				model.FetchCounter.Count,
+				rpm,
+			)
+			log.Print("Thank you for using stui!")
+			return event
+		}
+
 		// Don't allow pane switching while typing in search
 		// same if command prompt is open
 		if a.SearchBox.HasFocus() || a.CommandModalOpen {

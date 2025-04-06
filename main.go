@@ -13,10 +13,11 @@ func main() {
 	app.SetupKeybinds()
 	app.StartRefresh(config.RefreshInterval)
 
-	if err := app.App.
+	err := app.App.
 		SetRoot(app.MainGrid, true).
 		EnableMouse(false).
-		Run(); err != nil {
+		Run()
+	if err != nil {
 		panic(err)
 	}
 }

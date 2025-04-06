@@ -115,7 +115,6 @@ make setup              # install pre-commit and download Go deps
 ## To-do
 
 - Test: what happens at runtime if x11/lib.h or similar is not available? (dependency of clipboard copy)
-- Feat: Track total number of calls made and session time, show it after user closes app
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
 - Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: yank details

@@ -50,6 +50,7 @@ func GetAllPartitionsWithTimeout(timeout time.Duration) (*TableData, error) {
 }
 
 func GetScontrolDataWithTimeout(command string, columns []string, partitionFilter string, prefix string, timeout time.Duration) (*TableData, error) {
+	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -98,6 +99,7 @@ func GetScontrolDataWithTimeout(command string, columns []string, partitionFilte
 }
 
 func GetNodeDetailsWithTimeout(nodeName string, timeout time.Duration) (string, error) {
+	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -116,6 +118,7 @@ func GetNodeDetailsWithTimeout(nodeName string, timeout time.Duration) (string, 
 }
 
 func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, error) {
+	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx,
@@ -133,6 +136,7 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 }
 
 func GetSchedulerInfoWithTimeout(timeout time.Duration) (string, string) {
+	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx,
@@ -183,6 +187,7 @@ func GetSchedulerInfoWithTimeout(timeout time.Duration) (string, string) {
 }
 
 func GetSdiagWithTimeout(timeout time.Duration) (string, error) {
+	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
