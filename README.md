@@ -48,29 +48,29 @@ sudo mv ~/go/bin/stui /usr/bin
     ```
     Usage of ./stui:
       -copied-lines-separator string
-         string to use when separating copied lines in clipboard (default "\n")
+        	string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
-         if true, only copy the first column of the table to clipboard when copying (default true)
+        	if true, only copy the first column of the table to clipboard when copying (default true)
       -job-view-columns string
-         comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
+        	comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
       -node-view-columns string
-         comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
+        	comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
       -partition string
-         limit views to specific partition only, leave empty to show all partitions
+        	limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
-         interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 15s)
+        	interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 15s)
       -request-timeout duration
-         timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 4s)
+        	timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 4s)
       -search-debounce-interval duration
-         interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
+        	interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
       -show-keyboard-shortcuts
-         print keyboard shortcuts and exit
+        	print keyboard shortcuts and exit
       -slurm-binaries-path string
-         path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
+        	path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
       -slurm-conf-location string
-         path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
+        	path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
       -version
-         print version information and exit
+        	print version information and exit
     ```
     <!-- REPLACE_END -->
 
