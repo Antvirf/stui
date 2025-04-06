@@ -69,8 +69,10 @@ func GetScontrolDataWithTimeout(command string, columns []string, partitionFilte
 
 	// Depending on data, the partition field name may be called differently. Deal with both cases.
 	partitionFieldname := "Partition"
-	if _, exists := rawRows[0]["Partitions"]; exists {
-		partitionFieldname = "Partitions"
+	if len(rawRows) != 0 {
+		if _, exists := rawRows[0]["Partitions"]; exists {
+			partitionFieldname = "Partitions"
+		}
 	}
 
 	var rows [][]string

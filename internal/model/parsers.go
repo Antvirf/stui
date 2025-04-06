@@ -30,7 +30,11 @@ func parseScontrolOutput(prefix string, output string) (entries []map[string]str
 				currentEntry[key] = value
 			}
 		}
-		entries = append(entries, currentEntry)
+		// Only add entires that contain at least 1 key=value pair
+		// e.g. if you have no jobs, scontrol returns a single line with "No jobs in the system"
+		if len(currentEntry) != 0 {
+			entries = append(entries, currentEntry)
+		}
 	}
 	return entries
 }
