@@ -27,3 +27,5 @@ build/
 stui
 
 
+# Added by goreleaser init:
+dist/

@@ -87,5 +87,16 @@ offline-test:
 	go test -v ./internal/model -run TestParse*
 
 
+## RELEASE UTILITIES
+release-check:
+	goreleaser check
+
+release-dryrun:
+	goreleaser release --snapshot --clean
+
+release:
+	goreleaser --release --clean
+
+
 
 
