@@ -89,13 +89,13 @@ offline-test:
 
 ## RELEASE UTILITIES
 release-check:
-	goreleaser check
+	~/go/bin/goreleaser check
 
 release-dryrun:
-	goreleaser release --snapshot --clean
+	~/go/bin/goreleaser release --snapshot --clean
 
 release:
-	goreleaser --release --clean
+	~/go/bin/goreleaser --release --clean
 
 
 

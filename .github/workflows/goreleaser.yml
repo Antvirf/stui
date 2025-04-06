@@ -6,7 +6,7 @@ name: Check & Release
 
 ## RELEASE USAGE
 # Trigger with
-# export TAG
+# export TAG=0.0.1
 # git tag -a $TAG -m "First release"
 # git push origin $TAG
 

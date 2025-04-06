@@ -1,10 +1,8 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
-
 version: 2
 
 before:
   hooks:
+    - make lint
     - go mod tidy
 
 builds:
@@ -16,10 +14,21 @@ builds:
     targets:
       - linux_amd64
       - linux_arm64
+      - linux_ppc64
       - linux_ppc64le
 
 archives:
-  - formats: [tar.gz]
+  - id: binaries
+    formats: binary
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+
+  - id: tarballs
+    formats: [tar.gz]
     # this name template makes the OS and Arch compatible with the results of `uname`.
     name_template: >-
       {{ .ProjectName }}_
