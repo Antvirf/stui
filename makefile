@@ -121,4 +121,4 @@ convert-demo-to-gif:
 	rm assets/demo.gif
 	ffmpeg -i $$(ls demo* | tail -n1) \
     	-vf "fps=10,scale=1024:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
-    	-loop -1 assets/demo.gif
+    	-loop 0 assets/demo.gif
