@@ -1,4 +1,14 @@
-name: goreleaser
+name: Check & Release
+
+## REGULAR USAGE
+# Any PR to the main branch will trigger a build, during which
+# we run tests and ensure the code is ready for release
+
+## RELEASE USAGE
+# Trigger with
+# export TAG
+# git tag -a $TAG -m "First release"
+# git push origin $TAG
 
 on:
   pull_request:
