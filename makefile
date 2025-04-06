@@ -5,6 +5,7 @@ setup:
 	pip install pre-commit
 	pre-commit install
 	go mod download
+	sudo useradd johndoe -u 1337 -g 1337 -m -s /bin/bash
 
 lint:
 	find -name "*.go" | xargs -I{} go fmt {}
@@ -63,7 +64,7 @@ run-cluster:
 	@sdiag && echo "\n\nCluster up and running!"
 
 launch-jobs:
-	bash testing/test-job-launcher.sh
+	sudo bash testing/test-job-launcher.sh
 
 stop-cluster:
 	sudo kill $$(ps aux | grep '[s]lurm' | awk '{print $$2}')
