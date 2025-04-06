@@ -85,6 +85,21 @@ func (a *App) SetupKeybinds() {
 			return nil
 		case 'p':
 			a.App.SetFocus(a.PartitionSelector)
+		case 'c':
+			// If user has a selection, use the selection
+			if len(a.SelectedNodes) > 0 {
+				a.ShowCommandModal("NodeName", a.SelectedNodes)
+			} else {
+				// Otherwise, try to use the current node under the cursor, if any
+				row, _ := a.NodesView.GetSelection()
+				if row > 0 {
+					a.ShowCommandModal("NodeName", map[string]bool{
+						a.NodesView.GetCell(row, 0).Text: true,
+					},
+					)
+				}
+			}
+			return nil
 		case 'y':
 			if len(a.SelectedNodes) > 0 {
 				var sb strings.Builder
@@ -158,6 +173,21 @@ func (a *App) SetupKeybinds() {
 			return nil
 		case 'p':
 			a.App.SetFocus(a.PartitionSelector)
+		case 'c':
+			// If user has a selection, use the selection
+			if len(a.SelectedJobs) > 0 {
+				a.ShowCommandModal("JobId", a.SelectedJobs)
+			} else {
+				// Otherwise, try to use the current row under the cursor, if any
+				row, _ := a.JobsView.GetSelection()
+				if row > 0 {
+					a.ShowCommandModal("JobId", map[string]bool{
+						a.JobsView.GetCell(row, 0).Text: true,
+					},
+					)
+				}
+			}
+			return nil
 		case 'y':
 			if len(a.SelectedJobs) > 0 {
 				var sb strings.Builder

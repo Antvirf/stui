@@ -30,31 +30,31 @@ sudo mv ~/go/bin/stui /usr/bin
     ```
     Usage of ./stui:
       -copied-lines-separator string
-        	string to use when separating copied lines in clipboard (default "\n")
+         string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
-        	if true, only copy the first column of the table to clipboard when copying (default true)
+         if true, only copy the first column of the table to clipboard when copying (default true)
       -job-view-columns string
-        	comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
+         comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
       -node-view-columns string
-        	comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
+         comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
       -partition string
-        	limit views to specific partition only, leave empty to show all partitions
+         limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
-        	interval in seconds when to refetch data (default 15ns)
+         interval in seconds when to refetch data (default 15ns)
       -request-timeout duration
-        	timeout setting for fetching data (default 4ns)
+         timeout setting for fetching data (default 4ns)
       -search-debounce-interval duration
-        	interval in milliseconds to wait before searching (default 50ns)
+         interval in milliseconds to wait before searching (default 50ns)
       -show-keyboard-shortcuts
-        	print keyboard shortcuts and exit
+         print keyboard shortcuts and exit
       -slurm-binaries-path string
-        	path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
+         path where Slurm binaries like 'sinfo' and 'squeue' can be found (default "/usr/local/bin")
       -slurm-conf-location string
-        	path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
+         path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
       -slurm-restd-address string
-        	URI for Slurm REST API if available, including protocol and port
+         URI for Slurm REST API if available, including protocol and port
       -version
-        	print version information and exit
+         print version information and exit
     ```
     <!-- REPLACE_END -->
 
@@ -72,9 +72,10 @@ sudo mv ~/go/bin/stui /usr/bin
     
     Shortcuts in Job/Node panes
     /        Open search bar to filter rows by regex
-    p        Focus on partition selector (up/down to navigate, 'Enter' to select)
+    p        Focus on partition selector
     Space    Select/deselect row
     y        Copy selected rows to clipboard
+    c        Run command on selected items (opens prompt)
     Enter    Show details for selected row
     Esc      Close modal
     

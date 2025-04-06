@@ -434,11 +434,3 @@ func (a *App) ShowNodeDetails(nodeName string) {
 	}
 	a.ShowModalPopup(fmt.Sprintf("Node Details: %s", nodeName), details)
 }
-
-func (a *App) ShowJobDetails(jobID string) {
-	details, err := model.GetJobDetailsWithTimeout(jobID, config.RequestTimeout)
-	if err != nil {
-		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
-	}
-	a.ShowModalPopup(fmt.Sprintf("Job Details: %s", jobID), details)
-}
