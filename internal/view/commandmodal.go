@@ -82,6 +82,7 @@ func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool
 			cmdOut, err := cmd.CombinedOutput()
 			if err != nil {
 				output.SetText(output.GetText(true) + "Error: " + err.Error() + "\n")
+				output.SetText(output.GetText(true) + string(cmdOut))
 			} else {
 				commandOutput := string(cmdOut)
 				if commandOutput == "" {
