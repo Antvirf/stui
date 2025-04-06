@@ -114,7 +114,9 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Control commands: Set node state and reason for all selected nodes
-- Control commands: Cancel jobs / Send to top of queue for all selected jobs
-- Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time
+- Test: what happens at runtime if x11/lib.h or similar is not available? (dependency of clipboard copy)
+- Refactor: remove repetition in keybinds.go
+- Feat: Track total number of calls made and session time, show it after user closes app
+- Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
 - Ability to use `slurmrestd` / REST API instead of Slurm binaries
+- Feat: yank details
