@@ -13,6 +13,21 @@ Terminal User Interface (TUI) for viewing and managing Slurm nodes and jobs.
 
 ## Installation
 
+### Install latest release for `x86_64` Linux
+
+```bash
+# download
+sudo curl -L github.com/Antvirf/stui/releases/latest/download/stui_Linux_x86_64 -o /usr/local/bin/stui
+
+# make it executable
+sudo chmod +x /usr/local/bin/stui
+
+# use
+stui -help
+```
+
+### Build + install with Go
+
 With [`go 1.22`](https://go.dev/doc/install) or newer installed;
 
 ```bash

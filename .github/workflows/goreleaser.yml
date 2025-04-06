@@ -49,6 +49,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Pre-release checks
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          make lint
+          make update-version-in-go
+          make fail-if-any-files-changed
+
       - name: Release on tag
         uses: goreleaser/goreleaser-action@v6
         if: startsWith(github.ref, 'refs/tags/')

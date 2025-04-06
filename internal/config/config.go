@@ -24,6 +24,7 @@ var (
 )
 
 const (
+	STUI_VERSION       = "0.0.1"
 	KEYBOARD_SHORTCUTS = `General Shortcuts
 1        Switch to Nodes view
 2        Switch to Jobs view
@@ -65,7 +66,7 @@ func Configure() {
 
 	// Handle oneshots
 	if *versionFlag {
-		fmt.Println("stui version 0.0.1")
+		fmt.Printf("stui version %s\n", STUI_VERSION)
 		os.Exit(0)
 	}
 	if *keyboardShortcutsFlag {

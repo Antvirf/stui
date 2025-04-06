@@ -97,6 +97,17 @@ release-dryrun:
 release:
 	~/go/bin/goreleaser --release --clean
 
+update-version-in-go:
+	export GIT_TAG=$$(git describe --tags --abbrev=0) && \
+	echo $$GIT_TAG && \
+	sed -i "s/\(STUI_VERSION[[:space:]]*=[[:space:]]*\)\".*\"/\1\"$$GIT_TAG\"/" ./internal/config/config.go
+
+fail-if-any-files-changed:
+	git diff --exit-code
+	if [ "$$?" -ne 0 ]; then \
+		echo "There are uncommitted changes in the repository. Please commit or stash them before running this target."; \
+		exit 1; \
+	fi
 
 
 
