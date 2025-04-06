@@ -9,18 +9,18 @@ import (
 )
 
 var (
-	// All configuration options for `stui` are listed here
-	SearchDebounceInterval time.Duration
-	RefreshInterval        time.Duration
-	RequestTimeout         time.Duration
-	SlurmBinariesPath      string
-	SlurmConfLocation      string
-	SlurmRestdAddress      string
-	NodeViewColumns        string
-	JobViewColumns         string
-	CopyFirstColumnOnly    bool
-	CopiedLinesSeparator   string
-	PartitionFilter        string
+	// All configuration options for `stui` are listed here with their defaults
+	SearchDebounceInterval time.Duration = 50 * time.Millisecond
+	RefreshInterval        time.Duration = 15 * time.Second
+	RequestTimeout         time.Duration = 4 * time.Second
+	SlurmBinariesPath      string        = "/usr/local/bin"
+	SlurmConfLocation      string        = "/etc/slurm/slurm.conf"
+	SlurmRestdAddress      string        = ""
+	NodeViewColumns        string        = "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres"
+	JobViewColumns         string        = "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList"
+	CopyFirstColumnOnly    bool          = true
+	CopiedLinesSeparator   string        = "\n"
+	PartitionFilter        string        = ""
 )
 
 const (
@@ -45,17 +45,17 @@ Esc      Close modal
 
 func Configure() {
 	// Config flags
-	flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", 50, "interval in milliseconds to wait before searching")
-	flag.DurationVar(&RefreshInterval, "refresh-interval", 15, "interval in seconds when to refetch data")
-	flag.DurationVar(&RequestTimeout, "request-timeout", 4, "timeout setting for fetching data")
-	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", "/usr/local/bin", "path where Slurm binaries like 'sinfo' and 'squeue' can be found")
-	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", "/etc/slurm/slurm.conf", "path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable")
-	flag.StringVar(&SlurmRestdAddress, "slurm-restd-address", "", "URI for Slurm REST API if available, including protocol and port")
-	flag.StringVar(&NodeViewColumns, "node-view-columns", "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres", "comma-separated list of scontrol fields to show in node view")
-	flag.StringVar(&JobViewColumns, "job-view-columns", "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList", "comma-separated list of scontrol fields to show in job view")
-	flag.StringVar(&PartitionFilter, "partition", "", "limit views to specific partition only, leave empty to show all partitions")
-	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", true, "if true, only copy the first column of the table to clipboard when copying")
-	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", "\n", "string to use when separating copied lines in clipboard")
+	flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
+	flag.DurationVar(&RefreshInterval, "refresh-interval", RefreshInterval, "interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m'")
+	flag.DurationVar(&RequestTimeout, "request-timeout", RequestTimeout, "timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m'")
+	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", SlurmBinariesPath, "path where Slurm binaries like 'sinfo' and 'squeue' can be found")
+	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", SlurmConfLocation, "path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable")
+	flag.StringVar(&SlurmRestdAddress, "slurm-restd-address", SlurmRestdAddress, "URI for Slurm REST API if available, including protocol and port")
+	flag.StringVar(&NodeViewColumns, "node-view-columns", NodeViewColumns, "comma-separated list of scontrol fields to show in node view")
+	flag.StringVar(&JobViewColumns, "job-view-columns", JobViewColumns, "comma-separated list of scontrol fields to show in job view")
+	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
+	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
+	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
 
 	// One-shot-and-exit flags
 	versionFlag := flag.Bool("version", false, "print version information and exit")
@@ -72,11 +72,6 @@ func Configure() {
 		fmt.Println(KEYBOARD_SHORTCUTS)
 		os.Exit(0)
 	}
-
-	// Set up durations with correct units
-	SearchDebounceInterval = SearchDebounceInterval * time.Millisecond
-	RefreshInterval = RefreshInterval * time.Second
-	RequestTimeout = RequestTimeout * time.Second
 
 	// If slurm.conf location was given, ensure file exists and configure env var if appropriate
 	if SlurmConfLocation != "" {
