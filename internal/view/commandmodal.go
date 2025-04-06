@@ -14,6 +14,7 @@ import (
 )
 
 func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool) {
+	a.CommandModalOpen = true
 	var selected []string
 	prefix := fmt.Sprintf("scontrol update %s=", commandFilter)
 	for entry := range selectedMap {
@@ -98,6 +99,7 @@ func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool
 			return nil
 
 		case tcell.KeyEsc:
+			a.CommandModalOpen = false
 			a.Pages.RemovePage(pageName)
 			a.Pages.SwitchToPage(previousPageName)
 			a.App.SetFocus(previousFocus)

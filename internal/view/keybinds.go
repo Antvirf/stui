@@ -14,7 +14,8 @@ func (a *App) SetupKeybinds() {
 	// Global keybinds (work anywhere except when typing in search)
 	a.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		// Don't allow pane switching while typing in search
-		if a.SearchBox.HasFocus() {
+		// same if command prompt is open
+		if a.SearchBox.HasFocus() || a.CommandModalOpen {
 			return event
 		}
 

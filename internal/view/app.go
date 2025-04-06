@@ -50,6 +50,9 @@ type App struct {
 	searchTimer      *time.Timer  // Timer for debouncing search updates
 	JobGrid          *tview.Grid  // Grid containing jobs view and search
 
+	// Command modal state
+	CommandModalOpen bool
+
 	// Stored Data
 	DataLoaded     chan struct{} // Channel to signal data has been loaded
 	NodesTableData *model.TableData
