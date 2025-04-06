@@ -25,6 +25,7 @@ go.work.sum
 .aider*
 build/
 stui
+*.mp4
 
 
 # Added by goreleaser init:

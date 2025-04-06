@@ -1,6 +1,6 @@
 ## DEVELOPMENT HELPERS
 
-.PHONY: setup lint build update-readme
+.PHONY: setup lint build update-readme install
 setup:
 	pip install pre-commit
 	pre-commit install
@@ -13,6 +13,9 @@ lint:
 
 build: lint
 	go build
+
+install:
+	go install
 
 update-readme: build
 	@echo "Updating README.md with current help output..."
@@ -89,6 +92,7 @@ offline-test:
 
 
 ## RELEASE UTILITIES
+.PHONY: release-check release-dryrun release update-version-in-go fail-if-any-files-changed execute-demo convert-demo-to-gif
 release-check:
 	~/go/bin/goreleaser check
 
@@ -110,5 +114,11 @@ fail-if-any-files-changed:
 		exit 1; \
 	fi
 
+execute-demo: build install launch-jobs
+	uv run testing/demo.py
 
-
+convert-demo-to-gif:
+	rm assets/demo.gif
+	ffmpeg -i $$(ls demo* | tail -n1) \
+    	-vf "fps=10,scale=1024:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
+    	-loop -1 assets/demo.gif
