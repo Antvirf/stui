@@ -58,9 +58,11 @@ build-cluster:
 		sudo ldconfig -n /usr/lib64
 
 config-cluster:
+	sudo mkdir -p /etc/slurm
 	sudo cp ./testing/mock-cluster-slurmconf.conf /etc/slurm/slurm.conf
 
 run-cluster:
+	sudo useradd slurm || true
 	sudo slurmctld && echo "Launched Slurmctld"
 	sudo slurmd -N localhost && echo "Launched Slurmd"
 	@sleep 2
