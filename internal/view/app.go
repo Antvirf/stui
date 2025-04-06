@@ -11,6 +11,7 @@ import (
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.design/x/clipboard"
 )
 
 const (
@@ -427,14 +428,32 @@ func (a *App) ShowModalPopup(title, details string) {
 
 	// Set up handler to return to correct view when closed
 	detailView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEsc {
+		switch event.Key() {
+		case tcell.KeyEsc:
 			a.Pages.RemovePage(pageName)
 			a.Pages.SwitchToPage(previousPageName)
 			a.App.SetFocus(previousFocus)
 			return nil
 		}
+		switch event.Rune() {
+		case 'y':
+			clipboard.Write(clipboard.FmtText, []byte(details))
+			a.ShowNotification(
+				"[green]Copied row details clipboard[white]",
+				2*time.Second,
+			)
+			return nil
+		}
 		return event
 	})
+}
+
+func (a *App) ShowJobDetails(jobID string) {
+	details, err := model.GetJobDetailsWithTimeout(jobID, config.RequestTimeout)
+	if err != nil {
+		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
+	}
+	a.ShowModalPopup(fmt.Sprintf("Job Details: %s", jobID), details)
 }
 
 func (a *App) ShowNodeDetails(nodeName string) {

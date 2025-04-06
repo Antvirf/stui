@@ -88,10 +88,10 @@ sudo mv ~/go/bin/stui /usr/bin
     
     Shortcuts in Job/Node panes
     /        Open search bar to filter rows by regex
-    p        Focus on partition selector
+    p        Focus on partition selector, 'esc' to close
     Space    Select/deselect row
-    y        Copy selected rows to clipboard
-    c        Run command on selected items (opens prompt)
+    y        Copy selected content (either rows, or currently open details) to clipboard
+    c        Run command on selected items, or on current row if no selection (opens prompt)
     Enter    Show details for selected row
     Esc      Close modal
     
@@ -117,4 +117,3 @@ make setup              # install pre-commit and download Go deps
 - Test: what happens at runtime if x11/lib.h or similar is not available? (dependency of clipboard copy)
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
 - Ability to use `slurmrestd` / REST API instead of Slurm binaries
-- Feat: yank details

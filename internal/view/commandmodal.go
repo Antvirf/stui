@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/antvirf/stui/internal/config"
-	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -107,12 +105,4 @@ func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool
 		}
 		return event
 	})
-}
-
-func (a *App) ShowJobDetails(jobID string) {
-	details, err := model.GetJobDetailsWithTimeout(jobID, config.RequestTimeout)
-	if err != nil {
-		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
-	}
-	a.ShowModalPopup(fmt.Sprintf("Job Details: %s", jobID), details)
 }

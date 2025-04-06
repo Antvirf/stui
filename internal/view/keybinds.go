@@ -80,7 +80,6 @@ func (a *App) SetupKeybinds() {
 		tableviewInputCapture(
 			a,
 			a.NodesView,
-			a.NodesTableData,
 			&a.SelectedNodes,
 			"NodeName", // Used for command modal
 			a.ShowNodeDetails,
@@ -90,7 +89,6 @@ func (a *App) SetupKeybinds() {
 		tableviewInputCapture(
 			a,
 			a.JobsView,
-			a.JobsTableData,
 			&a.SelectedJobs,
 			"JobId", // Used for command modal
 			a.ShowJobDetails,
@@ -102,12 +100,20 @@ func (a *App) SetupKeybinds() {
 func tableviewInputCapture(
 	a *App,
 	view *tview.Table,
-	data *model.TableData,
 	selection *map[string]bool,
 	commandModalFilter string,
 	detailsFunction func(string),
 ) func(*tcell.EventKey) *tcell.EventKey {
 	return func(event *tcell.EventKey) *tcell.EventKey {
+		// Get current table data based on which view we're in
+		// Passing this as a pointer will cause a nil pointer dereference
+		var data *model.TableData
+		switch view {
+		case a.NodesView:
+			data = a.NodesTableData
+		case a.JobsView:
+			data = a.JobsTableData
+		}
 		switch event.Rune() {
 		case '/':
 			a.ShowSearchBox()
@@ -151,7 +157,7 @@ func tableviewInputCapture(
 			}
 			return nil
 		case 'y':
-			if len(*selection) > 0 {
+			if len(*selection) > 0 && data != nil {
 				var sb strings.Builder
 				for entryName := range *selection {
 					// Find the node in our table data

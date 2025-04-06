@@ -34,10 +34,10 @@ k/j      Move selection up/down
 
 Shortcuts in Job/Node panes
 /        Open search bar to filter rows by regex
-p        Focus on partition selector
+p        Focus on partition selector, 'esc' to close
 Space    Select/deselect row
-y        Copy selected rows to clipboard
-c        Run command on selected items (opens prompt)
+y        Copy selected content (either rows, or currently open details) to clipboard
+c        Run command on selected items, or on current row if no selection (opens prompt)
 Enter    Show details for selected row
 Esc      Close modal
 `
