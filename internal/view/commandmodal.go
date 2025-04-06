@@ -55,7 +55,7 @@ func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(modal, 10, 1, true),
+			AddItem(modal, 25, 1, true),
 			0, 60, false).
 		AddItem(nil, 0, 1, false)
 
