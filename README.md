@@ -100,7 +100,7 @@ sudo mv ~/go/bin/stui /usr/bin
 
 ## Developing `stui`
 
-The below helpers configure a locally running cluster with `888` virtual nodes across several partitions to help work on `stui` with realistic data.
+The below helpers configure a locally running cluster with `888` virtual nodes across several partitions to help work on `stui` with realistic data. This builds Slurm from scratch, so refer to [Slurm docs on build dependencies.](https://slurm.schedmd.com/quickstart_admin.html#manual_build)
 
 ```bash
 make build-cluster      # build Slurm with required options
