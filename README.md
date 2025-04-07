@@ -68,7 +68,7 @@ sudo mv ~/go/bin/stui /usr/bin
       -slurm-binaries-path string
         	path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH
       -slurm-conf-location string
-        	path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable (default "/etc/slurm/slurm.conf")
+        	path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set
       -version
         	print version information and exit
     ```
@@ -114,7 +114,6 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Fix: Use SLURM_CONF env var, if it exists
 - Fix: Long reason / one with newlines won't show in full
 - Fix: bold panes may not work on all terminals, use better highlighting
 

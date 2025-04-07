@@ -17,7 +17,7 @@ var (
 	RefreshInterval        time.Duration = 15 * time.Second
 	RequestTimeout         time.Duration = 4 * time.Second
 	SlurmBinariesPath      string        = ""
-	SlurmConfLocation      string        = "/etc/slurm/slurm.conf"
+	SlurmConfLocation      string        = ""
 	NodeViewColumns        string        = "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres"
 	JobViewColumns         string        = "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList"
 	CopyFirstColumnOnly    bool          = true
@@ -57,7 +57,7 @@ func Configure() {
 	flag.DurationVar(&RefreshInterval, "refresh-interval", RefreshInterval, "interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.DurationVar(&RequestTimeout, "request-timeout", RequestTimeout, "timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", SlurmBinariesPath, "path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH")
-	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", SlurmConfLocation, "path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable")
+	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", SlurmConfLocation, "path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set")
 	flag.StringVar(&NodeViewColumns, "node-view-columns", NodeViewColumns, "comma-separated list of scontrol fields to show in node view")
 	flag.StringVar(&JobViewColumns, "job-view-columns", JobViewColumns, "comma-separated list of scontrol fields to show in job view")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
@@ -86,7 +86,8 @@ func Configure() {
 			log.Fatalf("Specified Slurm conf file cannot be found: %v", err)
 		}
 
-		if err := os.Setenv("SLURM_CONF", SlurmConfLocation); err != nil {
+		err := os.Setenv("SLURM_CONF", SlurmConfLocation)
+		if err != nil {
 			log.Fatalf("Failed to set SLURM_CONF environment variable: %v", err)
 		}
 	}
