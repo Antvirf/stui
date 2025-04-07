@@ -39,6 +39,7 @@ const (
 Up/Down  Move selection up/down
 k/j      Move selection up/down
 ?        Show this help
+Ctrl+C   Exit
 
 Shortcuts in Job/Node panes
 /        Open search bar to filter rows by regex
