@@ -85,6 +85,7 @@ sudo mv ~/go/bin/stui /usr/bin
     Up/Down  Move selection up/down
     k/j      Move selection up/down
     ?        Show this help
+    Ctrl+C   Exit
     
     Shortcuts in Job/Node panes
     /        Open search bar to filter rows by regex
@@ -114,7 +115,6 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Fix: Long reason / one with newlines won't show in full
 - Fix: bold panes may not work on all terminals, use better highlighting
 
 - Feat: Footer should contain overall node/job counts by state
