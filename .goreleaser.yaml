@@ -20,15 +20,6 @@ builds:
       - linux_ppc64le
 
 archives:
-  - id: binaries
-    formats: binary
-    # this name template makes the OS and Arch compatible with the results of `uname`.
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- title .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else }}{{ .Arch }}{{ end }}
-
   - id: tarballs
     formats: [tar.gz]
     # this name template makes the OS and Arch compatible with the results of `uname`.
