@@ -114,7 +114,6 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Fix: Crash on clipboard not found
 - Fix: Use SLURM_CONF env var, if it exists
 - Fix: Long reason / one with newlines won't show in full
 - Fix: bold panes may not work on all terminals, use better highlighting

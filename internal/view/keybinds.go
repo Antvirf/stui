@@ -1,7 +1,6 @@
 package view
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"golang.design/x/clipboard"
 )
 
 func (a *App) SetupKeybinds() {
@@ -173,12 +171,7 @@ func tableviewInputCapture(
 						}
 					}
 				}
-				clipboard.Write(clipboard.FmtText, []byte(sb.String()))
-				count := len(*selection)
-				a.ShowNotification(
-					fmt.Sprintf("[green]Copied %d selected row(s) to clipboard[white]", count),
-					2*time.Second,
-				)
+				a.copyToClipBoard(sb.String())
 				return nil
 			}
 		}

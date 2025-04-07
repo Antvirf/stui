@@ -11,7 +11,6 @@ import (
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"golang.design/x/clipboard"
 )
 
 const (
@@ -436,11 +435,7 @@ func (a *App) ShowModalPopup(title, details string) {
 		}
 		switch event.Rune() {
 		case 'y':
-			clipboard.Write(clipboard.FmtText, []byte(details))
-			a.ShowNotification(
-				"[green]Copied row details clipboard[white]",
-				2*time.Second,
-			)
+			a.copyToClipBoard(details)
 			return nil
 		}
 		return event

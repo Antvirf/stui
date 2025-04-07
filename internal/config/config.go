@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"golang.design/x/clipboard"
 )
 
 var (
@@ -23,8 +25,9 @@ var (
 	PartitionFilter        string        = ""
 
 	// Derived config options
-	NodeStatusField string = "State"
-	JobStatusField  string = "JobState"
+	NodeStatusField    string = "State"
+	JobStatusField     string = "JobState"
+	ClipboardAvailable bool   = false
 )
 
 const (
@@ -99,5 +102,12 @@ func Configure() {
 	}
 	if !strings.Contains(JobViewColumns, JobStatusField) {
 		JobStatusField = ""
+	}
+
+	// We set clipboard available only if this works
+	// See package docs at https://github.com/golang-design/clipboard for more detail
+	err := clipboard.Init()
+	if err == nil {
+		ClipboardAvailable = true
 	}
 }
