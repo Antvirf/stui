@@ -20,6 +20,9 @@ const (
 type App struct {
 	App             *tview.Application
 	Pages           *tview.Pages
+	TabNodesBox     *tview.TextView
+	TabJobsBox      *tview.TextView
+	TabSchedulerBox *tview.TextView
 	SelectedNodes   map[string]bool // Track selected nodes by name
 	SelectedJobs    map[string]bool // Track selected jobs by ID
 	PagesContainer  *tview.Flex     // Container for pages with border title
@@ -127,13 +130,32 @@ func (a *App) SetupViews() {
 		AddItem(a.FooterNodeStats, 1, 0, 1, 1, 0, 0, false).
 		AddItem(a.FooterJobStats, 2, 0, 1, 1, 0, 0, false)
 
+	// Create tab boxes
+	a.TabNodesBox = tview.NewTextView().
+		SetText("(1) Nodes")
+	a.TabNodesBox.SetBackgroundColor(tcell.ColorDarkOrange)
+
+	a.TabJobsBox = tview.NewTextView().
+		SetText("(2) Jobs")
+
+	a.TabSchedulerBox = tview.NewTextView().
+		SetText("(3) Scheduler")
+
+	// Create a grid for the tabs
+	tabGrid := tview.NewGrid().
+		// SetRows(1,1,1).
+		AddItem(a.TabNodesBox, 0, 0, 1, 1, 0, 0, false).
+		AddItem(a.TabJobsBox, 1, 0, 1, 1, 0, 0, false).
+		AddItem(a.TabSchedulerBox, 2, 0, 1, 1, 0, 0, false)
+
 	// Combined footer grid
 	a.FooterGrid = tview.NewGrid().
-		SetColumns(-1, -10, -10, -1).
+		SetColumns(-1, -10, -10, -10, -1).
 		AddItem(tview.NewBox(), 0, 0, 1, 1, 0, 0, false).
 		AddItem(footerLeft, 0, 1, 1, 1, 0, 0, false).
-		AddItem(footerRight, 0, 2, 1, 1, 0, 0, false).
-		AddItem(tview.NewBox(), 0, 3, 1, 1, 0, 0, false)
+		AddItem(tabGrid, 0, 2, 1, 1, 0, 0, false).
+		AddItem(footerRight, 0, 3, 1, 1, 0, 0, false).
+		AddItem(tview.NewBox(), 0, 4, 1, 1, 0, 0, false)
 
 	a.FooterGrid.SetBorder(true).SetBorderStyle(
 		tcell.StyleDefault.
@@ -216,8 +238,6 @@ func (a *App) SetupViews() {
 		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 	a.Pages.AddPage("scheduler", a.SchedView, true, false)
 
-	// Set initial active tab highlight and status
-	a.FooterGrid.SetTitle("[::b]Nodes (1)[::-] - Jobs (2) - Scheduler (3)")
 	a.FooterLineTwo.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
 }
 
@@ -448,6 +468,23 @@ func (a *App) ShowJobDetails(jobID string) {
 		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
 	}
 	a.ShowModalPopup(fmt.Sprintf("Job Details: %s", jobID), details)
+}
+
+func (a *App) setActiveTab(active string) {
+	// Reset all to black
+	a.TabNodesBox.SetBackgroundColor(tcell.ColorBlack)
+	a.TabJobsBox.SetBackgroundColor(tcell.ColorBlack)
+	a.TabSchedulerBox.SetBackgroundColor(tcell.ColorBlack)
+
+	// Set active to orange
+	switch active {
+	case "nodes":
+		a.TabNodesBox.SetBackgroundColor(tcell.ColorDarkOrange)
+	case "jobs":
+		a.TabJobsBox.SetBackgroundColor(tcell.ColorDarkOrange)
+	case "scheduler":
+		a.TabSchedulerBox.SetBackgroundColor(tcell.ColorDarkOrange)
+	}
 }
 
 func (a *App) ShowNodeDetails(nodeName string) {

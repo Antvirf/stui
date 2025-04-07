@@ -115,8 +115,6 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
-- Fix: bold panes may not work on all terminals, use better highlighting
-
 - Feat: Footer should contain overall node/job counts by state
 - Feat: View stdout / tail output target of running jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
