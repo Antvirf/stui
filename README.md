@@ -17,14 +17,10 @@
 
 ```bash
 # download
-sudo curl -L github.com/Antvirf/stui/releases/latest/download/stui_Linux_x86_64 -o /usr/local/bin/stui
-
-# make it executable
-sudo chmod +x /usr/local/bin/stui
-
-# use
-stui -help
+curl -sL github.com/Antvirf/stui/releases/latest/download/stui_Linux_x86_64.tar.gz | tar xzv stui
 ```
+
+You can then move the binary to a more convenient location, e.g. `sudo mv stui /usr/bin/local`.
 
 ### Build + install with Go (does not require root)
 
