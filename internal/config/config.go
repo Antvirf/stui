@@ -14,7 +14,7 @@ var (
 	SearchDebounceInterval time.Duration = 50 * time.Millisecond
 	RefreshInterval        time.Duration = 15 * time.Second
 	RequestTimeout         time.Duration = 4 * time.Second
-	SlurmBinariesPath      string        = "/usr/local/bin"
+	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = "/etc/slurm/slurm.conf"
 	NodeViewColumns        string        = "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres"
 	JobViewColumns         string        = "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList"
@@ -53,7 +53,7 @@ func Configure() {
 	flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.DurationVar(&RefreshInterval, "refresh-interval", RefreshInterval, "interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.DurationVar(&RequestTimeout, "request-timeout", RequestTimeout, "timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m'")
-	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", SlurmBinariesPath, "path where Slurm binaries like 'sinfo' and 'squeue' can be found")
+	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", SlurmBinariesPath, "path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH")
 	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", SlurmConfLocation, "path to slurm.conf for the desired cluster, sets 'SLURM_CONF' environment variable")
 	flag.StringVar(&NodeViewColumns, "node-view-columns", NodeViewColumns, "comma-separated list of scontrol fields to show in node view")
 	flag.StringVar(&JobViewColumns, "job-view-columns", JobViewColumns, "comma-separated list of scontrol fields to show in job view")
