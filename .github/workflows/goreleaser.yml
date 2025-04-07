@@ -39,6 +39,7 @@ jobs:
 
       - name: Run offline tests
         run: |
+          sudo apt install libx11-dev
           make offline-test
 
       - name: GoReleaser Build
