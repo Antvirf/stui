@@ -16,7 +16,6 @@
 ### Install latest release for `x86_64` Linux
 
 ```bash
-# download
 curl -sL github.com/Antvirf/stui/releases/latest/download/stui_Linux_x86_64.tar.gz | tar xzv stui
 ```
 
