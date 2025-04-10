@@ -17,6 +17,11 @@ func (a *App) SetupPartitionSelector() {
 	// Partition selector
 	a.PartitionSelector = tview.NewDropDown().
 		SetLabel("Partition: ").
+		SetLabelStyle(tcell.StyleDefault.Foreground(tcell.ColorWhite)).
+		SetListStyles(
+			tcell.StyleDefault,
+			tcell.StyleDefault.Background(selectionColor),
+		).
 		SetFieldWidth(20).
 		SetFieldBackgroundColor(tcell.ColorDarkSlateGray).
 		SetTextOptions("  ", "  ", "", "", "")
