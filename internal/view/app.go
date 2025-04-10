@@ -434,7 +434,7 @@ func (a *App) ShowModalPopup(title, details string) {
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(modal, 40, 10, true), // Increased height
+			AddItem(modal, 0, 10, true), // Increased height
 			0, 16, false). // Increased width
 		AddItem(nil, 0, 1, false)
 
