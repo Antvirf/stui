@@ -147,9 +147,9 @@ func (a *App) SetupViews() {
 	// Create a grid for the tabs
 	tabGrid := tview.NewGrid().
 		// SetRows(1,1,1).
-		AddItem(a.TabNodesBox, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.TabJobsBox, 1, 0, 1, 1, 0, 0, false).
-		AddItem(a.TabSchedulerBox, 2, 0, 1, 1, 0, 0, false)
+		AddItem(a.TabNodesBox, 0, 0, 1, 1, 1, 0, false).
+		AddItem(a.TabJobsBox, 1, 0, 1, 1, 1, 0, false).
+		AddItem(a.TabSchedulerBox, 2, 0, 1, 1, 1, 0, false)
 
 	// Combined footer grid
 	a.FooterGrid = tview.NewGrid().
@@ -179,9 +179,9 @@ func (a *App) SetupViews() {
 
 	// Main grid layout, implemented with Flex
 	a.MainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(a.PartitionSelector, 0, 1, false).
-		AddItem(a.PagesContainer, 0, 30, true).
-		AddItem(a.FooterGrid, 0, 3, false)
+		AddItem(a.PartitionSelector, 1, 0, false).
+		AddItem(a.PagesContainer, 0, 1, true).
+		AddItem(a.FooterGrid, 5, 0, false)
 
 	a.MainGrid.SetBorder(true).
 		SetBorderAttributes(tcell.AttrDim).
