@@ -126,13 +126,23 @@ func tableviewInputCapture(
 					delete(*selection, entryName)
 					// Set all cells in row to default background
 					for col := 0; col < view.GetColumnCount(); col++ {
-						view.GetCell(row, col).SetBackgroundColor(tcell.ColorBlack)
+						view.GetCell(row, col).
+							SetBackgroundColor(tcell.ColorBlack).
+							SetSelectedStyle(
+								tcell.StyleDefault.
+									Background(rowCursorColorBackground),
+							)
 					}
 				} else {
 					(*selection)[entryName] = true
 					// Set all cells in row to orange background
 					for col := 0; col < view.GetColumnCount(); col++ {
-						view.GetCell(row, col).SetBackgroundColor(selectionColor)
+						view.GetCell(row, col).
+							SetBackgroundColor(selectionColor).
+							SetSelectedStyle(
+								tcell.StyleDefault.
+									Background(selectionHighlightColor),
+							)
 					}
 				}
 			}

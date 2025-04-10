@@ -14,7 +14,10 @@ import (
 )
 
 const (
-	selectionColor = tcell.ColorDarkOrange // The orange color used for selections
+	rowCursorColorBackground = tcell.ColorDarkSlateGray
+	rowCursorColorForeground = tcell.ColorWhite
+	selectionColor           = tcell.ColorDarkOrange // The orange color used for selections
+	selectionHighlightColor  = tcell.ColorLightGoldenrodYellow
 )
 
 type App struct {
@@ -196,8 +199,8 @@ func (a *App) SetupViews() {
 	a.NodesView.SetSelectable(true, false) // Selectable rows but not columns
 	// Configure more compact highlighting
 	a.NodesView.SetSelectedStyle(tcell.StyleDefault.
-		Background(tcell.ColorDarkSlateGray).
-		Foreground(tcell.ColorWhite))
+		Background(rowCursorColorBackground).
+		Foreground(rowCursorColorForeground))
 	a.NodesView.SetBackgroundColor(tcell.ColorBlack) // Add this line
 
 	a.NodeGrid = tview.NewGrid().
@@ -218,8 +221,8 @@ func (a *App) SetupViews() {
 	a.JobsView.SetSelectable(true, false) // Selectable rows but not columns
 	// Configure more compact highlighting
 	a.JobsView.SetSelectedStyle(tcell.StyleDefault.
-		Background(tcell.ColorDarkSlateGray).
-		Foreground(tcell.ColorWhite))
+		Background(rowCursorColorBackground).
+		Foreground(rowCursorColorForeground))
 	a.JobsView.SetBackgroundColor(tcell.ColorBlack) // Add this line
 
 	a.JobGrid = tview.NewGrid().
