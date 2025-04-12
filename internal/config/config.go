@@ -16,11 +16,16 @@ var (
 	RequestTimeout         time.Duration = 4 * time.Second
 	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = ""
-	NodeViewColumns        string        = "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres"
-	JobViewColumns         string        = "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList"
 	CopyFirstColumnOnly    bool          = true
 	CopiedLinesSeparator   string        = "\n"
 	PartitionFilter        string        = ""
+	DefaultColumnWidth     int           = 2
+
+	// Raw config options are not exposed to other modules, but pre-parsed by the config module
+	rawNodeViewColumns string = "NodeName,Partitions:15,State,CfgTRES:20,CPULoad,AllocMem,RealMemory,Reason:25,Boards"
+	rawJobViewColumns  string = "JobId,Partition,UserId,JobName:25,JobState,RunTime,NodeList,QOS,NumCPUs"
+	NodeViewColumns    *[]ColumnConfig
+	JobViewColumns     *[]ColumnConfig
 
 	// Derived config options
 	NodeStatusField string = "State"
@@ -56,8 +61,9 @@ func Configure() {
 	flag.DurationVar(&RequestTimeout, "request-timeout", RequestTimeout, "timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", SlurmBinariesPath, "path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH")
 	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", SlurmConfLocation, "path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set")
-	flag.StringVar(&NodeViewColumns, "node-view-columns", NodeViewColumns, "comma-separated list of scontrol fields to show in node view")
-	flag.StringVar(&JobViewColumns, "job-view-columns", JobViewColumns, "comma-separated list of scontrol fields to show in job view")
+	flag.StringVar(&rawNodeViewColumns, "node-columns-config", rawNodeViewColumns, "comma-separated list of scontrol fields to show in node view, suffix field name with ':<width>' to set column width")
+	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, suffix field name with ':<width>' to set column width")
+	flag.IntVar(&DefaultColumnWidth, "default-column-width", DefaultColumnWidth, "minimum default width of columns in table views, if not overridden in column config")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
@@ -95,11 +101,26 @@ func Configure() {
 		log.Fatalf("Invalid arguments: request timeout of '%d' is longer than refresh interval of '%d'", RequestTimeout, RefreshInterval)
 	}
 
+	ComputeConfigurations()
+}
+
+func ComputeConfigurations() {
 	// Compute derived configs
-	if !strings.Contains(NodeViewColumns, NodeStatusField) {
+	if !strings.Contains(rawNodeViewColumns, NodeStatusField) {
 		NodeStatusField = ""
 	}
-	if !strings.Contains(JobViewColumns, JobStatusField) {
+	if !strings.Contains(rawJobViewColumns, JobStatusField) {
 		JobStatusField = ""
+	}
+
+	// Parse raw config entries
+	var err error
+	NodeViewColumns, err = parseColumnConfigLine(rawNodeViewColumns)
+	if err != nil {
+		log.Fatalf("Failed to parse node column config: %v", err)
+	}
+	JobViewColumns, err = parseColumnConfigLine(rawJobViewColumns)
+	if err != nil {
+		log.Fatalf("Failed to parse job column config: %v", err)
 	}
 }

@@ -14,10 +14,9 @@ import (
 
 func GetNodesWithTimeout(timeout time.Duration) (*TableData, error) {
 	// Prep columns
-	columns := strings.Split(config.NodeViewColumns, ",")
 	data, err := GetScontrolDataWithTimeout(
 		"show node --detail --all --oneliner",
-		columns,
+		config.NodeViewColumns,
 		config.PartitionFilter,
 		"NodeName=",
 		config.RequestTimeout,
@@ -27,10 +26,9 @@ func GetNodesWithTimeout(timeout time.Duration) (*TableData, error) {
 
 func GetJobsWithTimeout(timeout time.Duration) (*TableData, error) {
 	// Prep columns
-	columns := strings.Split(config.JobViewColumns, ",")
 	data, err := GetScontrolDataWithTimeout(
 		"show job --detail --all --oneliner",
-		columns,
+		config.JobViewColumns,
 		config.PartitionFilter,
 		"JobId=",
 		config.RequestTimeout,
@@ -41,7 +39,7 @@ func GetJobsWithTimeout(timeout time.Duration) (*TableData, error) {
 func GetAllPartitionsWithTimeout(timeout time.Duration) (*TableData, error) {
 	data, err := GetScontrolDataWithTimeout(
 		"show partitions --detail --all --oneliner",
-		[]string{"PartitionName"},
+		&[]config.ColumnConfig{{Name: "PartitionName"}},
 		"", // No filter
 		"PartitionName=",
 		config.RequestTimeout,
@@ -49,7 +47,7 @@ func GetAllPartitionsWithTimeout(timeout time.Duration) (*TableData, error) {
 	return data, err
 }
 
-func GetScontrolDataWithTimeout(command string, columns []string, partitionFilter string, prefix string, timeout time.Duration) (*TableData, error) {
+func GetScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, partitionFilter string, prefix string, timeout time.Duration) (*TableData, error) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -85,9 +83,9 @@ func GetScontrolDataWithTimeout(command string, columns []string, partitionFilte
 			}
 		}
 
-		row := make([]string, len(columns))
-		for j, col := range columns {
-			row[j] = safeGetFromMap(rawRow, col)
+		row := make([]string, len(*columns))
+		for j, col := range *columns {
+			row[j] = safeGetFromMap(rawRow, col.Name)
 		}
 		rows = append(rows, row)
 	}

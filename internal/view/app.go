@@ -319,10 +319,6 @@ func (a *App) RerenderTableView(table *tview.Table) {
 }
 
 func (a *App) RenderTable(table *tview.Table, data model.TableData) {
-	// Set headers with fixed width
-	columnWidths := []int{15, 15, 15, 20, 15, 10, 20, 6, 6, 6, 20} // Wider columns for Job Name, State and Nodes
-
-	// First clear the table but preserve column widths
 	table.Clear()
 
 	// Update page title with counts
@@ -342,13 +338,12 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 	}
 
 	// Set headers with fixed widths and padding
-	for col, header := range data.Headers {
+	for col, header := range *data.Headers {
 		// Pad header with spaces to maintain width
-		paddedHeader := fmt.Sprintf("%-*s", columnWidths[col], header)
+		paddedHeader := fmt.Sprintf("%-*s", header.Width, header.Name)
 		table.SetCell(0, col, tview.NewTableCell(paddedHeader).
 			SetSelectable(false).
 			SetAlign(tview.AlignLeft).
-			SetMaxWidth(columnWidths[col]).
 			SetBackgroundColor(tcell.ColorBlack).
 			SetTextColor(tcell.ColorWhite).
 			SetAttributes(tcell.AttrBold))
@@ -379,7 +374,7 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 		for col, cell := range rowData {
 			cellView := tview.NewTableCell(cell).
 				SetAlign(tview.AlignLeft).
-				SetMaxWidth(columnWidths[col]).
+				SetMaxWidth((*data.Headers)[col].Width).
 				SetExpansion(1)
 
 			// Highlight selected rows
@@ -397,12 +392,11 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 
 	// If no rows, set empty cells with spaces to maintain column widths
 	if len(filteredRows) == 0 {
-		for col, width := range columnWidths {
-			// Create a cell with spaces to maintain width
-			spaces := strings.Repeat(" ", width)
+		for col, header := range *data.Headers {
+			spaces := strings.Repeat(" ", header.Width)
 			table.SetCell(1, col, tview.NewTableCell(spaces).
 				SetAlign(tview.AlignLeft).
-				SetMaxWidth(width).
+				SetMaxWidth(header.Width).
 				SetExpansion(1))
 		}
 	}

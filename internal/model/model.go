@@ -1,10 +1,14 @@
 package model
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/antvirf/stui/internal/config"
+)
 
 // TableData represents the data returned by the model package, ready for display.
 type TableData struct {
-	Headers []string
+	Headers *[]config.ColumnConfig
 	Rows    [][]string
 }
 

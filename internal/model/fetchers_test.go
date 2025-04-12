@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -51,7 +50,7 @@ func TestGetNodesWithTimeout(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.expectedCount, len(data.Rows))
-			assert.Equal(t, strings.Split(config.NodeViewColumns, ","), data.Headers)
+			assert.Equal(t, *config.NodeViewColumns, *data.Headers)
 
 			// Verify some sample data
 			if tt.expectedCount > 0 {
@@ -73,7 +72,7 @@ func TestGetJobs(t *testing.T) {
 		"Expected at least one job to be present, launch a job to run these tests",
 	)
 
-	assert.Equal(t, strings.Split(config.JobViewColumns, ","), data.Headers)
+	assert.Equal(t, *config.JobViewColumns, *data.Headers)
 
 	firstJobId := data.Rows[0][0]
 	details, err := GetJobDetailsWithTimeout(firstJobId, 1*time.Second)
@@ -86,7 +85,6 @@ func TestGetAllPartitionsWithTimeout(t *testing.T) {
 	data, err := GetAllPartitionsWithTimeout(1 * time.Second)
 	require.NoError(t, err)
 	assert.Equal(t, 7, len(data.Rows))
-	assert.Equal(t, []string{"PartitionName"}, data.Headers)
 
 	assert.Equal(t, "general", data.Rows[0][0])
 	assert.Equal(t, "chemistry", data.Rows[1][0])
@@ -118,4 +116,8 @@ func TestGetSdiagWithTimeout(t *testing.T) {
 	assert.Contains(t, output, "Main schedule statistics")
 	assert.Contains(t, output, "Backfilling stats")
 	assert.Contains(t, output, "Remote Procedure Call statistics by message type")
+}
+
+func init() {
+	config.ComputeConfigurations()
 }

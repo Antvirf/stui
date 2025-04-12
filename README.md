@@ -46,10 +46,12 @@ sudo mv ~/go/bin/stui /usr/bin
         	string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
         	if true, only copy the first column of the table to clipboard when copying (default true)
-      -job-view-columns string
-        	comma-separated list of scontrol fields to show in job view (default "JobId,UserId,Partition,JobName,JobState,RunTime,NodeList")
-      -node-view-columns string
-        	comma-separated list of scontrol fields to show in node view (default "NodeName,Partitions,State,CPUTot,RealMemory,CPULoad,Reason,Sockets,CoresPerSocket,ThreadsPerCore,Gres")
+      -default-column-width int
+        	minimum default width of columns in table views, if not overridden in column config (default 2)
+      -job-columns-config string
+        	comma-separated list of scontrol fields to show in job view, suffix field name with ':<width>' to set column width (default "JobId,Partition,UserId,JobName:25,JobState,RunTime,NodeList,QOS,NumCPUs")
+      -node-columns-config string
+        	comma-separated list of scontrol fields to show in node view, suffix field name with ':<width>' to set column width (default "NodeName,Partitions:15,State,CfgTRES:20,CPULoad,AllocMem,RealMemory,Reason:25,Boards")
       -partition string
         	limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
