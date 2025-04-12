@@ -79,13 +79,14 @@ sudo mv ~/go/bin/stui /usr/bin
     1        Switch to Nodes view
     2        Switch to Jobs view
     3        Switch to Scheduler view
-    Up/Down  Move selection up/down
-    k/j      Move selection up/down
+    k/j      Move selection up/down in table view
+    h/l      Scroll left/right in table view
+    Arrows   Scroll up/down/left/right in table view
     ?        Show this help
     Ctrl+C   Exit
     
     Shortcuts in Job/Node panes
-    /        Open search bar to filter rows by regex
+    /        Open search bar to filter rows by regex, 'esc' to close, 'enter' to go back to table
     p        Focus on partition selector, 'esc' to close
     Space    Select/deselect row
     y        Copy selected content (either rows, or currently open details) to clipboard
