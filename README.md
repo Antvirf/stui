@@ -49,9 +49,9 @@ sudo mv ~/go/bin/stui /usr/bin
       -default-column-width int
         	minimum default width of columns in table views, if not overridden in column config (default 2)
       -job-columns-config string
-        	comma-separated list of scontrol fields to show in job view, suffix field name with ':<width>' to set column width (default "JobId,Partition,UserId,JobName:25,JobState,RunTime,NodeList,QOS,NumCPUs")
+        	comma-separated list of scontrol fields to show in job view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "JobId,Partition,UserId,JobName:25,JobState,RunTime,NodeList,QOS,NumCPUs,Mem")
       -node-columns-config string
-        	comma-separated list of scontrol fields to show in node view, suffix field name with ':<width>' to set column width (default "NodeName,Partitions:15,State,CfgTRES:20,CPULoad,AllocMem,RealMemory,Reason:25,Boards")
+        	comma-separated list of scontrol fields to show in node view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "NodeName,Partitions:15,State,CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards")
       -partition string
         	limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
@@ -112,6 +112,7 @@ make setup              # install pre-commit and download Go deps
 
 ## To-do
 
+- Separation of internal data fetched vs. data used to render table
 - Feat: Footer should contain overall node/job counts by state
 - Feat: View stdout / tail output target of running jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable

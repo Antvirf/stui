@@ -7,8 +7,9 @@ import (
 )
 
 type ColumnConfig struct {
-	Name  string
-	Width int
+	Name            string
+	Width           int
+	DividedByColumn bool
 }
 
 func GetColumnNames(columnConfigs *[]ColumnConfig) (columns []string) {
@@ -27,7 +28,13 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 	var configs []ColumnConfig
 
 	for _, part := range parts {
-		col := ColumnConfig{}
+		col := ColumnConfig{DividedByColumn: false}
+
+		// Check if column contains '/', in which case it is a DividedByColumn
+		if strings.Contains(part, "//") {
+			col.DividedByColumn = true
+		}
+
 		if strings.Contains(part, ":") {
 			subParts := strings.Split(part, ":")
 			if len(subParts) != 2 {

@@ -85,7 +85,17 @@ func GetScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 
 		row := make([]string, len(*columns))
 		for j, col := range *columns {
-			row[j] = safeGetFromMap(rawRow, col.Name)
+			if col.DividedByColumn {
+				components := strings.Split(col.Name, "//")
+				top := safeGetFromMap(rawRow, components[0])
+				bottom := safeGetFromMap(rawRow, components[1])
+				row[j] = fmt.Sprintf("%s/%s", top, bottom)
+
+			} else {
+				// Normal cell
+				row[j] = safeGetFromMap(rawRow, col.Name)
+			}
+
 		}
 		rows = append(rows, row)
 	}
