@@ -10,6 +10,7 @@ setup:
 lint:
 	find -name "*.go" | xargs -I{} go fmt {}
 	go mod tidy
+	go vet ./...
 
 build: lint
 	go build

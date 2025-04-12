@@ -30,11 +30,6 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 	for _, part := range parts {
 		col := ColumnConfig{DividedByColumn: false}
 
-		// Check if column contains '/', in which case it is a DividedByColumn
-		if strings.Contains(part, "//") {
-			col.DividedByColumn = true
-		}
-
 		if strings.Contains(part, ":") {
 			subParts := strings.Split(part, ":")
 			if len(subParts) != 2 {
@@ -49,6 +44,11 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 		} else {
 			col.Name = part
 			col.Width = DefaultColumnWidth
+		}
+
+		// Check if column contains '/', in which case it is a DividedByColumn
+		if strings.Contains(part, "//") {
+			col.DividedByColumn = true
 		}
 		configs = append(configs, col)
 	}

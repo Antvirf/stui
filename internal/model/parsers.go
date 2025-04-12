@@ -50,3 +50,38 @@ func parseScontrolOutput(prefix string, output string) (entries []map[string]str
 	}
 	return entries
 }
+
+// parseSacctOutput parses the sacct/sacctmgr output into a slice of maps
+func parseSacctOutput(output string) (entries []map[string]string) {
+	lines := strings.Split(output, "\n")
+	if len(lines) < 2 {
+		return entries // Return empty if there are no rows or only a header
+	}
+
+	// Parse the header
+	header := strings.Split(lines[0], "|")
+
+	// Parse the data rows
+	for _, line := range lines[1:] {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue // Skip empty lines
+		}
+
+		// Split the line into fields
+		fields := strings.Split(line, "|")
+		if len(fields) != len(header) {
+			continue // Skip rows that don't match the header length, if we get some random garbage
+		}
+
+		// Create a map for the current entry
+		currentEntry := make(map[string]string)
+		for i, key := range header {
+			currentEntry[key] = fields[i]
+		}
+
+		entries = append(entries, currentEntry)
+	}
+
+	return entries
+}

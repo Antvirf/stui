@@ -14,7 +14,7 @@ func main() {
 	app.StartRefresh(config.RefreshInterval)
 
 	err := app.App.
-		SetRoot(app.MainGrid, true).
+		SetRoot(app.MainFlex, true).
 		EnableMouse(false).
 		Run()
 	if err != nil {

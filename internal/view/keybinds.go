@@ -42,8 +42,9 @@ func (a *App) SetupKeybinds() {
 			a.Pages.SwitchToPage("nodes")
 			a.setActiveTab("nodes")
 			a.CurrentTableView = a.NodesView
+			a.SetHeaderGridInnerContents(a.PartitionSelector)
 			if a.SearchPattern != "" {
-				a.ShowSearchBox()
+				a.ShowSearchBox(a.NodeGrid)
 			} else {
 				a.HideSearchBox()
 			}
@@ -54,8 +55,9 @@ func (a *App) SetupKeybinds() {
 			a.Pages.SwitchToPage("jobs")
 			a.setActiveTab("jobs")
 			a.CurrentTableView = a.JobsView
+			a.SetHeaderGridInnerContents(a.PartitionSelector)
 			if a.SearchPattern != "" {
-				a.ShowSearchBox()
+				a.ShowSearchBox(a.JobGrid)
 			} else {
 				a.HideSearchBox()
 			}
@@ -68,10 +70,39 @@ func (a *App) SetupKeybinds() {
 			a.setActiveTab("scheduler")
 			a.CurrentTableView = nil
 			a.HideSearchBox()
+			a.SetHeaderGridInnerContents(tview.NewBox())
+			return nil
+		case '4':
+			if config.SacctEnabled {
+
+				a.Pages.SwitchToPage("accounting")
+				a.setActiveTab("accounting")
+				a.CurrentTableView = a.AcctView
+				a.SetHeaderGridInnerContents(a.SacctMgrEntitySelector)
+				if a.SearchPattern != "" {
+					a.ShowSearchBox(a.AcctGrid)
+				} else {
+					a.HideSearchBox()
+				}
+				a.App.SetFocus(a.AcctView)
+				a.RerenderTableView(a.AcctView)
+			}
 			return nil
 		}
 		return event
 	})
+
+	if config.SacctEnabled {
+		a.AcctView.SetInputCapture(
+			tableviewInputCapture(
+				a,
+				a.AcctView,
+				&a.SelectedAcctRows,
+				"",              // Used for command modal, ignored if blank
+				func(string) {}, // Null func for detail view
+			),
+		)
+	}
 
 	// Table view keybinds
 	a.NodesView.SetInputCapture(
@@ -106,15 +137,21 @@ func tableviewInputCapture(
 		// Get current table data based on which view we're in
 		// Passing this as a pointer will cause a nil pointer dereference
 		var data *model.TableData
+		var grid *tview.Grid
 		switch view {
 		case a.NodesView:
 			data = a.NodesTableData
+			grid = a.NodeGrid
 		case a.JobsView:
 			data = a.JobsTableData
+			grid = a.JobGrid
+		case a.AcctView:
+			data = a.AcctTableData
+			grid = a.AcctGrid
 		}
 		switch event.Rune() {
 		case '/':
-			a.ShowSearchBox()
+			a.ShowSearchBox(grid)
 			a.RerenderTableView(view)
 			a.App.SetFocus(a.SearchBox) // Only focus search when / is pressed
 			return nil
@@ -148,19 +185,30 @@ func tableviewInputCapture(
 			}
 			return nil
 		case 'p':
-			a.App.SetFocus(a.PartitionSelector)
+			// TODO: This is gross, fix
+			if a.CurrentTableView != a.AcctView {
+				a.App.SetFocus(a.PartitionSelector)
+			}
+		case 'e':
+			// TODO: This is gross, fix
+			if a.CurrentTableView == a.AcctView {
+				a.App.SetFocus(a.SacctMgrEntitySelector)
+			}
 		case 'c':
-			// If user has a selection, use the selection
-			if len(*selection) > 0 {
-				a.ShowCommandModal(commandModalFilter, *selection)
-			} else {
-				// Otherwise, try to use the current node under the cursor, if any
-				row, _ := view.GetSelection()
-				if row > 0 {
-					a.ShowCommandModal(commandModalFilter, map[string]bool{
-						view.GetCell(row, 0).Text: true,
-					},
-					)
+			// This section is only active if there is a commandModalFilter specified.
+			if commandModalFilter != "" {
+				// If user has a selection, use the selection
+				if len(*selection) > 0 {
+					a.ShowCommandModal(commandModalFilter, *selection)
+				} else {
+					// Otherwise, try to use the current node under the cursor, if any
+					row, _ := view.GetSelection()
+					if row > 0 {
+						a.ShowCommandModal(commandModalFilter, map[string]bool{
+							view.GetCell(row, 0).Text: true,
+						},
+						)
+					}
 				}
 			}
 			return nil

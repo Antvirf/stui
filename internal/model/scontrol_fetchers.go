@@ -14,7 +14,7 @@ import (
 
 func GetNodesWithTimeout(timeout time.Duration) (*TableData, error) {
 	// Prep columns
-	data, err := GetScontrolDataWithTimeout(
+	data, err := getScontrolDataWithTimeout(
 		"show node --detail --all --oneliner",
 		config.NodeViewColumns,
 		config.PartitionFilter,
@@ -26,7 +26,7 @@ func GetNodesWithTimeout(timeout time.Duration) (*TableData, error) {
 
 func GetJobsWithTimeout(timeout time.Duration) (*TableData, error) {
 	// Prep columns
-	data, err := GetScontrolDataWithTimeout(
+	data, err := getScontrolDataWithTimeout(
 		"show job --detail --all --oneliner",
 		config.JobViewColumns,
 		config.PartitionFilter,
@@ -37,7 +37,7 @@ func GetJobsWithTimeout(timeout time.Duration) (*TableData, error) {
 }
 
 func GetAllPartitionsWithTimeout(timeout time.Duration) (*TableData, error) {
-	data, err := GetScontrolDataWithTimeout(
+	data, err := getScontrolDataWithTimeout(
 		"show partitions --detail --all --oneliner",
 		&[]config.ColumnConfig{{Name: "PartitionName"}},
 		"", // No filter
@@ -47,7 +47,7 @@ func GetAllPartitionsWithTimeout(timeout time.Duration) (*TableData, error) {
 	return data, err
 }
 
-func GetScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, partitionFilter string, prefix string, timeout time.Duration) (*TableData, error) {
+func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, partitionFilter string, prefix string, timeout time.Duration) (*TableData, error) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

@@ -1,13 +1,17 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
-*Like [k9s](https://k9scli.io/), but for Slurm clusters*
+*Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experience users.
 
 - List and view nodes and jobs, across all partitions or a specific partition
 - Quickly filter list nodes/jobs list with regular expressions
-- Select multiple nodes/jobs and run `scontrol` commands on them
+- Select multiple nodes/jobs and run `scontrol` commands on them, or copy rows to clipboard
+- Configure table views with specific columns/content of your choice
 - View individual node details (`scontrol show node` equivalent)
 - View individual job details (`scontrol show job` equivalent)
-- Show `sdiag` output
+- Show `sdiag` output for scheduler diagnostics
+- (if Slurm accounting is enabled) Explore `sacctmgr` tables, filter rows with regular expressions
+
+`stui` requires no configuration - if you can talk to your Slurm cluster with `squeue`/`scontrol`, you can run `stui`. Several configuration options are available and detailed below.
 
 ![](./assets/demo.gif)
 
@@ -37,7 +41,7 @@ sudo mv ~/go/bin/stui /usr/bin
 
 1. Ensure your Slurm binaries are working and you can talk to your cluster, e.g. `sdiag` shows a valid output.
 
-2. Run `stui` / `go run main.go` in the repo. See `-help` for arguments.
+2. Run `stui`. Use the `-help` flag to view arguments for additional configuration.
 
     <!-- REPLACE_START -->
     ```
@@ -79,13 +83,14 @@ sudo mv ~/go/bin/stui /usr/bin
     1        Switch to Nodes view
     2        Switch to Jobs view
     3        Switch to Scheduler view
+    4        Switch to Accounting Manager view (if sacctmgr is available)
     k/j      Move selection up/down in table view
     h/l      Scroll left/right in table view
     Arrows   Scroll up/down/left/right in table view
     ?        Show this help
     Ctrl+C   Exit
     
-    Shortcuts in Job/Node panes
+    Shortcuts in Job/Node view
     /        Open search bar to filter rows by regex, 'esc' to close, 'enter' to go back to table
     p        Focus on partition selector, 'esc' to close
     Space    Select/deselect row
@@ -94,6 +99,8 @@ sudo mv ~/go/bin/stui /usr/bin
     Enter    Show details for selected row
     Esc      Close modal
     
+    Additional shortcuts in Accounting Manager view
+    e        Focus on Entity type selector, 'esc' to close
     ```
     <!-- REPLACE_SHORTCUTS_END -->
 
@@ -115,8 +122,15 @@ make setup              # install pre-commit and download Go deps
 ## To-do
 
 - Separation of internal data fetched vs. data used to render table
-- Feat: Footer should contain overall node/job counts by state
+- Break apart app.go into smaller pieces
+  - Initialization
+  - Layout
+  - Data refreshes
+  - Refactor search bar / overall grid layout logic. Quite gross atm
+- Proper error propagation, so that individual data update calls to e.g. permission denied resources will fail gracefully and with clear error messages (e.g. for `sacctmgr` some commands may be off limits)
 - Feat: View stdout / tail output target of running jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
-- Add view for `sacct`
+- Add view for `sacct`: first version can use default time interval, but should be more configurable
 - Ability to use `slurmrestd` / REST API instead of Slurm binaries
+- Config option for which view to start app in
+- Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh

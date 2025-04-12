@@ -54,15 +54,9 @@ func (a *App) SetupSearchBox() {
 	})
 }
 
-func (a *App) ShowSearchBox() {
+func (a *App) ShowSearchBox(grid *tview.Grid) {
 	if a.CurrentTableView == nil {
 		return
-	}
-
-	// Get the appropriate grid
-	grid := a.NodeGrid
-	if a.CurrentTableView == a.JobsView {
-		grid = a.JobGrid
 	}
 
 	// Clear and rebuild the grid with search box
@@ -86,9 +80,12 @@ func (a *App) HideSearchBox() {
 	}
 
 	// Get the appropriate grid
+	// Gross, search bar should not need to figure this out..
 	grid := a.NodeGrid
 	if a.CurrentTableView == a.JobsView {
 		grid = a.JobGrid
+	} else if a.CurrentTableView == a.AcctView {
+		grid = a.AcctGrid
 	}
 
 	// Clear and rebuild grid without search box

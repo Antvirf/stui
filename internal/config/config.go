@@ -30,6 +30,7 @@ var (
 	// Derived config options
 	NodeStatusField string = "State"
 	JobStatusField  string = "JobState"
+	SacctEnabled    bool   = false
 )
 
 const (
@@ -38,13 +39,14 @@ const (
 1        Switch to Nodes view
 2        Switch to Jobs view
 3        Switch to Scheduler view
+4        Switch to Accounting Manager view (if sacctmgr is available)
 k/j      Move selection up/down in table view
 h/l      Scroll left/right in table view
 Arrows   Scroll up/down/left/right in table view
 ?        Show this help
 Ctrl+C   Exit
 
-Shortcuts in Job/Node panes
+Shortcuts in Job/Node view
 /        Open search bar to filter rows by regex, 'esc' to close, 'enter' to go back to table
 p        Focus on partition selector, 'esc' to close
 Space    Select/deselect row
@@ -52,6 +54,9 @@ y        Copy selected content (either rows, or currently open details) to clipb
 c        Run command on selected items, or on current row if no selection (opens prompt)
 Enter    Show details for selected row
 Esc      Close modal
+
+Additional shortcuts in Accounting Manager view
+e        Focus on Entity type selector, 'esc' to close
 `
 )
 
@@ -81,7 +86,7 @@ func Configure() {
 		os.Exit(0)
 	}
 	if *keyboardShortcutsFlag {
-		fmt.Println(KEYBOARD_SHORTCUTS)
+		fmt.Print(KEYBOARD_SHORTCUTS)
 		os.Exit(0)
 	}
 
@@ -103,8 +108,10 @@ func Configure() {
 	}
 
 	ComputeConfigurations()
+	checkIfSacctMgrIsAvailable()
 }
 
+// Compute configs, assuming inputs are all provided and valid
 func ComputeConfigurations() {
 	// Compute derived configs
 	if !strings.Contains(rawNodeViewColumns, NodeStatusField) {

@@ -21,39 +21,59 @@ const (
 )
 
 type App struct {
-	App             *tview.Application
-	Pages           *tview.Pages
-	TabNodesBox     *tview.TextView
-	TabJobsBox      *tview.TextView
-	TabSchedulerBox *tview.TextView
-	SelectedNodes   map[string]bool // Track selected nodes by name
-	SelectedJobs    map[string]bool // Track selected jobs by ID
-	PagesContainer  *tview.Flex     // Container for pages with border title
-	NodesView       *tview.Table
-	JobsView        *tview.Table
-	SchedView       *tview.TextView
-	MainGrid        *tview.Flex
-	LastUpdate      time.Time
-	LastReqDuration time.Duration
-	startTime       time.Time // Start time of the application
+	App              *tview.Application
+	Pages            *tview.Pages
+	PagesContainer   *tview.Flex // Container for pages with border title
+	LastUpdate       time.Time
+	LastReqDuration  time.Duration
+	startTime        time.Time    // Start time of the application
+	CurrentTableView *tview.Table // Points to either NodesView or JobsView
+
+	// Base app components
+	HeaderGrid              *tview.Grid
+	HeaderGridInnerContents *tview.Grid
+	MainFlex                *tview.Flex
+	FooterGrid              *tview.Grid
+
+	// Main views and their grids
+	NodesView *tview.Table
+	JobsView  *tview.Table
+	SchedView *tview.TextView
+	AcctView  *tview.Table
+
+	NodeGrid *tview.Grid
+	JobGrid  *tview.Grid
+	AcctGrid *tview.Grid
+
+	// Selections for each view
+	SelectedNodes    map[string]bool // Track selected nodes by name
+	SelectedJobs     map[string]bool // Track selected jobs by ID
+	SelectedAcctRows map[string]bool // Track selected acc rows
 
 	// Footer
-	FooterLineOne *tview.TextView
-	FooterLineTwo *tview.TextView // Combined status line
+	HeaderLineOne *tview.TextView
+	HeaderLineTwo *tview.TextView // Combined status line
 	FooterMessage *tview.TextView
+
+	// Current tab indicators
+	TabNodesBox      *tview.TextView
+	TabJobsBox       *tview.TextView
+	TabSchedulerBox  *tview.TextView
+	TabAccountingBox *tview.TextView
 
 	// Partition selector
 	PartitionSelector            *tview.DropDown
 	PartitionSelectorFirstUpdate bool
 
+	// SacctMgr entity selector
+	SacctMgrEntitySelector            *tview.DropDown
+	SacctMgrEntitySelectorFirstUpdate bool
+
 	// Search state
-	SearchBox        *tview.InputField
-	SearchActive     bool
-	SearchPattern    string
-	CurrentTableView *tview.Table // Points to either NodesView or JobsView
-	NodeGrid         *tview.Grid  // Grid containing nodes view and search
-	searchTimer      *time.Timer  // Timer for debouncing search updates
-	JobGrid          *tview.Grid  // Grid containing jobs view and search
+	SearchBox     *tview.InputField
+	SearchActive  bool
+	SearchPattern string
+	searchTimer   *time.Timer // Timer for debouncing search updates
 
 	// Command modal state
 	CommandModalOpen bool
@@ -62,12 +82,8 @@ type App struct {
 	DataLoaded     chan struct{} // Channel to signal data has been loaded
 	NodesTableData *model.TableData
 	JobsTableData  *model.TableData
+	AcctTableData  *model.TableData
 	PartitionsData *model.TableData
-
-	// Footer stats
-	FooterGrid      *tview.Grid
-	FooterNodeStats *tview.TextView
-	FooterJobStats  *tview.TextView
 }
 
 // Exit and log error details
@@ -81,16 +97,19 @@ func (a *App) closeOnError(err error) {
 // Initializes a `stui` instance tview Application using the config module
 func InitializeApplication() (a *App) {
 	application := App{
-		App:                          tview.NewApplication(),
-		Pages:                        tview.NewPages(),
-		DataLoaded:                   make(chan struct{}),
-		PartitionSelectorFirstUpdate: true,
-		startTime:                    time.Now(),
+		startTime:                         time.Now(),
+		App:                               tview.NewApplication(),
+		Pages:                             tview.NewPages(),
+		DataLoaded:                        make(chan struct{}),
+		PartitionSelectorFirstUpdate:      true,
+		SacctMgrEntitySelectorFirstUpdate: true,
+		HeaderGridInnerContents:           tview.NewGrid(),
 	}
 
-	// Init selectors
+	// Init selectors, otherwise segfault lol
 	application.SelectedNodes = make(map[string]bool)
 	application.SelectedJobs = make(map[string]bool)
+	application.SelectedAcctRows = make(map[string]bool)
 	return &application
 }
 
@@ -98,73 +117,58 @@ func (a *App) SetupViews() {
 	a.SetupSearchBox()
 	a.SetupPartitionSelector()
 
-	// FooterLineOne components
+	if config.SacctEnabled {
+		a.SetupSacctMgrEntitySelector()
+	}
+
+	// HeaderLineOne components
 	a.FooterMessage = tview.NewTextView().
 		SetDynamicColors(true).
-		SetTextAlign(tview.AlignLeft)
+		SetTextAlign(tview.AlignCenter)
 
-	a.FooterLineOne = tview.NewTextView().
+	a.HeaderLineOne = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignLeft)
 
 	// Combined status line
-	a.FooterLineTwo = tview.NewTextView().
+	a.HeaderLineTwo = tview.NewTextView().
 		SetDynamicColors(true).
 		SetTextAlign(tview.AlignLeft)
-
-	// Left footer section
-	footerLeft := tview.NewGrid().
-		SetRows(-1, -1).
-		AddItem(a.FooterMessage, 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.FooterLineOne, 1, 0, 1, 1, 0, 0, false).
-		AddItem(a.FooterLineTwo, 2, 0, 1, 1, 0, 0, false)
-
-	// Right footer section with stats
-	a.FooterNodeStats = tview.NewTextView().
-		SetDynamicColors(true).
-		SetTextAlign(tview.AlignRight)
-	a.FooterJobStats = tview.NewTextView().
-		SetDynamicColors(true).
-		SetTextAlign(tview.AlignRight)
-
-	footerRight := tview.NewGrid().
-		SetRows(-1, -1, -1).
-		AddItem(tview.NewBox(), 0, 0, 1, 1, 0, 0, false).
-		AddItem(a.FooterNodeStats, 1, 0, 1, 1, 0, 0, false).
-		AddItem(a.FooterJobStats, 2, 0, 1, 1, 0, 0, false)
 
 	// Create tab boxes
 	a.TabNodesBox = tview.NewTextView().
 		SetText("(1) Nodes")
 	a.TabNodesBox.SetBackgroundColor(tcell.ColorDarkOrange)
-
 	a.TabJobsBox = tview.NewTextView().
 		SetText("(2) Jobs")
-
 	a.TabSchedulerBox = tview.NewTextView().
 		SetText("(3) Scheduler")
+	a.TabAccountingBox = tview.NewTextView().
+		SetText("(4) Acct Manager")
 
 	// Create a grid for the tabs
 	tabGrid := tview.NewGrid().
 		// SetRows(1,1,1).
-		AddItem(a.TabNodesBox, 0, 0, 1, 1, 1, 0, false).
-		AddItem(a.TabJobsBox, 1, 0, 1, 1, 1, 0, false).
-		AddItem(a.TabSchedulerBox, 2, 0, 1, 1, 1, 0, false)
+		AddItem(a.TabNodesBox, FRST_ROW, FRST_COL, 1, 1, 1, 0, false).
+		AddItem(a.TabJobsBox, SCND_ROW, FRST_COL, 1, 1, 1, 0, false).
+		AddItem(a.TabSchedulerBox, THRD_ROW, FRST_COL, 1, 1, 1, 0, false)
 
-	// Combined footer grid
-	a.FooterGrid = tview.NewGrid().
-		SetColumns(-1, -10, -10, -10, -1).
-		AddItem(tview.NewBox(), 0, 0, 1, 1, 0, 0, false).
-		AddItem(footerLeft, 0, 1, 1, 1, 0, 0, false).
-		AddItem(tabGrid, 0, 2, 1, 1, 0, 0, false).
-		AddItem(footerRight, 0, 3, 1, 1, 0, 0, false).
-		AddItem(tview.NewBox(), 0, 4, 1, 1, 0, 0, false)
+	if config.SacctEnabled {
+		tabGrid.AddItem(a.TabAccountingBox, FRTH_ROW, FRST_COL, 1, 1, 1, 0, false)
+	}
 
-	a.FooterGrid.SetBorder(true).SetBorderStyle(
-		tcell.StyleDefault.
-			Foreground(tcell.ColorGray).
-			Background(tcell.ColorBlack),
-	)
+	a.HeaderGrid = tview.NewGrid().
+		SetColumns(-1, -2, -1).
+		SetBorders(true).
+		AddItem(a.HeaderGridInnerContents, FRST_ROW, FRST_COL, 1, 1, 0, 0, false).
+		AddItem(
+			tview.NewGrid().
+				SetRows(-1, -1).
+				AddItem(a.HeaderLineOne, FRST_ROW, FRST_COL, 1, 1, 0, 0, false).
+				AddItem(a.HeaderLineTwo, SCND_ROW, FRST_COL, 1, 1, 0, 0, false).
+				AddItem(a.FooterMessage, THRD_ROW, FRST_COL, 1, 1, 0, 0, false),
+			FRST_ROW, SCND_COL, 1, 1, 0, 0, false).
+		AddItem(tabGrid, FRST_ROW, THRD_COL, 1, 1, 0, 0, false)
 
 	a.PagesContainer = tview.NewFlex().SetDirection(tview.FlexRow)
 
@@ -178,12 +182,11 @@ func (a *App) SetupViews() {
 		SetTitle(" Nodes (0 / 0)") // Initial title matching nodes view
 
 	// Main grid layout, implemented with Flex
-	a.MainGrid = tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(a.PartitionSelector, 1, 0, false).
-		AddItem(a.PagesContainer, 0, 1, true).
-		AddItem(a.FooterGrid, 5, 0, false)
+	a.MainFlex = tview.NewFlex().SetDirection(tview.FlexRow).
+		AddItem(a.HeaderGrid, 6, 0, false).
+		AddItem(a.PagesContainer, 0, 1, true)
 
-	a.MainGrid.SetBorder(true).
+	a.MainFlex.SetBorder(true).
 		SetBorderAttributes(tcell.AttrDim).
 		SetTitle(" stui - Slurm Management TUI ").
 		SetTitleAlign(tview.AlignCenter)
@@ -192,7 +195,6 @@ func (a *App) SetupViews() {
 	a.NodesView = tview.NewTable()
 	a.NodesView.
 		SetBorders(false). // Remove all borders
-		SetTitle(" Nodes (1) ").
 		SetTitleAlign(tview.AlignLeft).
 		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 	a.NodesView.SetFixed(1, 0)             // Fixed header row
@@ -202,19 +204,16 @@ func (a *App) SetupViews() {
 		Background(rowCursorColorBackground).
 		Foreground(rowCursorColorForeground))
 	a.NodesView.SetBackgroundColor(tcell.ColorBlack) // Add this line
-
 	a.NodeGrid = tview.NewGrid().
 		SetRows(0). // Just table initially
 		SetColumns(0).
 		AddItem(a.NodesView, 0, 0, 1, 1, 0, 0, true)
 	a.Pages.AddPage("nodes", a.NodeGrid, true, true)
-	a.CurrentTableView = a.NodesView
 
 	// Jobs View
 	a.JobsView = tview.NewTable()
 	a.JobsView.
 		SetBorders(false). // Remove all borders
-		SetTitle(" Jobs (2) ").
 		SetTitleAlign(tview.AlignLeft).
 		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 	a.JobsView.SetFixed(1, 0)             // Fixed header row
@@ -224,24 +223,49 @@ func (a *App) SetupViews() {
 		Background(rowCursorColorBackground).
 		Foreground(rowCursorColorForeground))
 	a.JobsView.SetBackgroundColor(tcell.ColorBlack) // Add this line
-
 	a.JobGrid = tview.NewGrid().
 		SetRows(0). // Just table initially
 		SetColumns(0).
 		AddItem(a.JobsView, 0, 0, 1, 1, 0, 0, true)
 	a.Pages.AddPage("jobs", a.JobGrid, true, false)
 
-	// Scheduler View
-	a.SchedView = tview.NewTextView()
-	a.SchedView.
-		SetDynamicColors(true).
-		SetScrollable(true).
-		SetWrap(false).
-		SetTitleAlign(tview.AlignLeft).
-		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-	a.Pages.AddPage("scheduler", a.SchedView, true, false)
+	// Accounting view
+	if config.SacctEnabled {
+		a.AcctView = tview.NewTable()
+		a.AcctView.
+			SetBorders(false). // Remove all borders
+			SetTitleAlign(tview.AlignLeft).
+			SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
+		a.AcctView.SetFixed(1, 0)             // Fixed header row
+		a.AcctView.SetSelectable(true, false) // Selectable rows but not columns
+		// Configure more compact highlighting
+		a.AcctView.SetSelectedStyle(tcell.StyleDefault.
+			Background(rowCursorColorBackground).
+			Foreground(rowCursorColorForeground))
+		a.AcctView.SetBackgroundColor(tcell.ColorBlack) // Add this line
+		a.AcctGrid = tview.NewGrid().
+			SetRows(0). // Just table initially
+			SetColumns(0).
+			AddItem(a.AcctView, 0, 0, 1, 1, 0, 0, true)
+		a.Pages.AddPage("accounting", a.AcctGrid, true, false)
+	}
 
-	a.FooterLineTwo.SetText("[::i]Data as of never (0 ms) - updating in 3s[::-]")
+	// Scheduler View
+	{
+		a.SchedView = tview.NewTextView()
+		a.SchedView.
+			SetDynamicColors(true).
+			SetScrollable(true).
+			SetWrap(false).
+			SetTitleAlign(tview.AlignLeft).
+			SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
+		a.Pages.AddPage("scheduler", a.SchedView, true, false)
+	}
+
+	{ // Starting position
+		a.CurrentTableView = a.NodesView
+		a.SetHeaderGridInnerContents(a.PartitionSelector)
+	}
 }
 
 func (a *App) StartRefresh(interval time.Duration) {
@@ -278,16 +302,26 @@ func (a *App) UpdateAllViews() {
 	a.PartitionsData, err = model.GetAllPartitionsWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 
+	// Nodes data
 	a.NodesTableData, err = model.GetNodesWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 	a.RenderTable(a.NodesView, *a.NodesTableData)
 
-	// Update jobs view with squeue output
+	// Jobs data
 	a.JobsTableData, err = model.GetJobsWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 	a.RenderTable(a.JobsView, *a.JobsTableData)
 
-	// Update scheduler view with sdiag output
+	// Sacctmgr data
+	if config.SacctEnabled {
+		_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
+
+		a.AcctTableData, err = model.GetSacctMgrEntityWithTimeout(entity, config.RequestTimeout)
+		a.closeOnError(err) // TODO: This is lazy and won't work properly if user gets e.g. permission denied
+		a.RenderTable(a.AcctView, *a.AcctTableData)
+	}
+
+	// Scheduler data
 	sdiagOutput, err := model.GetSdiagWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 	a.SchedView.SetText(sdiagOutput)
@@ -297,7 +331,7 @@ func (a *App) UpdateAllViews() {
 
 	// Update status line immediately
 	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
-	a.UpdateFooter(schedulerHost, schedulerIP)
+	a.UpdateHeader(schedulerHost, schedulerIP)
 
 	// Inform that data has been loaded
 	select {
@@ -313,6 +347,8 @@ func (a *App) RerenderTableView(table *tview.Table) {
 		a.RenderTable(table, *a.NodesTableData)
 	case a.JobsView:
 		a.RenderTable(table, *a.JobsTableData)
+	case a.AcctView:
+		a.RenderTable(table, *a.AcctTableData)
 	default:
 		return
 	}
@@ -334,6 +370,14 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 			a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
 		} else if table == a.JobsView {
 			a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
+		} else if table == a.AcctView {
+			_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
+			a.PagesContainer.SetTitle(fmt.Sprintf(
+				" %s rows (%d / %d) ",
+				entity,
+				filteredCount,
+				totalCount,
+			))
 		}
 	}
 
@@ -373,6 +417,14 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 			a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
 		} else if table == a.JobsView {
 			a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
+		} else if table == a.AcctView {
+			_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
+			a.PagesContainer.SetTitle(fmt.Sprintf(
+				" %s rows (%d / %d) ",
+				entity,
+				filteredCount,
+				totalCount,
+			))
 		}
 	}
 
@@ -479,6 +531,7 @@ func (a *App) setActiveTab(active string) {
 	a.TabNodesBox.SetBackgroundColor(tcell.ColorBlack)
 	a.TabJobsBox.SetBackgroundColor(tcell.ColorBlack)
 	a.TabSchedulerBox.SetBackgroundColor(tcell.ColorBlack)
+	a.TabAccountingBox.SetBackgroundColor(tcell.ColorBlack)
 
 	// Set active to orange
 	switch active {
@@ -488,6 +541,8 @@ func (a *App) setActiveTab(active string) {
 		a.TabJobsBox.SetBackgroundColor(tcell.ColorDarkOrange)
 	case "scheduler":
 		a.TabSchedulerBox.SetBackgroundColor(tcell.ColorDarkOrange)
+	case "accounting":
+		a.TabAccountingBox.SetBackgroundColor(tcell.ColorDarkOrange)
 	}
 }
 
