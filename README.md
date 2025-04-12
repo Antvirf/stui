@@ -134,3 +134,19 @@ make setup              # install pre-commit and download Go deps
 - Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Config option for which view to start app in
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
+
+## Alternatives and why this project exists
+
+`stui`...
+
+- is self-contained and distributed as a single binary
+- requires nothing special from Slurm to operate
+- is designed for keyboard first
+- is light and fast
+- does not over-engineer / re-implement every feature of the Slurm binaries, but acts as a light UI to make those binaries more accessible and easier to use.
+
+Which is in contrast to other existing projects:
+
+- [sview](https://slurm.schedmd.com/sview.html) is the official Slurm GUI, but requires build-time configurations of Slurm, has dependencies on the OS itself
+- [CLIP-HPC/SlurmCommander](https://github.com/CLIP-HPC/SlurmCommander) is an extensive project but no longer maintained, being incompatible with Slurm 23.02 and onward. Additionally, it relies on Slurm build-time configs (JSON parser) which makes it inoperable in certain environments.
+- [mil-ad/stui](https://github.com/mil-ad/stui) is an older project, implementing a small terminal user interface that only supports viewing jobs, and being written in Python, needs extra work for distribution.
