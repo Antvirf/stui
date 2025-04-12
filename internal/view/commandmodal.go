@@ -22,6 +22,9 @@ func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool
 	// Create input field with prefilled command
 	input := tview.NewInputField().
 		SetLabel("Command: ").
+		SetFieldStyle(
+			tcell.StyleDefault.Background(rowCursorColorBackground),
+		).
 		SetText(prefix + strings.Join(selected, ",") + " ").
 		SetFieldWidth(0)
 
