@@ -105,6 +105,7 @@ The below helpers configure a locally running cluster with `888` virtual nodes a
 make build-cluster      # build Slurm with required options
 make config-cluster     # copy mock config to /etc/slurm/
 make run-cluster        # start `slurmctld` and `slurmd`
+make setup-sacct        # set up sacct
 make launch-jobs        # launch few hundred sleep jobs
 make stop-cluster       # stop cluster
 
@@ -117,4 +118,5 @@ make setup              # install pre-commit and download Go deps
 - Feat: Footer should contain overall node/job counts by state
 - Feat: View stdout / tail output target of running jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
+- Add view for `sacct`
 - Ability to use `slurmrestd` / REST API instead of Slurm binaries

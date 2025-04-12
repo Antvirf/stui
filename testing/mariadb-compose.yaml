@@ -1,0 +1,14 @@
+services:
+  mariadb:
+    image: mariadb:11.7.2
+    ports:
+      - 3306:3306
+    environment:
+      - MARIADB_USER=maria
+      - MARIADB_PASSWORD=maria
+      - MARIADB_ROOT_PASSWORD=maria
+      - MARIADB_DATABASE=slurm_acct_db
+    volumes:
+      - mariadb_data:/var/lib/mysql
+volumes:
+  mariadb_data:

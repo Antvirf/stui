@@ -39,7 +39,7 @@ update-readme: build
 
 ## DEVELOPMENT SLURM CLUSTER
 
-.PHONY: build-cluster config-cluster run-cluster launch-jobs stop-cluster mock
+.PHONY: build-cluster config-cluster run-cluster setup-sacct launch-jobs stop-cluster mock
 build-cluster:
 	mkdir -p ./build && \
 		cd ./build && \
@@ -49,6 +49,7 @@ build-cluster:
 		stat slurm-* > /dev/null || tar -xaf slurm*tar.bz2
 
 	cd ./build/slurm-* && \
+		make distclean && \
 		./configure \
 		--enable-debug \
 		--sysconfdir=/etc/slurm \
@@ -60,13 +61,21 @@ build-cluster:
 config-cluster:
 	sudo mkdir -p /etc/slurm
 	sudo cp ./testing/mock-cluster-slurmconf.conf /etc/slurm/slurm.conf
+	sudo cp ./testing/mock-cluster-slurmdbd.conf /etc/slurm/slurmdbd.conf
+	sudo chown slurm /etc/slurm/slurmdbd.conf
+	sudo chmod 600 /etc/slurm/slurmdbd.conf
 
 run-cluster:
+	cd testing/ && docker compose --file mariadb-compose.yaml up -d
 	sudo useradd slurm || true
+	sudo slurmdbd && echo "Launched Slurmdbd"
 	sudo slurmctld && echo "Launched Slurmctld"
 	sudo slurmd -N localhost && echo "Launched Slurmd"
-	@sleep 2
+	@sleep 5
 	@sdiag && echo "\n\nCluster up and running!"
+
+setup-sacct:
+	sudo bash testing/sacct-setup.sh
 
 launch-jobs:
 	sudo bash testing/test-job-launcher.sh
@@ -74,7 +83,7 @@ launch-jobs:
 stop-cluster:
 	sudo kill $$(ps aux | grep '[s]lurm' | awk '{print $$2}')
 
-mock: config-cluster run-cluster launch-jobs
+mock: config-cluster run-cluster setup-sacct launch-jobs
 
 
 ## TESTING UTILITIES
