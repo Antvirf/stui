@@ -339,8 +339,15 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 
 	// Set headers with fixed widths and padding
 	for col, header := range *data.Headers {
+
+		// If header is a divided type, clean it up
+		headerName := header.Name
+		if header.DividedByColumn {
+			headerName = strings.Replace(header.Name, "//", "/", 1)
+		}
+
 		// Pad header with spaces to maintain width
-		paddedHeader := fmt.Sprintf("%-*s", header.Width, header.Name)
+		paddedHeader := fmt.Sprintf("%-*s", header.Width, headerName)
 		table.SetCell(0, col, tview.NewTableCell(paddedHeader).
 			SetSelectable(false).
 			SetAlign(tview.AlignLeft).
