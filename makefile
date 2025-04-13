@@ -82,7 +82,7 @@ launch-jobs:
 	sudo bash testing/test-job-launcher.sh
 
 stop-cluster:
-	sudo kill $$(ps aux | grep '[s]lurm' | awk '{print $$2}')
+	sudo kill -9 $$(ps aux | grep '[s]lurm' | awk '{print $$2}')
 
 mock: config-cluster run-cluster setup-sacct launch-jobs
 
