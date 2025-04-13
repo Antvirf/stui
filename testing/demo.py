@@ -66,7 +66,7 @@ do(
         ["k"],
         [" "],  # down one, select a node
         ["enter"],  # view details
-        2000,
+        500,
         ["esc"],  #  exit
         ["c"],  # enter command mode
         150,
@@ -76,7 +76,7 @@ do(
         200,
         (" reason='maintenance'"),  # set state to drain
         ["enter"],  # execute, this will succed
-        1500,
+        500,
         ["esc"],  # exit
     ]
 )
@@ -92,7 +92,7 @@ do(
         ["up", 1, 100],  # go up in the partition list
         ["enter"],  # select the partition
         ["/"],  # open search view
-        ["backspace", 20, 50],  # select the partition
+        ["backspace", 8, 15],  # select the partition
         ("RUNNING"),  # search for RUNNING
         ["enter"],  # exit search view
         [" "],  # select
@@ -101,12 +101,14 @@ do(
         ["k"],
         [" "],
         ["enter"],  # view details
-        2000,
+        500,
         ["esc"],  # exit
         ["c"],  # enter command mode
         ("timelimit=1-12:00:00"),
         ["enter"],  # execute
-        1500,
+        500,
+        ["esc"],  # exit
+        ["esc"],  # exit
         ["esc"],  # exit
     ]
 )
@@ -116,7 +118,25 @@ do(
 do(
     [
         ["3"],  # choose sdiag view
-        500,
-        ["down", 10, 75],  # go down in the partition list
+        100,
+        ["down", 10, 25],  # go down in the partition list
+    ]
+)
+
+
+## SACCT
+do(
+    [
+        ["4"],
+        50,
+        ["down", 5, 25],
+        ["e"],
+        ["down", 8, 25],
+        ["enter"],
+        ["down", 10, 25],
+        ["/"],  # open search view
+        ("assoc"),
+        ["enter"],  # exit search view
+        ["down", 3, 25],
     ]
 )

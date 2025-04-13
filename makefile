@@ -130,7 +130,7 @@ execute-demo: build install launch-jobs
 	uv run testing/demo.py
 
 convert-demo-to-gif:
-	rm assets/demo.gif
+	rm -f assets/demo.gif
 	ffmpeg -i $$(ls demo* | tail -n1) \
     	-vf "fps=7,scale=800:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
     	-loop 0 assets/demo.gif
