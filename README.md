@@ -128,6 +128,8 @@ make setup              # install pre-commit and download Go deps
   - Data refreshes
   - Refactor search bar / overall grid layout logic. Quite gross atm
 - Proper error propagation, so that individual data update calls to e.g. permission denied resources will fail gracefully and with clear error messages (e.g. for `sacctmgr` some commands may be off limits)
+  - `sacctmgr`: support `Problem`, `RunAwayJobs`, `WCKey`
+  - `sacctmgr`: support text entities: `Configuration`, `Stats`
 - Feat: View stdout / tail output target of running jobs
 - Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
 - Add view for `sacct`: first version can use default time interval, but should be more configurable
