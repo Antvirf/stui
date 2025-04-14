@@ -12,6 +12,28 @@ type TableData struct {
 	Rows    [][]string
 }
 
+// DeepCopy creates a deep copy of the TableData struct.
+func (t *TableData) DeepCopy() *TableData {
+	var copiedHeaders *[]config.ColumnConfig
+	if t.Headers != nil {
+		headersCopy := make([]config.ColumnConfig, len(*t.Headers))
+		copy(headersCopy, *t.Headers)
+		copiedHeaders = &headersCopy
+	}
+
+	rowsCopy := make([][]string, len(t.Rows))
+	for i, row := range t.Rows {
+		rowCopy := make([]string, len(row))
+		copy(rowCopy, row)
+		rowsCopy[i] = rowCopy
+	}
+
+	return &TableData{
+		Headers: copiedHeaders,
+		Rows:    rowsCopy,
+	}
+}
+
 var (
 	FetchCounter threadSafeCounter // Counter for total number of data fetches
 )
