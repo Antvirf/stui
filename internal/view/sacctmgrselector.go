@@ -19,7 +19,7 @@ func (a *App) SetupSacctMgrEntitySelector() {
 		SetFieldBackgroundColor(tcell.ColorDarkSlateGray).
 		SetTextOptions("  ", "  ", "", "", "")
 
-	a.PartitionSelector.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	a.SacctMgrEntitySelector.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
 			a.App.SetFocus(a.CurrentTableView)
@@ -45,7 +45,7 @@ func (a *App) DisableSacctMgrEntitySelector(disabled bool) {
 
 func (a *App) applySacctMgrEntitySelector(entity string) func() {
 	return func() {
-		if !a.PartitionSelectorFirstUpdate {
+		if !a.SacctMgrEntitySelectorFirstUpdate {
 			// On the first update, we do not need to refetch data as
 			// fetcher functions took care of that already
 			a.UpdateAllViews()
