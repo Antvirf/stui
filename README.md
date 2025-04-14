@@ -122,6 +122,7 @@ make setup              # install pre-commit and download Go deps
 ## To-do
 
 - Separation of internal data fetched vs. data used to render table
+- Beta support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
 - Break apart app.go into smaller pieces
   - Initialization
   - Layout

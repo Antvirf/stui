@@ -1,6 +1,7 @@
 package view
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -84,6 +85,9 @@ type App struct {
 	JobsTableData  *model.TableData
 	AcctTableData  *model.TableData
 	PartitionsData *model.TableData
+
+	// Data providers
+	NodesProvider model.DataProvider
 }
 
 // Exit and log error details
@@ -95,7 +99,7 @@ func (a *App) closeOnError(err error) {
 }
 
 // Initializes a `stui` instance tview Application using the config module
-func InitializeApplication() (*App) {
+func InitializeApplication() *App {
 	application := App{
 		startTime:                         time.Now(),
 		App:                               tview.NewApplication(),
@@ -110,6 +114,10 @@ func InitializeApplication() (*App) {
 	application.SelectedNodes = make(map[string]bool)
 	application.SelectedJobs = make(map[string]bool)
 	application.SelectedAcctRows = make(map[string]bool)
+
+	// Init data providers
+	application.NodesProvider = model.NewNodesProvider()
+
 	return &application
 }
 
@@ -295,6 +303,7 @@ func (a *App) UpdateAllViews() {
 	if a.App == nil || a.NodesView == nil {
 		return
 	}
+	ctx := context.Background()
 
 	start := time.Now()
 	var err error
@@ -303,16 +312,23 @@ func (a *App) UpdateAllViews() {
 	a.closeOnError(err)
 
 	// Nodes data
-	a.NodesTableData, err = model.GetNodesWithTimeout(config.RequestTimeout)
+	// TODO: Move this to an async model, where fetch occurs elsewhere.
+	err = a.NodesProvider.Fetch(ctx)
 	a.closeOnError(err)
+	d := a.NodesProvider.FilteredData(config.PartitionFilter)
+	a.NodesTableData = &d
 	a.RenderTable(a.NodesView, *a.NodesTableData)
 
 	// Jobs data
+	// TODO: Move to DataProvider
+	// TODO: Move this to an async model, where fetch occurs elsewhere.
 	a.JobsTableData, err = model.GetJobsWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 	a.RenderTable(a.JobsView, *a.JobsTableData)
 
 	// Sacctmgr data
+	// TODO: Move to DataProvider
+	// TODO: Move this to an async model, where fetch occurs elsewhere.
 	if config.SacctEnabled {
 		_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
 
@@ -322,6 +338,8 @@ func (a *App) UpdateAllViews() {
 	}
 
 	// Scheduler data
+	// TODO: Move to DataProvider
+	// TODO: Move this to an async model, where fetch occurs elsewhere.
 	sdiagOutput, err := model.GetSdiagWithTimeout(config.RequestTimeout)
 	a.closeOnError(err)
 	a.SchedView.SetText(sdiagOutput)
@@ -330,6 +348,8 @@ func (a *App) UpdateAllViews() {
 	a.LastUpdate = time.Now()
 
 	// Update status line immediately
+	// TODO: Move to DataProvider, these fields need to be data provider specific
+	// TODO: Move this to an async model, where fetch occurs elsewhere.
 	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
 	a.UpdateHeader(schedulerHost, schedulerIP)
 
