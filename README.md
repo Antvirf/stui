@@ -59,9 +59,9 @@ sudo mv ~/go/bin/stui /usr/bin
       -partition string
         	limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
-        	interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 15s)
+        	interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
       -request-timeout duration
-        	timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 4s)
+        	timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 5s)
       -search-debounce-interval duration
         	interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
       -show-keyboard-shortcuts

@@ -12,8 +12,8 @@ import (
 var (
 	// All configuration options for `stui` are listed here with their defaults
 	SearchDebounceInterval time.Duration = 50 * time.Millisecond
-	RefreshInterval        time.Duration = 15 * time.Second
-	RequestTimeout         time.Duration = 4 * time.Second
+	RefreshInterval        time.Duration = 60 * time.Second
+	RequestTimeout         time.Duration = 5 * time.Second
 	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = ""
 	CopyFirstColumnOnly    bool          = true
