@@ -95,7 +95,7 @@ func (a *App) closeOnError(err error) {
 }
 
 // Initializes a `stui` instance tview Application using the config module
-func InitializeApplication() (a *App) {
+func InitializeApplication() (*App) {
 	application := App{
 		startTime:                         time.Now(),
 		App:                               tview.NewApplication(),
