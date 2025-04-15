@@ -31,10 +31,13 @@ var (
 	NodeStatusField string = "State"
 	JobStatusField  string = "JobState"
 	SacctEnabled    bool   = false
+
+	// Internal configs
+	SacctMgrCurrentEntity string = "Account" // Default starting point
 )
 
 const (
-	STUI_VERSION       = "0.0.6"
+	STUI_VERSION       = "0.0.7"
 	KEYBOARD_SHORTCUTS = `General Shortcuts
 1        Switch to Nodes view
 2        Switch to Jobs view

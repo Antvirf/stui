@@ -3,7 +3,6 @@ package model
 import (
 	"context"
 	"fmt"
-	"net"
 	"os/exec"
 	"path"
 	"strings"
@@ -11,41 +10,6 @@ import (
 
 	"github.com/antvirf/stui/internal/config"
 )
-
-func GetNodesWithTimeout(timeout time.Duration) (*TableData, error) {
-	// Prep columns
-	data, err := getScontrolDataWithTimeout(
-		"show node --detail --all --oneliner",
-		config.NodeViewColumns,
-		config.PartitionFilter,
-		"NodeName=",
-		config.RequestTimeout,
-	)
-	return data, err
-}
-
-func GetJobsWithTimeout(timeout time.Duration) (*TableData, error) {
-	// Prep columns
-	data, err := getScontrolDataWithTimeout(
-		"show job --detail --all --oneliner",
-		config.JobViewColumns,
-		config.PartitionFilter,
-		"JobId=",
-		config.RequestTimeout,
-	)
-	return data, err
-}
-
-func GetAllPartitionsWithTimeout(timeout time.Duration) (*TableData, error) {
-	data, err := getScontrolDataWithTimeout(
-		"show partitions --detail --all --oneliner",
-		&[]config.ColumnConfig{{Name: "PartitionName"}},
-		"", // No filter
-		"PartitionName=",
-		config.RequestTimeout,
-	)
-	return data, err
-}
 
 func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, partitionFilter string, prefix string, timeout time.Duration) (*TableData, error) {
 	FetchCounter.increment()
@@ -143,7 +107,7 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 	return string(out), nil
 }
 
-func GetSchedulerInfoWithTimeout(timeout time.Duration) (string, string) {
+func GetSchedulerInfoWithTimeout(timeout time.Duration) (hostNameWithIP string) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -153,7 +117,7 @@ func GetSchedulerInfoWithTimeout(timeout time.Duration) (string, string) {
 	)
 	out, err := cmd.Output()
 	if err != nil {
-		return "unknown", "unknown"
+		hostNameWithIP = "(failed to fetch scheduler info)"
 	}
 
 	// Parse output for controller host
@@ -164,37 +128,14 @@ func GetSchedulerInfoWithTimeout(timeout time.Duration) (string, string) {
 			if len(parts) == 2 {
 				// Extract host from SlurmctldHost[0]=hostname
 				host = strings.TrimSpace(parts[1])
-				if strings.Contains(host, "[") {
-					host = strings.Split(host, "[")[0]
-				}
 				break
 			}
 		}
 	}
-
-	if host == "" {
-		return "unknown", "unknown"
-	}
-
-	// Try to get IP
-	addrs, err := net.LookupHost(host)
-	if err == nil && len(addrs) > 0 {
-		return host, addrs[0]
-	}
-
-	// Try short hostname if FQDN failed
-	if strings.Contains(host, ".") {
-		shortHost := strings.Split(host, ".")[0]
-		addrs, err = net.LookupHost(shortHost)
-		if err == nil && len(addrs) > 0 {
-			return host, addrs[0]
-		}
-	}
-
-	return host, "unknown"
+	return host
 }
 
-func GetSdiagWithTimeout(timeout time.Duration) (string, error) {
+func getSdiagWithTimeout(timeout time.Duration) (string, error) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

@@ -84,7 +84,7 @@ func (a *App) HideSearchBox() {
 	grid := a.NodeGrid
 	if a.CurrentTableView == a.JobsView {
 		grid = a.JobGrid
-	} else if a.CurrentTableView == a.AcctView {
+	} else if a.CurrentTableView == a.SacctMgrView {
 		grid = a.AcctGrid
 	}
 

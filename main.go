@@ -11,7 +11,7 @@ func main() {
 	app := view.InitializeApplication()
 	app.SetupViews()
 	app.SetupKeybinds()
-	app.StartRefresh(config.RefreshInterval)
+	app.StartRefresh()
 
 	err := app.App.
 		SetRoot(app.MainFlex, true).

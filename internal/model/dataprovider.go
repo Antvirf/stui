@@ -1,26 +1,31 @@
 package model
 
 import (
-	"context"
 	"sync"
 	"time"
 )
 
+// Internal generic data model
+type DataInterface[T any] interface {
+	DeepCopy() T
+}
+
 // DataProvider is a generic interface for data providers
-type DataProvider interface {
-	Fetch(ctx context.Context) error
-	Data() TableData
-	FilteredData(string) TableData
+type DataProvider[T DataInterface[T]] interface {
+	Fetch() error
+	Data() T
+	RunPeriodicRefresh(time.Duration, time.Duration, func())
+	FilteredData(string) T
 	Subscribe() <-chan struct{}
 	LastUpdated() time.Time
 	LastError() error
 	Close()
 }
 
-// BaseProvider contains common provider functionality
-type BaseProvider struct {
+// BaseProvider[T] contains common provider functionality
+type BaseProvider[T DataInterface[T]] struct {
 	mu          sync.RWMutex
-	data        TableData
+	data        T
 	subscribers []chan struct{}
 	lastUpdated time.Time
 	lastError   error
@@ -28,30 +33,27 @@ type BaseProvider struct {
 	closed      bool
 }
 
-// NewBaseProvider creates a new BaseProvider
-func NewBaseProvider() BaseProvider {
-	return BaseProvider{
+// NewBaseProvider[T] creates a new BaseProvider[T]
+func NewBaseProvider[T DataInterface[T]]() BaseProvider[T] {
+	return BaseProvider[T]{
 		subscribers: make([]chan struct{}, 0),
 	}
 }
 
 // Fetch should be implemented by concrete providers
-func (p *BaseProvider) Fetch(ctx context.Context) error {
-	// Concrete providers will override this
+func (p *BaseProvider[T]) Fetch() error {
 	return nil
 }
 
 // Data returns a copy of the current data
-func (p *BaseProvider) Data() TableData {
+func (p *BaseProvider[T]) Data() T {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-
-	// Return a pointer to a copy to prevent external modification
-	return *p.data.DeepCopy()
+	return p.data.DeepCopy()
 }
 
 // Subscribe returns a channel that receives notifications on data updates
-func (p *BaseProvider) Subscribe() <-chan struct{} {
+func (p *BaseProvider[T]) Subscribe() <-chan struct{} {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -61,21 +63,21 @@ func (p *BaseProvider) Subscribe() <-chan struct{} {
 }
 
 // LastUpdated returns the time of the last successful update
-func (p *BaseProvider) LastUpdated() time.Time {
+func (p *BaseProvider[T]) LastUpdated() time.Time {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.lastUpdated
 }
 
 // LastError returns the last error that occurred
-func (p *BaseProvider) LastError() error {
+func (p *BaseProvider[T]) LastError() error {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.lastError
 }
 
 // Close cleans up all resources
-func (p *BaseProvider) Close() {
+func (p *BaseProvider[T]) Close() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -86,12 +88,12 @@ func (p *BaseProvider) Close() {
 	p.subscribers = nil
 }
 
-func (p *BaseProvider) FetchCount() int {
+func (p *BaseProvider[T]) FetchCount() int {
 	return p.fetchCount
 }
 
 // updateData is called by concrete providers when new data is available
-func (p *BaseProvider) updateData(data TableData) {
+func (p *BaseProvider[T]) updateData(data T) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -109,7 +111,7 @@ func (p *BaseProvider) updateData(data TableData) {
 }
 
 // updateError is called by concrete providers when an error occurs
-func (p *BaseProvider) updateError(err error) {
+func (p *BaseProvider[T]) updateError(err error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 

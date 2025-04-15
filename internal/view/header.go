@@ -16,16 +16,16 @@ func (a *App) ShowNotification(text string, after time.Duration) {
 	}()
 }
 
-func (a *App) UpdateHeader(host, ip string) {
+func (a *App) UpdateHeader(hostNameWithIP string, lastRender time.Time, lastRenderDuration time.Duration) {
 	// Left column
 	a.HeaderLineOne.SetText(
-		fmt.Sprintf("Scheduler: %s (%s)", host, ip),
+		fmt.Sprintf("Scheduler: %s", hostNameWithIP),
 	)
 	a.HeaderLineTwo.SetText(
 		fmt.Sprintf(
-			"Data as of %s (%d ms)",
-			a.LastUpdate.Format("15:04:05"),
-			a.LastReqDuration.Milliseconds(),
+			"Last render: %s (%d ms)",
+			lastRender.Format("15:04:05"),
+			lastRenderDuration.Milliseconds(),
 		),
 	)
 }

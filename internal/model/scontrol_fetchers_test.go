@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -11,67 +10,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetNodesWithTimeout(t *testing.T) {
+func TestNodesProvider(t *testing.T) {
+	provider := NewNodesProvider()
+
 	tests := []struct {
 		name            string
 		partitionFilter string
 		expectedCount   int
-		expectedError   bool
-		firstNodeName   string
 	}{
 		{
 			name:            "no partition filter",
 			partitionFilter: "",
 			expectedCount:   888,
-			expectedError:   false,
-			firstNodeName:   "linux1",
 		},
 		{
 			name:            "with physics partition filter",
 			partitionFilter: "physics",
 			expectedCount:   100,
-			expectedError:   false,
-			firstNodeName:   "linux200",
 		},
 		{
 			name:            "with non-existent partition filter",
 			partitionFilter: "nonexistent",
 			expectedCount:   0,
-			expectedError:   false,
-			firstNodeName:   "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			config.PartitionFilter = tt.partitionFilter
-			data, err := GetNodesWithTimeout(1 * time.Second)
-
-			require.NoError(t, err)
+			data := provider.FilteredData(tt.partitionFilter)
 			assert.Equal(t, tt.expectedCount, len(data.Rows))
 			assert.Equal(t, *config.NodeViewColumns, *data.Headers)
 
-			// Verify some sample data
 			if tt.expectedCount > 0 {
-				assert.Equal(t, tt.firstNodeName, data.Rows[0][0]) // NodeName
+				assert.NotEmpty(t, data.Rows[0][0]) // NodeName
 			}
 		})
 	}
 }
 
-func TestGetJobs(t *testing.T) {
-	config.PartitionFilter = ""
-	data, err := GetJobsWithTimeout(1 * time.Second)
-	require.NoError(t, err)
+func TestJobsProvider(t *testing.T) {
+	provider := NewJobsProvider()
 
-	assert.Greater(
-		t,
-		len(data.Rows),
-		0,
-		"Expected at least one job to be present, launch a job to run these tests",
-	)
-
+	data := provider.FilteredData("")
+	assert.Greater(t, len(data.Rows), 0, "Expected at least one job")
 	assert.Equal(t, *config.JobViewColumns, *data.Headers)
 
 	firstJobId := data.Rows[0][0]
@@ -81,11 +62,11 @@ func TestGetJobs(t *testing.T) {
 	assert.Contains(t, details, "JobName=")
 }
 
-func TestGetAllPartitionsWithTimeout(t *testing.T) {
-	data, err := GetAllPartitionsWithTimeout(1 * time.Second)
-	require.NoError(t, err)
-	assert.Equal(t, 7, len(data.Rows))
+func TestPartitionsProvider(t *testing.T) {
+	provider := NewPartitionsProvider()
 
+	data := provider.FilteredData("")
+	assert.Equal(t, 7, len(data.Rows))
 	assert.Equal(t, "general", data.Rows[0][0])
 	assert.Equal(t, "chemistry", data.Rows[1][0])
 	assert.Equal(t, "physics", data.Rows[2][0])
@@ -103,13 +84,13 @@ func TestGetNodeDetailsWithTimeout(t *testing.T) {
 }
 
 func TestGetSchedulerInfoWithTimeout(t *testing.T) {
-	host, _ := GetSchedulerInfoWithTimeout(1 * time.Second)
+	host := GetSchedulerInfoWithTimeout(1 * time.Second)
 	testRunnerHostName, _ := os.Hostname()
-	assert.Equal(t, fmt.Sprintf("%s(localhost)", testRunnerHostName), host)
+	assert.Contains(t, host, testRunnerHostName)
 }
 
 func TestGetSdiagWithTimeout(t *testing.T) {
-	output, err := GetSdiagWithTimeout(1 * time.Second)
+	output, err := getSdiagWithTimeout(1 * time.Second)
 	require.NoError(t, err)
 	assert.Contains(t, output, "Server thread count")
 	assert.Contains(t, output, "Jobs submitted")

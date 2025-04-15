@@ -82,12 +82,7 @@ func (a *App) applyPartitionSelector(partition string) func() {
 		} else {
 			config.PartitionFilter = partition
 		}
-		if !a.PartitionSelectorFirstUpdate {
-			// On the first update, we do not need to refetch data as
-			// fetcher functions took care of that already
-			a.UpdateAllViews()
-		}
-		a.PartitionSelectorFirstUpdate = false
+		a.UpdateAllViews()
 		a.App.SetFocus(a.CurrentTableView)
 	}
 }

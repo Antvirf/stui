@@ -1,7 +1,6 @@
 package model
 
 import (
-	"context"
 	"strings"
 	"time"
 
@@ -9,16 +8,33 @@ import (
 )
 
 type NodesProvider struct {
-	BaseProvider
+	BaseProvider[*TableData]
 }
 
 func NewNodesProvider() *NodesProvider {
-	return &NodesProvider{
-		BaseProvider: NewBaseProvider(),
+	p := NodesProvider{
+		BaseProvider: NewBaseProvider[*TableData](),
+	}
+	p.Fetch()
+	return &p
+}
+
+func (p *NodesProvider) RunPeriodicRefresh(
+	interval time.Duration,
+	timeout time.Duration,
+	callback func(),
+) {
+	ticker := time.NewTicker(interval)
+	for {
+		<-ticker.C
+		err := p.Fetch()
+		if err != nil {
+			callback()
+		}
 	}
 }
 
-func (p *NodesProvider) Fetch(ctx context.Context) error {
+func (p *NodesProvider) Fetch() error {
 	// TODO: Why does this deadlock?
 	// p.mu.Lock()
 	// defer p.mu.Unlock()
@@ -38,11 +54,11 @@ func (p *NodesProvider) Fetch(ctx context.Context) error {
 	p.lastUpdated = time.Now()
 	p.fetchCount++
 
-	p.updateData(*rawData)
+	p.updateData(rawData)
 	return nil
 }
 
-func (p *NodesProvider) FilteredData(filter string) TableData {
+func (p *NodesProvider) FilteredData(filter string) *TableData {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	data := *p.data.DeepCopy()
@@ -58,7 +74,7 @@ func (p *NodesProvider) FilteredData(filter string) TableData {
 	}
 
 	if partitionsIndex == -1 {
-		return data // Return data as-is, if partitions field isn't available
+		return &data // Return data as-is, if partitions field isn't available
 	}
 
 	var rows [][]string
@@ -71,7 +87,7 @@ func (p *NodesProvider) FilteredData(filter string) TableData {
 		rows = append(rows, row)
 	}
 
-	return TableData{
+	return &TableData{
 		Headers: data.Headers,
 		Rows:    rows,
 	}

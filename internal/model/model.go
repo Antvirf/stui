@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/antvirf/stui/internal/config"
@@ -32,6 +33,16 @@ func (t *TableData) DeepCopy() *TableData {
 		Headers: copiedHeaders,
 		Rows:    rowsCopy,
 	}
+}
+
+// TextData is an internal data structure used by providers to store text
+type TextData struct {
+	Data string
+}
+
+func (t *TextData) DeepCopy() *TextData {
+	d := TextData{Data: strings.Clone(t.Data)}
+	return &d
 }
 
 var (

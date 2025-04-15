@@ -1,11 +1,11 @@
 package view
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/antvirf/stui/internal/config"
@@ -22,13 +22,12 @@ const (
 )
 
 type App struct {
-	App              *tview.Application
-	Pages            *tview.Pages
-	PagesContainer   *tview.Flex // Container for pages with border title
-	LastUpdate       time.Time
-	LastReqDuration  time.Duration
-	startTime        time.Time    // Start time of the application
-	CurrentTableView *tview.Table // Points to either NodesView or JobsView
+	App                 *tview.Application
+	Pages               *tview.Pages
+	PagesContainer      *tview.Flex  // Container for pages with border title
+	startTime           time.Time    // Start time of the application
+	CurrentTableView    *tview.Table // Points to either NodesView or JobsView
+	FirstRenderComplete bool
 
 	// Base app components
 	HeaderGrid              *tview.Grid
@@ -37,10 +36,10 @@ type App struct {
 	FooterGrid              *tview.Grid
 
 	// Main views and their grids
-	NodesView *tview.Table
-	JobsView  *tview.Table
-	SchedView *tview.TextView
-	AcctView  *tview.Table
+	NodesView    *tview.Table
+	JobsView     *tview.Table
+	SchedView    *tview.TextView
+	SacctMgrView *tview.Table
 
 	NodeGrid *tview.Grid
 	JobGrid  *tview.Grid
@@ -62,13 +61,9 @@ type App struct {
 	TabSchedulerBox  *tview.TextView
 	TabAccountingBox *tview.TextView
 
-	// Partition selector
-	PartitionSelector            *tview.DropDown
-	PartitionSelectorFirstUpdate bool
-
-	// SacctMgr entity selector
-	SacctMgrEntitySelector            *tview.DropDown
-	SacctMgrEntitySelectorFirstUpdate bool
+	// Dropdown selectors
+	PartitionSelector      *tview.DropDown
+	SacctMgrEntitySelector *tview.DropDown
 
 	// Search state
 	SearchBox     *tview.InputField
@@ -80,14 +75,18 @@ type App struct {
 	CommandModalOpen bool
 
 	// Stored Data
-	DataLoaded     chan struct{} // Channel to signal data has been loaded
 	NodesTableData *model.TableData
 	JobsTableData  *model.TableData
 	AcctTableData  *model.TableData
 	PartitionsData *model.TableData
 
 	// Data providers
-	NodesProvider model.DataProvider
+	SchedulerHostNameWithIP string
+	PartitionsProvider      model.DataProvider[*model.TableData]
+	NodesProvider           model.DataProvider[*model.TableData]
+	JobsProvider            model.DataProvider[*model.TableData]
+	SacctMgrProvider        model.DataProvider[*model.TableData]
+	SdiagProvider           model.DataProvider[*model.TextData]
 }
 
 // Exit and log error details
@@ -101,13 +100,11 @@ func (a *App) closeOnError(err error) {
 // Initializes a `stui` instance tview Application using the config module
 func InitializeApplication() *App {
 	application := App{
-		startTime:                         time.Now(),
-		App:                               tview.NewApplication(),
-		Pages:                             tview.NewPages(),
-		DataLoaded:                        make(chan struct{}),
-		PartitionSelectorFirstUpdate:      true,
-		SacctMgrEntitySelectorFirstUpdate: true,
-		HeaderGridInnerContents:           tview.NewGrid(),
+		startTime:               time.Now(),
+		App:                     tview.NewApplication(),
+		Pages:                   tview.NewPages(),
+		HeaderGridInnerContents: tview.NewGrid(),
+		FirstRenderComplete:     false,
 	}
 
 	// Init selectors, otherwise segfault lol
@@ -115,8 +112,37 @@ func InitializeApplication() *App {
 	application.SelectedJobs = make(map[string]bool)
 	application.SelectedAcctRows = make(map[string]bool)
 
-	// Init data providers
-	application.NodesProvider = model.NewNodesProvider()
+	// Init data providers at start - in parallel, as they all do their first fetch on initialization
+	var wg sync.WaitGroup
+	wg.Add(6)
+	go func() {
+		defer wg.Done()
+		application.PartitionsProvider = model.NewPartitionsProvider()
+	}()
+	go func() {
+		defer wg.Done()
+		application.NodesProvider = model.NewNodesProvider()
+	}()
+	go func() {
+		defer wg.Done()
+		application.JobsProvider = model.NewJobsProvider()
+	}()
+	go func() {
+		defer wg.Done()
+		application.SdiagProvider = model.NewSdiagProvider()
+	}()
+	go func() {
+		defer wg.Done()
+		application.SchedulerHostNameWithIP = model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
+	}()
+	go func() {
+		defer wg.Done()
+		if config.SacctEnabled {
+			application.SacctMgrProvider = model.NewSacctMgrProvider()
+		}
+	}()
+
+	wg.Wait()
 
 	return &application
 }
@@ -239,22 +265,22 @@ func (a *App) SetupViews() {
 
 	// Accounting view
 	if config.SacctEnabled {
-		a.AcctView = tview.NewTable()
-		a.AcctView.
+		a.SacctMgrView = tview.NewTable()
+		a.SacctMgrView.
 			SetBorders(false). // Remove all borders
 			SetTitleAlign(tview.AlignLeft).
 			SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-		a.AcctView.SetFixed(1, 0)             // Fixed header row
-		a.AcctView.SetSelectable(true, false) // Selectable rows but not columns
+		a.SacctMgrView.SetFixed(1, 0)             // Fixed header row
+		a.SacctMgrView.SetSelectable(true, false) // Selectable rows but not columns
 		// Configure more compact highlighting
-		a.AcctView.SetSelectedStyle(tcell.StyleDefault.
+		a.SacctMgrView.SetSelectedStyle(tcell.StyleDefault.
 			Background(rowCursorColorBackground).
 			Foreground(rowCursorColorForeground))
-		a.AcctView.SetBackgroundColor(tcell.ColorBlack) // Add this line
+		a.SacctMgrView.SetBackgroundColor(tcell.ColorBlack) // Add this line
 		a.AcctGrid = tview.NewGrid().
 			SetRows(0). // Just table initially
 			SetColumns(0).
-			AddItem(a.AcctView, 0, 0, 1, 1, 0, 0, true)
+			AddItem(a.SacctMgrView, 0, 0, 1, 1, 0, 0, true)
 		a.Pages.AddPage("accounting", a.AcctGrid, true, false)
 	}
 
@@ -276,8 +302,47 @@ func (a *App) SetupViews() {
 	}
 }
 
-func (a *App) StartRefresh(interval time.Duration) {
-	ticker := time.NewTicker(interval)
+// Starts periodic background processes to refresh data
+func (a *App) StartRefresh() {
+	// Set periodic refreshes running.
+	// Note: We do NOT periodically refresh partitions list.
+	// TODO: Callbacks should be table specific for faster rendering
+	// TODO: Callbacks should work
+	go a.NodesProvider.RunPeriodicRefresh(
+		config.RefreshInterval,
+		config.RequestTimeout,
+		func() { return }, // Fix
+	)
+	go a.JobsProvider.RunPeriodicRefresh(
+		config.RefreshInterval,
+		config.RequestTimeout,
+		func() { return }, // Fix
+	)
+	go a.SdiagProvider.RunPeriodicRefresh(
+		config.RefreshInterval,
+		config.RequestTimeout,
+		func() { return }, // Fix
+	)
+	if config.SacctEnabled {
+		go a.SacctMgrProvider.RunPeriodicRefresh(
+			config.RefreshInterval,
+			config.RequestTimeout,
+			func() { return }, // Fix
+		)
+	}
+
+	// First render
+	a.UpdateAllViews()
+	a.FirstRenderComplete = true
+
+	// Other one-off actions that can only take place post first render
+	a.setupPartitionSelectorOptions()
+	a.NodesView.ScrollToBeginning()
+	a.JobsView.ScrollToBeginning()
+	a.SacctMgrView.ScrollToBeginning()
+
+	// Periodic redraw
+	ticker := time.NewTicker(config.RefreshInterval)
 	go func() {
 		// This fires a tick immediately, and then on an interval afterwards.
 		for ; true; <-ticker.C {
@@ -287,77 +352,43 @@ func (a *App) StartRefresh(interval time.Duration) {
 		}
 	}()
 
-	// Things to do only after first tick of data has loaded
-	go func() {
-		<-a.DataLoaded
-		// Partition selector relies on partition data being available
-		a.setupPartitionSelectorOptions()
-
-		// Scroll to the beginning of tables once at the start
-		a.NodesView.ScrollToBeginning()
-		a.JobsView.ScrollToBeginning()
-	}()
 }
 
+// Re-renders everything
 func (a *App) UpdateAllViews() {
-	if a.App == nil || a.NodesView == nil {
-		return
-	}
-	ctx := context.Background()
-
 	start := time.Now()
-	var err error
 
-	a.PartitionsData, err = model.GetAllPartitionsWithTimeout(config.RequestTimeout)
-	a.closeOnError(err)
+	{ // Partitions data
+		d := a.PartitionsProvider.Data()
+		a.PartitionsData = d
+	}
 
-	// Nodes data
-	// TODO: Move this to an async model, where fetch occurs elsewhere.
-	err = a.NodesProvider.Fetch(ctx)
-	a.closeOnError(err)
-	d := a.NodesProvider.FilteredData(config.PartitionFilter)
-	a.NodesTableData = &d
-	a.RenderTable(a.NodesView, *a.NodesTableData)
+	{ // Nodes data
+		d := a.NodesProvider.FilteredData(config.PartitionFilter)
+		a.NodesTableData = d
+		a.RenderTable(a.NodesView, *a.NodesTableData)
+	}
 
-	// Jobs data
-	// TODO: Move to DataProvider
-	// TODO: Move this to an async model, where fetch occurs elsewhere.
-	a.JobsTableData, err = model.GetJobsWithTimeout(config.RequestTimeout)
-	a.closeOnError(err)
-	a.RenderTable(a.JobsView, *a.JobsTableData)
+	{ // Jobs data
+		d := a.JobsProvider.FilteredData(config.PartitionFilter)
+		a.JobsTableData = d
+		a.RenderTable(a.JobsView, *a.JobsTableData)
+	}
 
 	// Sacctmgr data
-	// TODO: Move to DataProvider
-	// TODO: Move this to an async model, where fetch occurs elsewhere.
-	if config.SacctEnabled {
-		_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
-
-		a.AcctTableData, err = model.GetSacctMgrEntityWithTimeout(entity, config.RequestTimeout)
-		a.closeOnError(err) // TODO: This is lazy and won't work properly if user gets e.g. permission denied
-		a.RenderTable(a.AcctView, *a.AcctTableData)
+	if config.SacctEnabled { // Sacctmgr data
+		d := a.SacctMgrProvider.FilteredData("") // Not relevant (for now?) for Sacct
+		a.AcctTableData = d
+		a.RenderTable(a.SacctMgrView, *a.AcctTableData)
 	}
 
 	// Scheduler data
-	// TODO: Move to DataProvider
-	// TODO: Move this to an async model, where fetch occurs elsewhere.
-	sdiagOutput, err := model.GetSdiagWithTimeout(config.RequestTimeout)
-	a.closeOnError(err)
-	a.SchedView.SetText(sdiagOutput)
-
-	a.LastReqDuration = time.Since(start)
-	a.LastUpdate = time.Now()
-
-	// Update status line immediately
-	// TODO: Move to DataProvider, these fields need to be data provider specific
-	// TODO: Move this to an async model, where fetch occurs elsewhere.
-	schedulerHost, schedulerIP := model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
-	a.UpdateHeader(schedulerHost, schedulerIP)
-
-	// Inform that data has been loaded
-	select {
-	case a.DataLoaded <- struct{}{}:
-	default:
+	{
+		d := a.SdiagProvider.Data()
+		a.SchedView.SetText(d.Data)
 	}
+
+	a.UpdateHeader(a.SchedulerHostNameWithIP, time.Now(), time.Since(start))
 }
 
 func (a *App) RerenderTableView(table *tview.Table) {
@@ -367,7 +398,7 @@ func (a *App) RerenderTableView(table *tview.Table) {
 		a.RenderTable(table, *a.NodesTableData)
 	case a.JobsView:
 		a.RenderTable(table, *a.JobsTableData)
-	case a.AcctView:
+	case a.SacctMgrView:
 		a.RenderTable(table, *a.AcctTableData)
 	default:
 		return
@@ -390,7 +421,7 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 			a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
 		} else if table == a.JobsView {
 			a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
-		} else if table == a.AcctView {
+		} else if table == a.SacctMgrView {
 			_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
 			a.PagesContainer.SetTitle(fmt.Sprintf(
 				" %s rows (%d / %d) ",
@@ -437,7 +468,7 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 			a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
 		} else if table == a.JobsView {
 			a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
-		} else if table == a.AcctView {
+		} else if table == a.SacctMgrView {
 			_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
 			a.PagesContainer.SetTitle(fmt.Sprintf(
 				" %s rows (%d / %d) ",

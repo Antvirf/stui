@@ -45,12 +45,11 @@ func (a *App) DisableSacctMgrEntitySelector(disabled bool) {
 
 func (a *App) applySacctMgrEntitySelector(entity string) func() {
 	return func() {
-		if !a.SacctMgrEntitySelectorFirstUpdate {
-			// On the first update, we do not need to refetch data as
-			// fetcher functions took care of that already
+		config.SacctMgrCurrentEntity = entity
+		a.SacctMgrProvider.Fetch()
+		if a.FirstRenderComplete {
 			a.UpdateAllViews()
 			a.App.SetFocus(a.CurrentTableView)
 		}
-		a.SacctMgrEntitySelectorFirstUpdate = false
 	}
 }

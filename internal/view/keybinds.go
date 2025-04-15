@@ -19,6 +19,7 @@ func (a *App) SetupKeybinds() {
 			a.App.Stop()
 			duration := time.Since(a.startTime)
 			rpm := float64(model.FetchCounter.Count) / duration.Seconds() * 60
+			rpm = min(rpm, float64(model.FetchCounter.Count))
 			log.Printf(
 				"Session stats: duration=%s, total_scheduler_calls=%d, requests_per_minute=%.1f",
 				duration.Round(time.Second),
@@ -77,15 +78,15 @@ func (a *App) SetupKeybinds() {
 
 				a.Pages.SwitchToPage("accounting")
 				a.setActiveTab("accounting")
-				a.CurrentTableView = a.AcctView
+				a.CurrentTableView = a.SacctMgrView
 				a.SetHeaderGridInnerContents(a.SacctMgrEntitySelector)
 				if a.SearchPattern != "" {
 					a.ShowSearchBox(a.AcctGrid)
 				} else {
 					a.HideSearchBox()
 				}
-				a.App.SetFocus(a.AcctView)
-				a.RerenderTableView(a.AcctView)
+				a.App.SetFocus(a.SacctMgrView)
+				a.RerenderTableView(a.SacctMgrView)
 			}
 			return nil
 		}
@@ -93,10 +94,10 @@ func (a *App) SetupKeybinds() {
 	})
 
 	if config.SacctEnabled {
-		a.AcctView.SetInputCapture(
+		a.SacctMgrView.SetInputCapture(
 			tableviewInputCapture(
 				a,
-				a.AcctView,
+				a.SacctMgrView,
 				&a.SelectedAcctRows,
 				"",              // Used for command modal, ignored if blank
 				func(string) {}, // Null func for detail view
@@ -145,7 +146,7 @@ func tableviewInputCapture(
 		case a.JobsView:
 			data = a.JobsTableData
 			grid = a.JobGrid
-		case a.AcctView:
+		case a.SacctMgrView:
 			data = a.AcctTableData
 			grid = a.AcctGrid
 		}
@@ -186,12 +187,12 @@ func tableviewInputCapture(
 			return nil
 		case 'p':
 			// TODO: This is gross, fix
-			if a.CurrentTableView != a.AcctView {
+			if a.CurrentTableView != a.SacctMgrView {
 				a.App.SetFocus(a.PartitionSelector)
 			}
 		case 'e':
 			// TODO: This is gross, fix
-			if a.CurrentTableView == a.AcctView {
+			if a.CurrentTableView == a.SacctMgrView {
 				a.App.SetFocus(a.SacctMgrEntitySelector)
 			}
 		case 'c':
