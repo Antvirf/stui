@@ -37,12 +37,6 @@ func (a *App) SetupSacctMgrEntitySelector() {
 	a.SacctMgrEntitySelector.SetCurrentOption(0)
 }
 
-func (a *App) DisableSacctMgrEntitySelector(disabled bool) {
-	if config.SacctEnabled {
-		a.SacctMgrEntitySelector.SetDisabled(disabled)
-	}
-}
-
 func (a *App) applySacctMgrEntitySelector(entity string) func() {
 	return func() {
 		config.SacctMgrCurrentEntity = entity
