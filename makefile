@@ -119,6 +119,14 @@ update-version-in-go:
 	echo $$GIT_TAG && \
 	sed -i "s/\(STUI_VERSION[[:space:]]*=[[:space:]]*\)\".*\"/\1\"$$GIT_TAG\"/" ./internal/config/config.go
 
+release:
+	sed -i "s/\(STUI_VERSION[[:space:]]*=[[:space:]]*\)\".*\"/\1\"$$GIT_TAG\"/" ./internal/config/config.go
+	git add internal/config/config.go
+	git commit -m "release: $$GIT_TAG"
+	git tag $$GIT_TAG
+	git push
+	git push origin $$GIT_TAG
+
 fail-if-any-files-changed:
 	git diff --exit-code
 	if [ "$$?" -ne 0 ]; then \
