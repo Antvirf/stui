@@ -53,7 +53,7 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 				components := strings.Split(col.Name, "//")
 				top := safeGetFromMap(rawRow, components[0])
 				bottom := safeGetFromMap(rawRow, components[1])
-				row[j] = fmt.Sprintf("%s/%s", top, bottom)
+				row[j] = fmt.Sprintf("%s / %s", top, bottom)
 
 			} else {
 				// Normal cell
