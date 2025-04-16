@@ -38,7 +38,7 @@ var (
 )
 
 const (
-	STUI_VERSION       = "0.0.7"
+	STUI_VERSION       = "0.0.8"
 	KEYBOARD_SHORTCUTS = `General Shortcuts
 1        Switch to Nodes view
 2        Switch to Jobs view
