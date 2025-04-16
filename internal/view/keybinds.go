@@ -17,16 +17,18 @@ func (a *App) SetupKeybinds() {
 
 		if event.Key() == tcell.KeyCtrlC {
 			a.App.Stop()
-			duration := time.Since(a.startTime)
-			rpm := float64(model.FetchCounter.Count) / duration.Seconds() * 60
-			rpm = min(rpm, float64(model.FetchCounter.Count))
-			log.Printf(
-				"Session stats: duration=%s, total_scheduler_calls=%d, requests_per_minute=%.1f",
-				duration.Round(time.Second),
-				model.FetchCounter.Count,
-				rpm,
-			)
-			log.Print("Thank you for using stui!")
+			if !config.Quiet {
+				duration := time.Since(a.startTime)
+				rpm := float64(model.FetchCounter.Count) / duration.Seconds() * 60
+				rpm = min(rpm, float64(model.FetchCounter.Count))
+				log.Printf(
+					"END: Session stats: duration=%s, total_scheduler_calls=%d, requests_per_minute=%.1f",
+					duration.Round(time.Second),
+					model.FetchCounter.Count,
+					rpm,
+				)
+				log.Print("Thank you for using stui!")
+			}
 			return event
 		}
 

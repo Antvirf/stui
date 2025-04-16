@@ -106,6 +106,7 @@ func InitializeApplication() *App {
 	application.SelectedAcctRows = make(map[string]bool)
 
 	// Init data providers at start - in parallel, as they all do their first fetch on initialization
+	start := time.Now()
 	var wg sync.WaitGroup
 	wg.Add(6)
 	go func() {
@@ -134,9 +135,10 @@ func InitializeApplication() *App {
 			application.SacctMgrProvider = model.NewSacctMgrProvider()
 		}
 	}()
-
 	wg.Wait()
-
+	if !config.Quiet {
+		log.Printf("START: Initial data load from scheduler took %d ms", time.Since(start).Milliseconds())
+	}
 	return &application
 }
 

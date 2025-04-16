@@ -20,6 +20,7 @@ var (
 	CopiedLinesSeparator   string        = "\n"
 	PartitionFilter        string        = ""
 	DefaultColumnWidth     int           = 2
+	Quiet                  bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
 	rawNodeViewColumns string = "NodeName,Partitions:15,State,CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards"
@@ -75,6 +76,7 @@ func Configure() {
 	flag.IntVar(&DefaultColumnWidth, "default-column-width", DefaultColumnWidth, "minimum default width of columns in table views, if not overridden in column config")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
+	flag.BoolVar(&Quiet, "quiet", Quiet, "if set, do not print any log lines to console")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
 
 	// One-shot-and-exit flags

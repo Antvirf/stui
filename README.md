@@ -58,6 +58,8 @@ sudo mv ~/go/bin/stui /usr/bin
         	comma-separated list of scontrol fields to show in node view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "NodeName,Partitions:15,State,CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards")
       -partition string
         	limit views to specific partition only, leave empty to show all partitions
+      -quiet
+        	if set, do not print any log lines to console
       -refresh-interval duration
         	interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
       -request-timeout duration
