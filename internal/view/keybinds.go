@@ -45,7 +45,10 @@ func (a *App) SetupKeybinds() {
 			a.Pages.SwitchToPage("nodes")
 			a.setActiveTab("nodes")
 			a.CurrentTableView = a.NodesView
-			a.SetHeaderGridInnerContents(a.PartitionSelector)
+			a.SetHeaderGridInnerContents(
+				a.PartitionSelector,
+				a.NodeStateSelector,
+			)
 			if a.SearchPattern != "" {
 				a.ShowSearchBox(a.NodeGrid)
 			} else {
@@ -58,7 +61,10 @@ func (a *App) SetupKeybinds() {
 			a.Pages.SwitchToPage("jobs")
 			a.setActiveTab("jobs")
 			a.CurrentTableView = a.JobsView
-			a.SetHeaderGridInnerContents(a.PartitionSelector)
+			a.SetHeaderGridInnerContents(
+				a.PartitionSelector,
+				a.JobStateSelector,
+			)
 			if a.SearchPattern != "" {
 				a.ShowSearchBox(a.JobGrid)
 			} else {
@@ -197,6 +203,14 @@ func tableviewInputCapture(
 			if a.CurrentTableView == a.SacctMgrView {
 				a.App.SetFocus(a.SacctMgrEntitySelector)
 			}
+		case 's':
+			// TODO: This is gross, fix
+			if a.CurrentTableView == a.NodesView {
+				a.App.SetFocus(a.NodeStateSelector)
+			} else if a.CurrentTableView == a.JobsView {
+				a.App.SetFocus(a.JobStateSelector)
+			}
+
 		case 'c':
 			// This section is only active if there is a commandModalFilter specified.
 			if commandModalFilter != "" {

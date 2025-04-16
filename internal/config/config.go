@@ -34,7 +34,9 @@ var (
 	SacctEnabled    bool   = false
 
 	// Internal configs
-	SacctMgrCurrentEntity string = "Account" // Default starting point
+	SacctMgrCurrentEntity  string = "Account" // Default starting point
+	NodeStateCurrentChoice string = "(all)"
+	JobStateCurrentChoice  string = "(all)"
 )
 
 const (
@@ -53,6 +55,7 @@ Ctrl+C   Exit
 Shortcuts in Job/Node view
 /        Open search bar to filter rows by regex, 'esc' to close, 'enter' to go back to table
 p        Focus on partition selector, 'esc' to close
+s        Focus on state selector, 'esc' to close
 Space    Select/deselect row
 y        Copy selected content (either rows, or currently open details) to clipboard
 c        Run command on selected items, or on current row if no selection (opens prompt)

@@ -8,10 +8,12 @@ import (
 // Internal generic data model
 type DataInterface[T any] interface {
 	DeepCopy() T
+	Length() int
 }
 
 // DataProvider is a generic interface for data providers
 type DataProvider[T DataInterface[T]] interface {
+	Length() int
 	Fetch() error
 	Data() T
 	RunPeriodicRefresh(time.Duration, time.Duration, func())
@@ -26,6 +28,7 @@ type DataProvider[T DataInterface[T]] interface {
 type BaseProvider[T DataInterface[T]] struct {
 	mu          sync.RWMutex
 	data        T
+	length      int
 	subscribers []chan struct{}
 	lastUpdated time.Time
 	lastError   error
@@ -43,6 +46,11 @@ func NewBaseProvider[T DataInterface[T]]() BaseProvider[T] {
 // Fetch should be implemented by concrete providers
 func (p *BaseProvider[T]) Fetch() error {
 	return nil
+}
+
+// Returns length of data
+func (p *BaseProvider[T]) Length() int {
+	return p.length
 }
 
 // Data returns a copy of the current data

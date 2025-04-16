@@ -55,6 +55,7 @@ func (p *PartitionsProvider) Fetch() error {
 	p.fetchCount++
 
 	p.updateData(rawData)
+	p.length = p.data.Length()
 	return nil
 }
 

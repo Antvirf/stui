@@ -57,6 +57,8 @@ type App struct {
 	// Dropdown selectors
 	PartitionSelector      *tview.DropDown
 	SacctMgrEntitySelector *tview.DropDown
+	NodeStateSelector      *tview.DropDown
+	JobStateSelector       *tview.DropDown
 
 	// Search state
 	SearchBox     *tview.InputField
@@ -145,6 +147,8 @@ func InitializeApplication() *App {
 func (a *App) SetupViews() {
 	a.SetupSearchBox()
 	a.SetupPartitionSelector()
+	a.SetupNodeStateSelector()
+	a.SetupJobStateSelector()
 
 	if config.SacctEnabled {
 		a.SetupSacctMgrEntitySelector()
@@ -293,7 +297,10 @@ func (a *App) SetupViews() {
 
 	{ // Starting position
 		a.CurrentTableView = a.NodesView
-		a.SetHeaderGridInnerContents(a.PartitionSelector)
+		a.SetHeaderGridInnerContents(
+			a.PartitionSelector,
+			a.NodeStateSelector,
+		)
 	}
 }
 
@@ -359,22 +366,16 @@ func (a *App) UpdateAllViews() {
 	}
 
 	{ // Nodes data
-		d := a.NodesProvider.FilteredData(config.PartitionFilter)
-		a.NodesTableData = d
-		a.RenderTable(a.NodesView, *a.NodesTableData)
+		a.RenderTable(a.NodesView, a.NodesProvider, config.PartitionFilter)
 	}
 
 	{ // Jobs data
-		d := a.JobsProvider.FilteredData(config.PartitionFilter)
-		a.JobsTableData = d
-		a.RenderTable(a.JobsView, *a.JobsTableData)
+		a.RenderTable(a.JobsView, a.JobsProvider, config.PartitionFilter)
 	}
 
 	// Sacctmgr data
 	if config.SacctEnabled { // Sacctmgr data
-		d := a.SacctMgrProvider.FilteredData("") // Not relevant (for now?) for Sacct
-		a.AcctTableData = d
-		a.RenderTable(a.SacctMgrView, *a.AcctTableData)
+		a.RenderTable(a.SacctMgrView, a.SacctMgrProvider, "")
 	}
 
 	// Scheduler data
@@ -390,22 +391,23 @@ func (a *App) RerenderTableView(table *tview.Table) {
 	table.Clear()
 	switch table {
 	case a.NodesView:
-		a.RenderTable(table, *a.NodesTableData)
+		a.RenderTable(table, a.NodesProvider, config.PartitionFilter)
 	case a.JobsView:
-		a.RenderTable(table, *a.JobsTableData)
+		a.RenderTable(table, a.JobsProvider, config.PartitionFilter)
 	case a.SacctMgrView:
-		a.RenderTable(table, *a.AcctTableData)
+		a.RenderTable(table, a.SacctMgrProvider, "")
 	default:
 		return
 	}
 }
 
-func (a *App) RenderTable(table *tview.Table, data model.TableData) {
+func (a *App) RenderTable(table *tview.Table, provider model.DataProvider[*model.TableData], filter string) {
+	data := provider.FilteredData(filter)
 	table.Clear()
 
 	// Update page title with counts
-	totalCount := len(data.Rows)
-	filteredCount := totalCount
+	totalCount := provider.Length()
+	filteredCount := data.Length()
 	if a.SearchActive {
 		filteredCount = 0 // Will be updated in the filtering loop below
 	}

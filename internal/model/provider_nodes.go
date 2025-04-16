@@ -55,6 +55,7 @@ func (p *NodesProvider) Fetch() error {
 	p.fetchCount++
 
 	p.updateData(rawData)
+	p.length = p.data.Length()
 	return nil
 }
 
@@ -73,17 +74,34 @@ func (p *NodesProvider) FilteredData(filter string) *TableData {
 		}
 	}
 
+	stateIndex := -1
+	for i, header := range *(data.Headers) {
+		if header.Name == "State" {
+			stateIndex = i
+			break
+		}
+	}
+
 	if partitionsIndex == -1 {
 		return &data // Return data as-is, if partitions field isn't available
 	}
 
 	var rows [][]string
 	for _, row := range data.Rows {
+		// Ignore row if regex filter doesn't match
 		if filter != "" {
 			if !strings.Contains(row[partitionsIndex], filter) {
 				continue
 			}
 		}
+
+		// Ignore row if State filter is set, and node doesn't match
+		if stateIndex != -1 && config.NodeStateCurrentChoice != "(all)" {
+			if !strings.Contains(row[stateIndex], config.NodeStateCurrentChoice) {
+				continue
+			}
+		}
+
 		rows = append(rows, row)
 	}
 

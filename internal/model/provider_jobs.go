@@ -55,6 +55,7 @@ func (p *JobsProvider) Fetch() error {
 	p.fetchCount++
 
 	p.updateData(rawData)
+	p.length = p.data.Length()
 	return nil
 }
 
@@ -77,13 +78,30 @@ func (p *JobsProvider) FilteredData(filter string) *TableData {
 		return &data // Return data as-is, if partitions field isn't available
 	}
 
+	stateIndex := -1
+	for i, header := range *(data.Headers) {
+		if header.Name == "JobState" {
+			stateIndex = i
+			break
+		}
+	}
+
 	var rows [][]string
 	for _, row := range data.Rows {
+		// Ignore row if regex filter doesn't match
 		if filter != "" {
 			if !strings.Contains(row[partitionsIndex], filter) {
 				continue
 			}
 		}
+
+		// Ignore row if State filter is set, and node doesn't match
+		if stateIndex != -1 && config.JobStateCurrentChoice != "(all)" {
+			if !strings.Contains(row[stateIndex], config.JobStateCurrentChoice) {
+				continue
+			}
+		}
+
 		rows = append(rows, row)
 	}
 

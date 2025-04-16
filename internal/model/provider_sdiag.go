@@ -49,6 +49,7 @@ func (p *SdiagProvider) Fetch() error {
 	p.fetchCount++
 
 	p.updateData(&TextData{Data: rawData})
+	p.length = p.data.Length()
 	return nil
 }
 

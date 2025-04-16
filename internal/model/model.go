@@ -35,6 +35,10 @@ func (t *TableData) DeepCopy() *TableData {
 	}
 }
 
+func (t *TableData) Length() int {
+	return len(t.Rows)
+}
+
 // TextData is an internal data structure used by providers to store text
 type TextData struct {
 	Data string
@@ -43,6 +47,10 @@ type TextData struct {
 func (t *TextData) DeepCopy() *TextData {
 	d := TextData{Data: strings.Clone(t.Data)}
 	return &d
+}
+
+func (t *TextData) Length() int {
+	return len(t.Data)
 }
 
 var (
