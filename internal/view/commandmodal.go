@@ -49,8 +49,8 @@ func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool
 		AddItem(flex, 0, 1, true)
 
 	modal.SetBorder(true).
-		SetBorderColor(tcell.ColorDarkOrange).
-		SetBackgroundColor(tcell.ColorBlack)
+		SetBorderColor(modalBorderColor).
+		SetBackgroundColor(generalBackgroundColor)
 
 	// Center the modal
 	centered := tview.NewFlex().

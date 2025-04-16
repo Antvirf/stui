@@ -10,13 +10,13 @@ import (
 func (a *App) SetupSacctMgrEntitySelector() {
 	a.SacctMgrEntitySelector = tview.NewDropDown().
 		SetLabel("(e) Entity: ").
-		SetLabelStyle(tcell.StyleDefault.Foreground(tcell.ColorWhite)).
+		SetLabelStyle(tcell.StyleDefault.Foreground(dropdownForegroundColor)).
 		SetListStyles(
 			tcell.StyleDefault,
 			tcell.StyleDefault.Background(selectionColor),
 		).
 		SetFieldWidth(20).
-		SetFieldBackgroundColor(tcell.ColorDarkSlateGray).
+		SetFieldBackgroundColor(dropdownBackgroundColor).
 		SetTextOptions("  ", "  ", "", "", "")
 
 	a.SacctMgrEntitySelector.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {

@@ -12,8 +12,8 @@ import (
 func (a *App) SetupSearchBox() {
 	a.SearchBox = tview.NewInputField().
 		SetLabel("  Regex search (case-insensitive): ").
-		SetLabelColor(tcell.ColorDarkOrange).
-		SetFieldBackgroundColor(tcell.ColorDarkSlateGray).
+		SetLabelColor(searchboxLabelColor).
+		SetFieldBackgroundColor(dropdownBackgroundColor).
 		SetFieldWidth(0).
 		SetChangedFunc(func(text string) {
 			a.SearchPattern = strings.TrimSpace(text)

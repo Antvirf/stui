@@ -165,7 +165,7 @@ func tableviewInputCapture(
 					// Set all cells in row to default background
 					for col := 0; col < view.GetColumnCount(); col++ {
 						view.GetCell(row, col).
-							SetBackgroundColor(tcell.ColorBlack).
+							SetBackgroundColor(generalBackgroundColor).
 							SetSelectedStyle(
 								tcell.StyleDefault.
 									Background(rowCursorColorBackground),

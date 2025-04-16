@@ -14,13 +14,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-const (
-	rowCursorColorBackground = tcell.ColorDarkSlateGray
-	rowCursorColorForeground = tcell.ColorWhite
-	selectionColor           = tcell.ColorDarkOrange // The orange color used for selections
-	selectionHighlightColor  = tcell.ColorLightGoldenrodYellow
-)
-
 type App struct {
 	App                 *tview.Application
 	Pages               *tview.Pages
@@ -172,7 +165,7 @@ func (a *App) SetupViews() {
 	// Create tab boxes
 	a.TabNodesBox = tview.NewTextView().
 		SetText("(1) Nodes")
-	a.TabNodesBox.SetBackgroundColor(tcell.ColorDarkOrange)
+	a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
 	a.TabJobsBox = tview.NewTextView().
 		SetText("(2) Jobs")
 	a.TabSchedulerBox = tview.NewTextView().
@@ -210,8 +203,8 @@ func (a *App) SetupViews() {
 		SetBorder(true).
 		SetBorderStyle(
 			tcell.StyleDefault.
-				Foreground(tcell.ColorGray).
-				Background(tcell.ColorBlack),
+				Foreground(pagesBorderColor).
+				Background(generalBackgroundColor),
 		).
 		SetTitle(" Nodes (0 / 0)") // Initial title matching nodes view
 
@@ -237,7 +230,7 @@ func (a *App) SetupViews() {
 	a.NodesView.SetSelectedStyle(tcell.StyleDefault.
 		Background(rowCursorColorBackground).
 		Foreground(rowCursorColorForeground))
-	a.NodesView.SetBackgroundColor(tcell.ColorBlack) // Add this line
+	a.NodesView.SetBackgroundColor(generalBackgroundColor) // Add this line
 	a.NodeGrid = tview.NewGrid().
 		SetRows(0). // Just table initially
 		SetColumns(0).
@@ -256,7 +249,7 @@ func (a *App) SetupViews() {
 	a.JobsView.SetSelectedStyle(tcell.StyleDefault.
 		Background(rowCursorColorBackground).
 		Foreground(rowCursorColorForeground))
-	a.JobsView.SetBackgroundColor(tcell.ColorBlack) // Add this line
+	a.JobsView.SetBackgroundColor(generalBackgroundColor) // Add this line
 	a.JobGrid = tview.NewGrid().
 		SetRows(0). // Just table initially
 		SetColumns(0).
@@ -276,7 +269,7 @@ func (a *App) SetupViews() {
 		a.SacctMgrView.SetSelectedStyle(tcell.StyleDefault.
 			Background(rowCursorColorBackground).
 			Foreground(rowCursorColorForeground))
-		a.SacctMgrView.SetBackgroundColor(tcell.ColorBlack) // Add this line
+		a.SacctMgrView.SetBackgroundColor(generalBackgroundColor) // Add this line
 		a.AcctGrid = tview.NewGrid().
 			SetRows(0). // Just table initially
 			SetColumns(0).
@@ -446,8 +439,8 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 		table.SetCell(0, col, tview.NewTableCell(paddedHeader).
 			SetSelectable(false).
 			SetAlign(tview.AlignLeft).
-			SetBackgroundColor(tcell.ColorBlack).
-			SetTextColor(tcell.ColorWhite).
+			SetBackgroundColor(generalBackgroundColor).
+			SetTextColor(generalTextColor).
 			SetAttributes(tcell.AttrBold))
 	}
 
@@ -493,7 +486,7 @@ func (a *App) RenderTable(table *tview.Table, data model.TableData) {
 			} else if table == a.JobsView && a.SelectedJobs[rowData[0]] {
 				cellView.SetBackgroundColor(selectionColor)
 			} else {
-				cellView.SetBackgroundColor(tcell.ColorBlack) // Explicitly set default when not selected
+				cellView.SetBackgroundColor(generalBackgroundColor) // Explicitly set default when not selected
 			}
 
 			table.SetCell(row+1, col, cellView)
@@ -526,13 +519,13 @@ func (a *App) ShowModalPopup(title, details string) {
 		AddItem(tview.NewTextView().
 			SetTextAlign(tview.AlignCenter).
 			SetText(fmt.Sprintf(" %s (ESC to close) ", title)).
-			SetTextColor(tcell.ColorWhite),
+			SetTextColor(generalTextColor),
 			2, 0, false).
 		AddItem(detailView, 0, 1, true)
 
 	modal.SetBorder(true).
-		SetBorderColor(tcell.ColorDarkOrange).
-		SetBackgroundColor(tcell.ColorBlack)
+		SetBorderColor(modalBorderColor).
+		SetBackgroundColor(generalBackgroundColor)
 
 	// Create centered container with fixed size (80% width, 90% height)
 	centered := tview.NewFlex().
@@ -579,21 +572,21 @@ func (a *App) ShowJobDetails(jobID string) {
 
 func (a *App) setActiveTab(active string) {
 	// Reset all to black
-	a.TabNodesBox.SetBackgroundColor(tcell.ColorBlack)
-	a.TabJobsBox.SetBackgroundColor(tcell.ColorBlack)
-	a.TabSchedulerBox.SetBackgroundColor(tcell.ColorBlack)
-	a.TabAccountingBox.SetBackgroundColor(tcell.ColorBlack)
+	a.TabNodesBox.SetBackgroundColor(generalBackgroundColor)
+	a.TabJobsBox.SetBackgroundColor(generalBackgroundColor)
+	a.TabSchedulerBox.SetBackgroundColor(generalBackgroundColor)
+	a.TabAccountingBox.SetBackgroundColor(generalBackgroundColor)
 
-	// Set active to orange
+	// Set active color
 	switch active {
 	case "nodes":
-		a.TabNodesBox.SetBackgroundColor(tcell.ColorDarkOrange)
+		a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
 	case "jobs":
-		a.TabJobsBox.SetBackgroundColor(tcell.ColorDarkOrange)
+		a.TabJobsBox.SetBackgroundColor(paneSelectorHighlightColor)
 	case "scheduler":
-		a.TabSchedulerBox.SetBackgroundColor(tcell.ColorDarkOrange)
+		a.TabSchedulerBox.SetBackgroundColor(paneSelectorHighlightColor)
 	case "accounting":
-		a.TabAccountingBox.SetBackgroundColor(tcell.ColorDarkOrange)
+		a.TabAccountingBox.SetBackgroundColor(paneSelectorHighlightColor)
 	}
 }
 
