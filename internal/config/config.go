@@ -23,7 +23,7 @@ var (
 	Quiet                  bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
-	rawNodeViewColumns string = "NodeName,Partitions:15,State,CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards"
+	rawNodeViewColumns string = "NodeName,Partitions:15,State,CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards"
 	rawJobViewColumns  string = "JobId,Partition,UserId,JobName:25,JobState,RunTime,NodeList,QOS,NumCPUs,Mem"
 	NodeViewColumns    *[]ColumnConfig
 	JobViewColumns     *[]ColumnConfig

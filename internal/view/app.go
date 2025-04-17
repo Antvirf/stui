@@ -438,7 +438,7 @@ func (a *App) RenderTable(table *tview.Table, provider model.DataProvider[*model
 		// If header is a divided type, clean it up
 		headerName := header.Name
 		if header.DividedByColumn {
-			headerName = strings.Replace(header.Name, "//", "/", 1)
+			headerName = strings.Replace(header.Name, "//", "/", -1)
 		}
 
 		// Pad header with spaces to maintain width
