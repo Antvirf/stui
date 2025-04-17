@@ -107,7 +107,7 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 	return string(out), nil
 }
 
-func GetSchedulerInfoWithTimeout(timeout time.Duration) (hostNameWithIP string) {
+func GetSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clusterName string) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -117,7 +117,7 @@ func GetSchedulerInfoWithTimeout(timeout time.Duration) (hostNameWithIP string) 
 	)
 	out, err := cmd.Output()
 	if err != nil {
-		hostNameWithIP = "(failed to fetch scheduler info)"
+		schedulerHostName = "(failed to fetch scheduler info)"
 	}
 
 	// Parse output for controller host
@@ -128,11 +128,17 @@ func GetSchedulerInfoWithTimeout(timeout time.Duration) (hostNameWithIP string) 
 			if len(parts) == 2 {
 				// Extract host from SlurmctldHost[0]=hostname
 				host = strings.TrimSpace(parts[1])
-				break
+			}
+		}
+		if strings.HasPrefix(line, "ClusterName") {
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				// Extract host from ClusterName = name
+				clusterName = strings.TrimSpace(parts[1])
 			}
 		}
 	}
-	return host
+	return host, clusterName
 }
 
 func getSdiagWithTimeout(timeout time.Duration) (string, error) {

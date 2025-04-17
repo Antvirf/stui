@@ -76,12 +76,13 @@ type App struct {
 	PartitionsData *model.TableData
 
 	// Data providers
-	SchedulerHostNameWithIP string
-	PartitionsProvider      model.DataProvider[*model.TableData]
-	NodesProvider           model.DataProvider[*model.TableData]
-	JobsProvider            model.DataProvider[*model.TableData]
-	SacctMgrProvider        model.DataProvider[*model.TableData]
-	SdiagProvider           model.DataProvider[*model.TextData]
+	SchedulerHostName  string
+	ClusterName        string
+	PartitionsProvider model.DataProvider[*model.TableData]
+	NodesProvider      model.DataProvider[*model.TableData]
+	JobsProvider       model.DataProvider[*model.TableData]
+	SacctMgrProvider   model.DataProvider[*model.TableData]
+	SdiagProvider      model.DataProvider[*model.TextData]
 }
 
 // Exit and log error details
@@ -129,7 +130,7 @@ func InitializeApplication() *App {
 	}()
 	go func() {
 		defer wg.Done()
-		application.SchedulerHostNameWithIP = model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
+		application.SchedulerHostName, application.ClusterName = model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
 	}()
 	go func() {
 		defer wg.Done()
@@ -221,7 +222,9 @@ func (a *App) SetupViews() {
 
 	a.MainFlex.SetBorder(true).
 		SetBorderAttributes(tcell.AttrDim).
-		SetTitle(" stui - Slurm Management TUI ").
+		SetTitle(
+			fmt.Sprintf(" stui - Slurm Management TUI [%s / %s]", a.ClusterName, a.SchedulerHostName),
+		).
 		SetTitleAlign(tview.AlignCenter)
 
 	// Nodes View
@@ -384,7 +387,7 @@ func (a *App) UpdateAllViews() {
 		a.SchedView.SetText(d.Data)
 	}
 
-	a.UpdateHeader(a.SchedulerHostNameWithIP, time.Now(), time.Since(start))
+	a.UpdateHeader(a.SchedulerHostName, time.Now(), time.Since(start))
 }
 
 func (a *App) RerenderTableView(table *tview.Table) {
