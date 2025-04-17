@@ -1,14 +1,39 @@
 package model
 
 var (
+	// https://slurm.schedmd.com/sinfo.html
 	SCONTROL_NODE_STATES = []string{
 		"(all)", // Default choice, special case
+		"ALLOC",
 		"ALLOCATED",
+		"BLOCKED",
+		"CLOUD",
+		"COMP",
+		"COMPLETING",
 		"DOWN",
-		"ERROR",
+		"DRAIN",
+		"DRAINED",
+		"DRAINING",
+		"FAIL",
 		"FUTURE",
+		"FUTR",
 		"IDLE",
+		"MAINT",
+		"MIX",
 		"MIXED",
+		"NO_RESPOND",
+		"NPC",
+		"PERFCTRS",
+		"PLANNED",
+		"POWER_DOWN",
+		"POWERING_DOWN",
+		"POWERED_DOWN",
+		"POWERING_UP",
+		"REBOOT_ISSUED",
+		"REBOOT_REQUESTED",
+		"RESV",
+		"RESERVED",
+		"UNK",
 		"UNKNOWN",
 	}
 
