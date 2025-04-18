@@ -13,7 +13,7 @@
 
 `stui` requires no configuration - if you can talk to your Slurm cluster with `squeue`/`scontrol`, you can run `stui`. Several configuration options are available and detailed below.
 
-![](./assets/demo.gif)
+![demo gif](./assets/demo.gif)
 
 ## Installation
 
@@ -44,43 +44,43 @@ sudo mv ~/go/bin/stui /usr/bin
 2. Run `stui`. Use the `-help` flag to view arguments for additional configuration.
 
     <!-- REPLACE_START -->
-    ```
+    ```txt
     Usage of ./stui:
       -copied-lines-separator string
-        	string to use when separating copied lines in clipboard (default "\n")
+          string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
-        	if true, only copy the first column of the table to clipboard when copying (default true)
+          if true, only copy the first column of the table to clipboard when copying (default true)
       -default-column-width int
-        	minimum default width of columns in table views, if not overridden in column config (default 2)
+          minimum default width of columns in table views, if not overridden in column config (default 2)
       -job-columns-config string
-        	comma-separated list of scontrol fields to show in job view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "JobId,Partition,UserId,JobName:25,JobState,RunTime,NodeList,QOS,NumCPUs,Mem")
+          comma-separated list of scontrol fields to show in job view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "JobId,Partition,UserId,JobName:25,JobState,RunTime,NodeList,QOS,NumCPUs,Mem")
       -node-columns-config string
-        	comma-separated list of scontrol fields to show in node view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "NodeName,Partitions:15,State,CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards")
+          comma-separated list of scontrol fields to show in node view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "NodeName,Partitions:15,State,CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards")
       -partition string
-        	limit views to specific partition only, leave empty to show all partitions
+          limit views to specific partition only, leave empty to show all partitions
       -quiet
-        	if set, do not print any log lines to console
+          if set, do not print any log lines to console
       -refresh-interval duration
-        	interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
+          interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
       -request-timeout duration
-        	timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 5s)
+          timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 5s)
       -search-debounce-interval duration
-        	interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
+          interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
       -show-keyboard-shortcuts
-        	print keyboard shortcuts and exit
+          print keyboard shortcuts and exit
       -slurm-binaries-path string
-        	path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH
+          path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH
       -slurm-conf-location string
-        	path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set
+          path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set
       -version
-        	print version information and exit
+          print version information and exit
     ```
     <!-- REPLACE_END -->
 
 3. Keyboard shorcuts within `stui`
 
     <!-- REPLACE_SHORTCUTS_START -->
-    ```
+    ```txt
     General Shortcuts
     1        Switch to Nodes view
     2        Switch to Jobs view
