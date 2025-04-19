@@ -65,14 +65,15 @@ type App struct {
 	AcctTableData  *model.TableData
 	PartitionsData *model.TableData
 
-	// Data providers
-	SchedulerHostName  string
-	ClusterName        string
-	PartitionsProvider model.DataProvider[*model.TableData]
-	NodesProvider      model.DataProvider[*model.TableData]
-	JobsProvider       model.DataProvider[*model.TableData]
-	SacctMgrProvider   model.DataProvider[*model.TableData]
-	SdiagProvider      model.DataProvider[*model.TextData]
+	// Data  and providers
+	SchedulerHostName     string
+	SchedulerClusterName  string
+	SchedulerSlurmVersion string
+	PartitionsProvider    model.DataProvider[*model.TableData]
+	NodesProvider         model.DataProvider[*model.TableData]
+	JobsProvider          model.DataProvider[*model.TableData]
+	SacctMgrProvider      model.DataProvider[*model.TableData]
+	SdiagProvider         model.DataProvider[*model.TextData]
 
 	// New style views
 	NodesView    *StuiView
@@ -121,7 +122,7 @@ func InitializeApplication() *App {
 	}()
 	go func() {
 		defer wg.Done()
-		application.SchedulerHostName, application.ClusterName = model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
+		application.SchedulerHostName, application.SchedulerClusterName, application.SchedulerSlurmVersion = model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
 	}()
 	go func() {
 		defer wg.Done()
@@ -215,13 +216,12 @@ func (a *App) SetupViews() {
 
 	a.MainFlex.SetBorder(true).
 		SetBorderAttributes(tcell.AttrDim).
-		SetTitle(
-			fmt.Sprintf(" stui - Slurm Management TUI [%s / %s]", a.ClusterName, a.SchedulerHostName),
-		).
+		SetTitle(fmt.Sprintf(
+			" stui on [%s / %s / Slurm %s] ", a.SchedulerClusterName, a.SchedulerHostName, a.SchedulerSlurmVersion,
+		)).
 		SetTitleAlign(tview.AlignCenter)
 
 	{ // Nodes View
-
 		a.NodesView = NewStuiView(
 			"Nodes",
 			a.NodesProvider,
@@ -247,7 +247,6 @@ func (a *App) SetupViews() {
 		// Accounting view - we create this view whether not it will be used.
 		// This way we do not need to gate our code everywhere to check for
 		// whether it's enabled, just to avoid segfaults.
-
 		a.SacctMgrView = NewStuiView(
 			model.SACCTMGR_TABLE_ENTITIES[0], // First type of entity to start with
 			a.SacctMgrProvider,

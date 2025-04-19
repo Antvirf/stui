@@ -93,7 +93,7 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 	return string(out), nil
 }
 
-func GetSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clusterName string) {
+func GetSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clusterName, slurmVersion string) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -116,6 +116,7 @@ func GetSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clus
 				host = strings.TrimSpace(parts[1])
 			}
 		}
+
 		if strings.HasPrefix(line, "ClusterName") {
 			parts := strings.SplitN(line, "=", 2)
 			if len(parts) == 2 {
@@ -123,8 +124,16 @@ func GetSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clus
 				clusterName = strings.TrimSpace(parts[1])
 			}
 		}
+
+		if strings.HasPrefix(line, "SLURM_VERSION") {
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				// Extract host from ClusterName = name
+				slurmVersion = strings.TrimSpace(parts[1])
+			}
+		}
 	}
-	return host, clusterName
+	return host, clusterName, slurmVersion
 }
 
 func getSdiagWithTimeout(timeout time.Duration) (string, error) {

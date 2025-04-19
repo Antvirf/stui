@@ -84,9 +84,10 @@ func TestGetNodeDetailsWithTimeout(t *testing.T) {
 }
 
 func TestGetSchedulerInfoWithTimeout(t *testing.T) {
-	host, _ := GetSchedulerInfoWithTimeout(1 * time.Second)
+	host, _, slurmVer := GetSchedulerInfoWithTimeout(1 * time.Second)
 	testRunnerHostName, _ := os.Hostname()
 	assert.Contains(t, host, testRunnerHostName)
+	assert.Contains(t, slurmVer, "24")
 }
 
 func TestGetSdiagWithTimeout(t *testing.T) {
