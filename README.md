@@ -54,9 +54,9 @@ sudo mv ~/go/bin/stui /usr/bin
       -default-column-width int
           minimum default width of columns in table views, if not overridden in column config (default 2)
       -job-columns-config string
-          comma-separated list of scontrol fields to show in job view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "UserId,JobName:25,RunTime,NodeList,QOS,NumCPUs,Mem")
+          comma-separated list of scontrol fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem")
       -node-columns-config string
-          comma-separated list of scontrol fields to show in node view, suffix field name with ':<width>' to set column width, use '//' to combine columns. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards")
+          comma-separated list of scontrol fields to show in node view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES::20,Reason::25,Boards")
       -partition string
           limit views to specific partition only, leave empty to show all partitions
       -quiet
@@ -67,6 +67,8 @@ sudo mv ~/go/bin/stui /usr/bin
           timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 5s)
       -search-debounce-interval duration
           interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
+      -show-all-columns
+          if set, shows all columns for both Nodes and Jobs, overriding other specific config
       -show-keyboard-shortcuts
           print keyboard shortcuts and exit
       -slurm-binaries-path string

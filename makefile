@@ -1,6 +1,6 @@
 ## DEVELOPMENT HELPERS
 
-.PHONY: setup lint build update-readme install
+.PHONY: run run-with-all-columns setup lint build update-readme install
 setup:
 	pip install pre-commit
 	pre-commit install
@@ -14,6 +14,12 @@ lint:
 
 build: lint
 	go build
+
+run:
+	go run main.go
+
+run-with-all-columns:
+	go run main.go -show-all-columns
 
 install:
 	go install

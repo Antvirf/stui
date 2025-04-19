@@ -30,8 +30,8 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 	for _, part := range parts {
 		col := ColumnConfig{DividedByColumn: false}
 
-		if strings.Contains(part, ":") {
-			subParts := strings.Split(part, ":")
+		if strings.Contains(part, "::") {
+			subParts := strings.Split(part, "::")
 			if len(subParts) != 2 {
 				return nil, errors.New("invalid column format: " + part)
 			}
