@@ -60,15 +60,15 @@ var (
 		"Cluster",
 		"Event",
 		"Federation",
-		// "Problem", // Requires admin
+		"Problem", // Requires admin perms
 		"QOS",
 		"Resource",
 		"Reservation",
-		// "RunAwayJobs", // Requires operator perms
+		"RunAwayJobs", // Requires operator perms
 		"Transaction",
 		"TRES",
 		"User",
-		// "WCKey", // Requires admin
+		"WCKey", // Requires admin perms
 	}
 	SACCTMGR_TEXT_ENTITIES = []string{
 		"Configuration",
@@ -90,5 +90,9 @@ var (
 		"Transaction": "Time,Action,Actor,Where,Info",
 		"TRES":        "ID,Type,Name",
 		"User":        "User,Def Acct,Def WCKey,Admin",
+	}
+
+	SACCTMGR_ENTITY_TABLES_WITH_NO_CLEAR_ID = []string{
+		"Association", "Event", "Problem", "Transaction",
 	}
 )

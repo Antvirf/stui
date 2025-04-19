@@ -34,9 +34,13 @@ var (
 	SacctEnabled    bool   = false
 
 	// Internal configs
-	SacctMgrCurrentEntity  string = "Account" // Default starting point
-	NodeStateCurrentChoice string = "(all)"
-	JobStateCurrentChoice  string = "(all)"
+	SacctMgrCurrentEntity         string = "Account" // Default starting point
+	NodeStateCurrentChoice        string = "(all)"
+	JobStateCurrentChoice         string = "(all)"
+	NodeViewColumnsPartitionIndex int
+	NodeViewColumnsStateIndex     int
+	JobsViewColumnsPartitionIndex int
+	JobsViewColumnsStateIndex     int
 )
 
 const (
@@ -139,6 +143,8 @@ func ComputeConfigurations() {
 	if err != nil {
 		log.Fatalf("Failed to parse node column config: %v", err)
 	}
+	NodeViewColumnsPartitionIndex = 1
+	NodeViewColumnsStateIndex = 2
 
 	// Add hardcoded fields to Job columns
 	// JobID must be first column, as it is unique and used for selections
@@ -148,4 +154,6 @@ func ComputeConfigurations() {
 	if err != nil {
 		log.Fatalf("Failed to parse job column config: %v", err)
 	}
+	JobsViewColumnsPartitionIndex = 1
+	JobsViewColumnsStateIndex = 2
 }

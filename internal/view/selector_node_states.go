@@ -22,7 +22,8 @@ func (a *App) SetupNodeStateSelector() {
 	a.NodeStateSelector.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
-			a.App.SetFocus(a.CurrentTableView)
+			_, frontpage := a.Pages.GetFrontPage()
+			a.App.SetFocus(frontpage)
 			return nil
 		}
 		return event
@@ -41,8 +42,9 @@ func (a *App) applyNodeStateSelector(entity string) func() {
 	return func() {
 		config.NodeStateCurrentChoice = entity
 		if a.FirstRenderComplete {
-			a.UpdateAllViews()
-			a.App.SetFocus(a.CurrentTableView)
+			a.RenderCurrentView()
+			_, frontpage := a.Pages.GetFrontPage()
+			a.App.SetFocus(frontpage)
 		}
 	}
 }

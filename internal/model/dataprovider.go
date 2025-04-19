@@ -16,12 +16,9 @@ type DataProvider[T DataInterface[T]] interface {
 	Length() int
 	Fetch() error
 	Data() T
-	RunPeriodicRefresh(time.Duration, time.Duration, func())
 	FilteredData(string) T
-	Subscribe() <-chan struct{}
 	LastUpdated() time.Time
 	LastError() error
-	Close()
 }
 
 // BaseProvider[T] contains common provider functionality
@@ -29,18 +26,14 @@ type BaseProvider[T DataInterface[T]] struct {
 	mu          sync.RWMutex
 	data        T
 	length      int
-	subscribers []chan struct{}
 	lastUpdated time.Time
 	lastError   error
 	fetchCount  int
-	closed      bool
 }
 
 // NewBaseProvider[T] creates a new BaseProvider[T]
 func NewBaseProvider[T DataInterface[T]]() BaseProvider[T] {
-	return BaseProvider[T]{
-		subscribers: make([]chan struct{}, 0),
-	}
+	return BaseProvider[T]{}
 }
 
 // Fetch should be implemented by concrete providers
@@ -60,16 +53,6 @@ func (p *BaseProvider[T]) Data() T {
 	return p.data.DeepCopy()
 }
 
-// Subscribe returns a channel that receives notifications on data updates
-func (p *BaseProvider[T]) Subscribe() <-chan struct{} {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	ch := make(chan struct{}, 1)
-	p.subscribers = append(p.subscribers, ch)
-	return ch
-}
-
 // LastUpdated returns the time of the last successful update
 func (p *BaseProvider[T]) LastUpdated() time.Time {
 	p.mu.RLock()
@@ -84,18 +67,6 @@ func (p *BaseProvider[T]) LastError() error {
 	return p.lastError
 }
 
-// Close cleans up all resources
-func (p *BaseProvider[T]) Close() {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	p.closed = true
-	for _, ch := range p.subscribers {
-		close(ch)
-	}
-	p.subscribers = nil
-}
-
 func (p *BaseProvider[T]) FetchCount() int {
 	return p.fetchCount
 }
@@ -106,16 +77,10 @@ func (p *BaseProvider[T]) updateData(data T) {
 	defer p.mu.Unlock()
 
 	p.data = data
+	p.fetchCount += 1
 	p.lastUpdated = time.Now()
 	p.lastError = nil
-
-	// Notify subscribers
-	for _, ch := range p.subscribers {
-		select {
-		case ch <- struct{}{}:
-		default: // Skip if channel is full
-		}
-	}
+	p.length = p.data.Length()
 }
 
 // updateError is called by concrete providers when an error occurs
@@ -123,5 +88,6 @@ func (p *BaseProvider[T]) updateError(err error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
+	p.length = 0
 	p.lastError = err
 }

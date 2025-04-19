@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/antvirf/stui/internal/config"
 )
@@ -14,32 +13,13 @@ type SacctMgrProvider struct {
 
 func NewSacctMgrProvider() *SacctMgrProvider {
 	p := SacctMgrProvider{
-		BaseProvider: NewBaseProvider[*TableData](),
+		BaseProvider: BaseProvider[*TableData]{},
 	}
 	p.Fetch()
 	return &p
 }
 
-func (p *SacctMgrProvider) RunPeriodicRefresh(
-	interval time.Duration,
-	timeout time.Duration,
-	callback func(),
-) {
-	ticker := time.NewTicker(interval)
-	for {
-		<-ticker.C
-		err := p.Fetch()
-		if err != nil {
-			callback()
-		}
-	}
-}
-
 func (p *SacctMgrProvider) Fetch() error {
-	// TODO: Why does this deadlock?
-	// p.mu.Lock()
-	// defer p.mu.Unlock()
-
 	var columns []config.ColumnConfig
 	columnConfig := strings.Split(SACCTMGR_ENTITY_COLUMN_CONFIGS[config.SacctMgrCurrentEntity], ",")
 	for _, key := range columnConfig {
@@ -53,15 +33,16 @@ func (p *SacctMgrProvider) Fetch() error {
 	)
 
 	if err != nil {
+		emptyData := &TableData{
+			Headers: &[]config.ColumnConfig{},
+			Rows:    [][]string{},
+		}
+		p.updateData(emptyData)
 		p.updateError(err)
 		return err
 	}
 
-	p.lastUpdated = time.Now()
-	p.fetchCount++
-
 	p.updateData(rawData)
-	p.length = p.data.Length()
 	return nil
 }
 

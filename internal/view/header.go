@@ -1,7 +1,6 @@
 package view
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/rivo/tview"
@@ -9,23 +8,19 @@ import (
 
 func (a *App) ShowNotification(text string, after time.Duration) {
 	go func() {
-		a.FooterMessage.SetText(text)
+		a.HeaderLineThree.SetText(text)
 		time.Sleep(after)
-		a.FooterMessage.Clear()
+		a.HeaderLineThree.Clear()
 		a.App.Draw()
 	}()
 }
 
-func (a *App) UpdateHeader(schedulerHostName string, lastRender time.Time, lastRenderDuration time.Duration) {
-	// Left column
-	a.HeaderLineOne.SetText(
-		fmt.Sprintf(
-			"Last render: %s (%d ms)",
-			lastRender.Format("15:04:05"),
-			lastRenderDuration.Milliseconds(),
-		),
-	)
-	a.HeaderLineTwo.SetText("")
+func (a *App) UpdateHeaderLineOne(v string) {
+	a.HeaderLineOne.SetText(v)
+}
+
+func (a *App) UpdateHeaderLineTwo(v string) {
+	a.HeaderLineTwo.SetText(v)
 }
 
 // Add each given primitive as a row to the top-left header area.

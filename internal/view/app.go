@@ -3,8 +3,6 @@ package view
 import (
 	"fmt"
 	"log"
-	"regexp"
-	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +10,14 @@ import (
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+)
+
+const (
+	NODES_PAGE    = "nodes"
+	JOBS_PAGE     = "jobs"
+	SACCTMGR_PAGE = "sacctmgr"
+	SDIAG_PAGE    = "sdiag"
+	COMMAND_PAGE  = "commandmodal"
 )
 
 type App struct {
@@ -28,25 +34,10 @@ type App struct {
 	MainFlex                *tview.Flex
 	FooterGrid              *tview.Grid
 
-	// Main views and their grids
-	NodesView    *tview.Table
-	JobsView     *tview.Table
-	SchedView    *tview.TextView
-	SacctMgrView *tview.Table
-
-	NodeGrid *tview.Grid
-	JobGrid  *tview.Grid
-	AcctGrid *tview.Grid
-
-	// Selections for each view
-	SelectedNodes    map[string]bool // Track selected nodes by name
-	SelectedJobs     map[string]bool // Track selected jobs by ID
-	SelectedAcctRows map[string]bool // Track selected acc rows
-
 	// Footer
-	HeaderLineOne *tview.TextView
-	HeaderLineTwo *tview.TextView // Combined status line
-	FooterMessage *tview.TextView
+	HeaderLineOne   *tview.TextView
+	HeaderLineTwo   *tview.TextView
+	HeaderLineThree *tview.TextView
 
 	// Current tab indicators
 	TabNodesBox      *tview.TextView
@@ -70,7 +61,6 @@ type App struct {
 	CommandModalOpen bool
 
 	// Stored Data
-	NodesTableData *model.TableData
 	JobsTableData  *model.TableData
 	AcctTableData  *model.TableData
 	PartitionsData *model.TableData
@@ -83,6 +73,12 @@ type App struct {
 	JobsProvider       model.DataProvider[*model.TableData]
 	SacctMgrProvider   model.DataProvider[*model.TableData]
 	SdiagProvider      model.DataProvider[*model.TextData]
+
+	// New style views
+	NodesView    *StuiView
+	JobsView     *StuiView
+	SacctMgrView *StuiView
+	SchedView    *tview.TextView // Special case, text only
 }
 
 // Exit and log error details
@@ -102,11 +98,6 @@ func InitializeApplication() *App {
 		HeaderGridInnerContents: tview.NewGrid(),
 		FirstRenderComplete:     false,
 	}
-
-	// Init selectors, otherwise segfault lol
-	application.SelectedNodes = make(map[string]bool)
-	application.SelectedJobs = make(map[string]bool)
-	application.SelectedAcctRows = make(map[string]bool)
 
 	// Init data providers at start - in parallel, as they all do their first fetch on initialization
 	start := time.Now()
@@ -155,34 +146,37 @@ func (a *App) SetupViews() {
 		a.SetupSacctMgrEntitySelector()
 	}
 
-	// HeaderLineOne components
-	a.FooterMessage = tview.NewTextView().
-		SetDynamicColors(true).
-		SetTextAlign(tview.AlignCenter)
+	{ // Headerlines
+		a.HeaderLineOne = tview.NewTextView().
+			SetDynamicColors(true).
+			SetTextAlign(tview.AlignLeft)
 
-	a.HeaderLineOne = tview.NewTextView().
-		SetDynamicColors(true).
-		SetTextAlign(tview.AlignLeft)
+		// Combined status line
+		a.HeaderLineTwo = tview.NewTextView().
+			SetDynamicColors(true).
+			SetTextAlign(tview.AlignLeft).
+			SetWrap(true)
 
-	// Combined status line
-	a.HeaderLineTwo = tview.NewTextView().
-		SetDynamicColors(true).
-		SetTextAlign(tview.AlignLeft)
+		a.HeaderLineThree = tview.NewTextView().
+			SetDynamicColors(true).
+			SetTextAlign(tview.AlignCenter)
 
-	// Create tab boxes
-	a.TabNodesBox = tview.NewTextView().
-		SetText("(1) Nodes")
-	a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
-	a.TabJobsBox = tview.NewTextView().
-		SetText("(2) Jobs")
-	a.TabSchedulerBox = tview.NewTextView().
-		SetText("(3) Scheduler")
-	a.TabAccountingBox = tview.NewTextView().
-		SetText("(4) Acct Manager")
+	}
+
+	{ // Current tab boxes
+		a.TabNodesBox = tview.NewTextView().
+			SetText("(1) Nodes")
+		a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
+		a.TabJobsBox = tview.NewTextView().
+			SetText("(2) Jobs")
+		a.TabSchedulerBox = tview.NewTextView().
+			SetText("(3) Scheduler")
+		a.TabAccountingBox = tview.NewTextView().
+			SetText("(4) Acct Manager")
+	}
 
 	// Create a grid for the tabs
 	tabGrid := tview.NewGrid().
-		// SetRows(1,1,1).
 		AddItem(a.TabNodesBox, FRST_ROW, FRST_COL, 1, 1, 1, 0, false).
 		AddItem(a.TabJobsBox, SCND_ROW, FRST_COL, 1, 1, 1, 0, false).
 		AddItem(a.TabSchedulerBox, THRD_ROW, FRST_COL, 1, 1, 1, 0, false)
@@ -197,10 +191,10 @@ func (a *App) SetupViews() {
 		AddItem(a.HeaderGridInnerContents, FRST_ROW, FRST_COL, 1, 1, 0, 0, false).
 		AddItem(
 			tview.NewGrid().
-				SetRows(-1, -1).
+				SetRows(-1, -2, -1).
 				AddItem(a.HeaderLineOne, FRST_ROW, FRST_COL, 1, 1, 0, 0, false).
 				AddItem(a.HeaderLineTwo, SCND_ROW, FRST_COL, 1, 1, 0, 0, false).
-				AddItem(a.FooterMessage, THRD_ROW, FRST_COL, 1, 1, 0, 0, false),
+				AddItem(a.HeaderLineThree, THRD_ROW, FRST_COL, 1, 1, 0, 0, false),
 			FRST_ROW, SCND_COL, 1, 1, 0, 0, false).
 		AddItem(tabGrid, FRST_ROW, THRD_COL, 1, 1, 0, 0, false)
 
@@ -212,8 +206,7 @@ func (a *App) SetupViews() {
 			tcell.StyleDefault.
 				Foreground(pagesBorderColor).
 				Background(generalBackgroundColor),
-		).
-		SetTitle(" Nodes (0 / 0)") // Initial title matching nodes view
+		)
 
 	// Main grid layout, implemented with Flex
 	a.MainFlex = tview.NewFlex().SetDirection(tview.FlexRow).
@@ -227,67 +220,46 @@ func (a *App) SetupViews() {
 		).
 		SetTitleAlign(tview.AlignCenter)
 
-	// Nodes View
-	a.NodesView = tview.NewTable()
-	a.NodesView.
-		SetBorders(false). // Remove all borders
-		SetTitleAlign(tview.AlignLeft).
-		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-	a.NodesView.SetFixed(1, 0)             // Fixed header row
-	a.NodesView.SetSelectable(true, false) // Selectable rows but not columns
-	// Configure more compact highlighting
-	a.NodesView.SetSelectedStyle(tcell.StyleDefault.
-		Background(rowCursorColorBackground).
-		Foreground(rowCursorColorForeground))
-	a.NodesView.SetBackgroundColor(generalBackgroundColor) // Add this line
-	a.NodeGrid = tview.NewGrid().
-		SetRows(0). // Just table initially
-		SetColumns(0).
-		AddItem(a.NodesView, 0, 0, 1, 1, 0, 0, true)
-	a.Pages.AddPage("nodes", a.NodeGrid, true, true)
+	{ // Nodes View
 
-	// Jobs View
-	a.JobsView = tview.NewTable()
-	a.JobsView.
-		SetBorders(false). // Remove all borders
-		SetTitleAlign(tview.AlignLeft).
-		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-	a.JobsView.SetFixed(1, 0)             // Fixed header row
-	a.JobsView.SetSelectable(true, false) // Selectable rows but not columns
-	// Configure more compact highlighting
-	a.JobsView.SetSelectedStyle(tcell.StyleDefault.
-		Background(rowCursorColorBackground).
-		Foreground(rowCursorColorForeground))
-	a.JobsView.SetBackgroundColor(generalBackgroundColor) // Add this line
-	a.JobGrid = tview.NewGrid().
-		SetRows(0). // Just table initially
-		SetColumns(0).
-		AddItem(a.JobsView, 0, 0, 1, 1, 0, 0, true)
-	a.Pages.AddPage("jobs", a.JobGrid, true, false)
-
-	// Accounting view
-	if config.SacctEnabled {
-		a.SacctMgrView = tview.NewTable()
-		a.SacctMgrView.
-			SetBorders(false). // Remove all borders
-			SetTitleAlign(tview.AlignLeft).
-			SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-		a.SacctMgrView.SetFixed(1, 0)             // Fixed header row
-		a.SacctMgrView.SetSelectable(true, false) // Selectable rows but not columns
-		// Configure more compact highlighting
-		a.SacctMgrView.SetSelectedStyle(tcell.StyleDefault.
-			Background(rowCursorColorBackground).
-			Foreground(rowCursorColorForeground))
-		a.SacctMgrView.SetBackgroundColor(generalBackgroundColor) // Add this line
-		a.AcctGrid = tview.NewGrid().
-			SetRows(0). // Just table initially
-			SetColumns(0).
-			AddItem(a.SacctMgrView, 0, 0, 1, 1, 0, 0, true)
-		a.Pages.AddPage("accounting", a.AcctGrid, true, false)
+		a.NodesView = NewStuiView(
+			"Nodes",
+			a.NodesProvider,
+			a.PagesContainer.SetTitle,
+			a.UpdateHeaderLineTwo, // errors
+			a.UpdateHeaderLineOne, // data updates notify
+		)
+		a.Pages.AddPage(NODES_PAGE, a.NodesView.Grid, true, true)
 	}
 
-	// Scheduler View
+	{ // Jobs View
+		a.JobsView = NewStuiView(
+			"Jobs",
+			a.JobsProvider,
+			a.PagesContainer.SetTitle,
+			a.UpdateHeaderLineTwo, // errors
+			a.UpdateHeaderLineOne, // data updates notify
+		)
+		a.Pages.AddPage(JOBS_PAGE, a.JobsView.Grid, true, false)
+	}
+
 	{
+		// Accounting view - we create this view whether not it will be used.
+		// This way we do not need to gate our code everywhere to check for
+		// whether it's enabled, just to avoid segfaults.
+
+		a.SacctMgrView = NewStuiView(
+			model.SACCTMGR_TABLE_ENTITIES[0], // First type of entity to start with
+			a.SacctMgrProvider,
+			a.PagesContainer.SetTitle,
+			a.UpdateHeaderLineTwo, // errors
+			a.UpdateHeaderLineOne, // data updates notify
+		)
+
+		a.Pages.AddPage(SACCTMGR_PAGE, a.SacctMgrView.Grid, true, false)
+	}
+
+	{ // Scheduler View
 		a.SchedView = tview.NewTextView()
 		a.SchedView.
 			SetDynamicColors(true).
@@ -295,11 +267,11 @@ func (a *App) SetupViews() {
 			SetWrap(false).
 			SetTitleAlign(tview.AlignLeft).
 			SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-		a.Pages.AddPage("scheduler", a.SchedView, true, false)
+		a.Pages.AddPage(SDIAG_PAGE, a.SchedView, true, false)
 	}
 
 	{ // Starting position
-		a.CurrentTableView = a.NodesView
+		a.CurrentTableView = a.NodesView.Table
 		a.SetHeaderGridInnerContents(
 			a.PartitionSelector,
 			a.NodeStateSelector,
@@ -309,298 +281,59 @@ func (a *App) SetupViews() {
 
 // Starts periodic background processes to refresh data
 func (a *App) StartRefresh() {
-	// Set periodic refreshes running.
-	// Note: We do NOT periodically refresh partitions list.
-	// TODO: Callbacks should be table specific for faster rendering
-	// TODO: Callbacks should work
-	go a.NodesProvider.RunPeriodicRefresh(
-		config.RefreshInterval,
-		config.RequestTimeout,
-		func() { return }, // Fix
-	)
-	go a.JobsProvider.RunPeriodicRefresh(
-		config.RefreshInterval,
-		config.RequestTimeout,
-		func() { return }, // Fix
-	)
-	go a.SdiagProvider.RunPeriodicRefresh(
-		config.RefreshInterval,
-		config.RequestTimeout,
-		func() { return }, // Fix
-	)
-	if config.SacctEnabled {
-		go a.SacctMgrProvider.RunPeriodicRefresh(
-			config.RefreshInterval,
-			config.RequestTimeout,
-			func() { return }, // Fix
-		)
-	}
+	// Fetch and setup partitions list - static
+	a.PartitionsData = a.PartitionsProvider.Data()
 
-	// First render
-	a.UpdateAllViews()
+	// First render of all views
+	a.NodesView.Render()
+	a.JobsView.Render()
+	a.SacctMgrView.Render()
+	{ // Render sdiag
+		d := a.SdiagProvider.Data()
+		a.SchedView.SetText(d.Data)
+	}
 	a.FirstRenderComplete = true
 
 	// Other one-off actions that can only take place post first render
 	a.setupPartitionSelectorOptions()
-	a.NodesView.ScrollToBeginning()
-	a.JobsView.ScrollToBeginning()
-	a.SacctMgrView.ScrollToBeginning()
+	a.NodesView.Table.ScrollToBeginning()
+	a.JobsView.Table.ScrollToBeginning()
+	if config.SacctEnabled {
+		a.SacctMgrView.Table.ScrollToBeginning()
+	}
 
-	// Periodic redraw
-	ticker := time.NewTicker(config.RefreshInterval)
+	// Set periodic refreshes running. To make this very light on the scheduler, we:
+	// 1. Do a full fetch of all sources once, at the start
+	// 2. After that, only fetch data periodically for the active pane
+	// 3. On switching panes, if the data is older than refresh interval, we trigger a background refresh
+	//    this happens in keybinds.
 	go func() {
-		// This fires a tick immediately, and then on an interval afterwards.
-		for ; true; <-ticker.C {
-			a.App.QueueUpdateDraw(func() {
-				a.UpdateAllViews()
-			})
+		renderTicker := time.NewTicker(3 * time.Second) // Render every 3 seconds, regardless of data refresh frequency
+		fetchTicker := time.NewTicker(config.RefreshInterval)
+		defer renderTicker.Stop()
+		defer fetchTicker.Stop()
+
+		for {
+			select {
+			case <-renderTicker.C:
+				a.App.QueueUpdateDraw(func() {
+					a.RenderCurrentView()
+				})
+			case <-fetchTicker.C:
+				a.App.QueueUpdateDraw(func() {
+					switch a.GetCurrentPageName() {
+					case NODES_PAGE:
+						a.NodesView.FetchAndRender()
+					case JOBS_PAGE:
+						a.JobsView.FetchAndRender()
+					case SACCTMGR_PAGE:
+						a.SacctMgrView.FetchAndRender()
+					case SDIAG_PAGE:
+						a.SdiagProvider.Fetch()
+						a.SchedView.SetText(a.SdiagProvider.Data().Data)
+					}
+				})
+			}
 		}
 	}()
-
-}
-
-// Re-renders everything
-func (a *App) UpdateAllViews() {
-	start := time.Now()
-
-	{ // Partitions data
-		d := a.PartitionsProvider.Data()
-		a.PartitionsData = d
-	}
-
-	{ // Nodes data
-		a.RenderTable(a.NodesView, a.NodesProvider, config.PartitionFilter)
-	}
-
-	{ // Jobs data
-		a.RenderTable(a.JobsView, a.JobsProvider, config.PartitionFilter)
-	}
-
-	// Sacctmgr data
-	if config.SacctEnabled { // Sacctmgr data
-		a.RenderTable(a.SacctMgrView, a.SacctMgrProvider, "")
-	}
-
-	// Scheduler data
-	{
-		d := a.SdiagProvider.Data()
-		a.SchedView.SetText(d.Data)
-	}
-
-	a.UpdateHeader(a.SchedulerHostName, time.Now(), time.Since(start))
-}
-
-func (a *App) RerenderTableView(table *tview.Table) {
-	table.Clear()
-	switch table {
-	case a.NodesView:
-		a.RenderTable(table, a.NodesProvider, config.PartitionFilter)
-	case a.JobsView:
-		a.RenderTable(table, a.JobsProvider, config.PartitionFilter)
-	case a.SacctMgrView:
-		a.RenderTable(table, a.SacctMgrProvider, "")
-	default:
-		return
-	}
-}
-
-func (a *App) RenderTable(table *tview.Table, provider model.DataProvider[*model.TableData], filter string) {
-	data := provider.FilteredData(filter)
-	table.Clear()
-
-	// Update page title with counts
-	totalCount := provider.Length()
-	filteredCount := data.Length()
-	if a.SearchActive {
-		filteredCount = 0 // Will be updated in the filtering loop below
-	}
-
-	// Only update title if this is the currently active view
-	if table == a.CurrentTableView {
-		if table == a.NodesView {
-			a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
-		} else if table == a.JobsView {
-			a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
-		} else if table == a.SacctMgrView {
-			_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
-			a.PagesContainer.SetTitle(fmt.Sprintf(
-				" %s rows (%d / %d) ",
-				entity,
-				filteredCount,
-				totalCount,
-			))
-		}
-	}
-
-	// Set headers with fixed widths and padding
-	for col, header := range *data.Headers {
-
-		// If header is a divided type, clean it up
-		headerName := header.Name
-		if header.DividedByColumn {
-			headerName = strings.Replace(header.Name, "//", "/", -1)
-		}
-
-		// Pad header with spaces to maintain width
-		paddedHeader := fmt.Sprintf("%-*s", header.Width, headerName)
-		table.SetCell(0, col, tview.NewTableCell(paddedHeader).
-			SetSelectable(false).
-			SetAlign(tview.AlignLeft).
-			SetBackgroundColor(generalBackgroundColor).
-			SetTextColor(generalTextColor).
-			SetAttributes(tcell.AttrBold))
-	}
-
-	// Filter rows if search is active
-	filteredRows := data.Rows
-	if a.SearchActive {
-		filteredRows = [][]string{}
-		for _, row := range data.Rows {
-			// Combine the entire row into a single string for regex matching
-			rowString := strings.Join(row, " ")
-			if matched, _ := regexp.MatchString("(?i)"+a.SearchPattern, rowString); matched {
-				filteredRows = append(filteredRows, row)
-				filteredCount++
-			}
-		}
-		// Update title with filtered count
-		if table == a.NodesView {
-			a.PagesContainer.SetTitle(fmt.Sprintf(" Nodes (%d / %d) ", filteredCount, totalCount))
-		} else if table == a.JobsView {
-			a.PagesContainer.SetTitle(fmt.Sprintf(" Jobs (%d / %d) ", filteredCount, totalCount))
-		} else if table == a.SacctMgrView {
-			_, entity := a.SacctMgrEntitySelector.GetCurrentOption()
-			a.PagesContainer.SetTitle(fmt.Sprintf(
-				" %s rows (%d / %d) ",
-				entity,
-				filteredCount,
-				totalCount,
-			))
-		}
-	}
-
-	// Set rows with text wrapping
-	for row, rowData := range filteredRows {
-		for col, cell := range rowData {
-			cellView := tview.NewTableCell(cell).
-				SetAlign(tview.AlignLeft).
-				SetMaxWidth((*data.Headers)[col].Width).
-				SetExpansion(1)
-
-			// Highlight selected rows
-			if table == a.NodesView && a.SelectedNodes[rowData[0]] {
-				cellView.SetBackgroundColor(selectionColor)
-			} else if table == a.JobsView && a.SelectedJobs[rowData[0]] {
-				cellView.SetBackgroundColor(selectionColor)
-			} else {
-				cellView.SetBackgroundColor(generalBackgroundColor) // Explicitly set default when not selected
-			}
-
-			table.SetCell(row+1, col, cellView)
-		}
-	}
-
-	// If no rows, set empty cells with spaces to maintain column widths
-	if len(filteredRows) == 0 {
-		for col, header := range *data.Headers {
-			spaces := strings.Repeat(" ", header.Width)
-			table.SetCell(1, col, tview.NewTableCell(spaces).
-				SetAlign(tview.AlignLeft).
-				SetMaxWidth(header.Width).
-				SetExpansion(1))
-		}
-	}
-}
-
-func (a *App) ShowModalPopup(title, details string) {
-	// Create new modal components each time (don't reuse)
-	detailView := tview.NewTextView().
-		SetDynamicColors(true).
-		SetScrollable(true).
-		SetWrap(true). // Enable text wrapping
-		SetTextAlign(tview.AlignLeft)
-	detailView.SetText(details)
-
-	modal := tview.NewFlex().
-		SetDirection(tview.FlexRow).
-		AddItem(tview.NewTextView().
-			SetTextAlign(tview.AlignCenter).
-			SetText(fmt.Sprintf(" %s (ESC to close) ", title)).
-			SetTextColor(generalTextColor),
-			2, 0, false).
-		AddItem(detailView, 0, 1, true)
-
-	modal.SetBorder(true).
-		SetBorderColor(modalBorderColor).
-		SetBackgroundColor(generalBackgroundColor)
-
-	// Create centered container with fixed size (80% width, 90% height)
-	centered := tview.NewFlex().
-		AddItem(nil, 0, 1, false).
-		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(modal, 0, 10, true), // Increased height
-			0, 16, false). // Increased width
-		AddItem(nil, 0, 1, false)
-
-	// Store current page before showing modal
-	previousPageName, _ := a.Pages.GetFrontPage()
-	previousFocus := a.App.GetFocus()
-
-	// Add as overlay without switching pages
-	pageName := "detailView"
-	a.Pages.AddPage(pageName, centered, true, true)
-	a.App.SetFocus(detailView)
-
-	// Set up handler to return to correct view when closed
-	detailView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyEsc:
-			a.Pages.RemovePage(pageName)
-			a.Pages.SwitchToPage(previousPageName)
-			a.App.SetFocus(previousFocus)
-			return nil
-		}
-		switch event.Rune() {
-		case 'y':
-			a.copyToClipBoard(details)
-			return nil
-		}
-		return event
-	})
-}
-
-func (a *App) ShowJobDetails(jobID string) {
-	details, err := model.GetJobDetailsWithTimeout(jobID, config.RequestTimeout)
-	if err != nil {
-		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
-	}
-	a.ShowModalPopup(fmt.Sprintf("Job Details: %s", jobID), details)
-}
-
-func (a *App) setActiveTab(active string) {
-	// Reset all to black
-	a.TabNodesBox.SetBackgroundColor(generalBackgroundColor)
-	a.TabJobsBox.SetBackgroundColor(generalBackgroundColor)
-	a.TabSchedulerBox.SetBackgroundColor(generalBackgroundColor)
-	a.TabAccountingBox.SetBackgroundColor(generalBackgroundColor)
-
-	// Set active color
-	switch active {
-	case "nodes":
-		a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
-	case "jobs":
-		a.TabJobsBox.SetBackgroundColor(paneSelectorHighlightColor)
-	case "scheduler":
-		a.TabSchedulerBox.SetBackgroundColor(paneSelectorHighlightColor)
-	case "accounting":
-		a.TabAccountingBox.SetBackgroundColor(paneSelectorHighlightColor)
-	}
-}
-
-func (a *App) ShowNodeDetails(nodeName string) {
-	details, err := model.GetNodeDetailsWithTimeout(nodeName, config.RequestTimeout)
-	if err != nil {
-		details = fmt.Sprintf("Error fetching node details:\n%s", err.Error())
-	}
-	a.ShowModalPopup(fmt.Sprintf("Node Details: %s", nodeName), details)
 }

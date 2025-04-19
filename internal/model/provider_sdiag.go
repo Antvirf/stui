@@ -1,8 +1,6 @@
 package model
 
 import (
-	"time"
-
 	"github.com/antvirf/stui/internal/config"
 )
 
@@ -12,32 +10,13 @@ type SdiagProvider struct {
 
 func NewSdiagProvider() *SdiagProvider {
 	p := SdiagProvider{
-		BaseProvider: NewBaseProvider[*TextData](),
+		BaseProvider: BaseProvider[*TextData]{},
 	}
 	p.Fetch()
 	return &p
 }
 
-func (p *SdiagProvider) RunPeriodicRefresh(
-	interval time.Duration,
-	timeout time.Duration,
-	callback func(),
-) {
-	ticker := time.NewTicker(interval)
-	for {
-		<-ticker.C
-		err := p.Fetch()
-		if err != nil {
-			callback()
-		}
-	}
-}
-
 func (p *SdiagProvider) Fetch() error {
-	// TODO: Why does this deadlock?
-	// p.mu.Lock()
-	// defer p.mu.Unlock()
-
 	rawData, err := getSdiagWithTimeout(config.RequestTimeout)
 
 	if err != nil {
@@ -45,11 +24,7 @@ func (p *SdiagProvider) Fetch() error {
 		return err
 	}
 
-	p.lastUpdated = time.Now()
-	p.fetchCount++
-
 	p.updateData(&TextData{Data: rawData})
-	p.length = p.data.Length()
 	return nil
 }
 

@@ -2,6 +2,7 @@ package view
 
 import (
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -32,9 +33,11 @@ func (a *App) SetupKeybinds() {
 			return event
 		}
 
-		// Don't allow pane switching while typing in search
-		// same if command prompt is open
-		if a.SearchBox.HasFocus() || a.CommandModalOpen {
+		// Don't allow pane switching when prompts are open or selectors are in focus
+		if a.CommandModalOpen ||
+			a.SearchBox.HasFocus() ||
+			a.PartitionSelector.HasFocus() ||
+			a.SacctMgrEntitySelector.HasFocus() {
 			return event
 		}
 
@@ -42,59 +45,59 @@ func (a *App) SetupKeybinds() {
 		case '?':
 			a.ShowModalPopup("Shortcuts", config.KEYBOARD_SHORTCUTS)
 		case '1':
-			a.Pages.SwitchToPage("nodes")
-			a.setActiveTab("nodes")
-			a.CurrentTableView = a.NodesView
+			a.SwitchToPage(NODES_PAGE)
+			a.CurrentTableView = a.NodesView.Table
 			a.SetHeaderGridInnerContents(
 				a.PartitionSelector,
 				a.NodeStateSelector,
 			)
 			if a.SearchPattern != "" {
-				a.ShowSearchBox(a.NodeGrid)
+				a.ShowSearchBox(a.NodesView.Grid)
 			} else {
 				a.HideSearchBox()
 			}
-			a.App.SetFocus(a.NodesView)
-			a.RerenderTableView(a.NodesView)
+			a.App.SetFocus(a.NodesView.Table)
+			a.NodesView.Render()
+			go a.NodesView.FetchAndRenderIfStale(config.RefreshInterval)
 			return nil
 		case '2':
-			a.Pages.SwitchToPage("jobs")
-			a.setActiveTab("jobs")
-			a.CurrentTableView = a.JobsView
+			a.SwitchToPage(JOBS_PAGE)
+			a.CurrentTableView = a.JobsView.Table
 			a.SetHeaderGridInnerContents(
 				a.PartitionSelector,
 				a.JobStateSelector,
 			)
 			if a.SearchPattern != "" {
-				a.ShowSearchBox(a.JobGrid)
+				a.ShowSearchBox(a.JobsView.Grid)
 			} else {
 				a.HideSearchBox()
 			}
-			a.App.SetFocus(a.JobsView)
-			a.RerenderTableView(a.JobsView)
+			a.App.SetFocus(a.JobsView.Table)
+			a.JobsView.Render()
+			go a.JobsView.FetchAndRenderIfStale(config.RefreshInterval)
 			return nil
 		case '3':
-			a.Pages.SwitchToPage("scheduler")
+			a.SwitchToPage(SDIAG_PAGE)
 			a.PagesContainer.SetTitle(" Scheduler status (sdiag) ")
-			a.setActiveTab("scheduler")
 			a.CurrentTableView = nil
 			a.HideSearchBox()
 			a.SetHeaderGridInnerContents(tview.NewBox())
+			a.UpdateHeaderLineOne("")
+			a.UpdateHeaderLineTwo("")
 			return nil
 		case '4':
 			if config.SacctEnabled {
-
-				a.Pages.SwitchToPage("accounting")
-				a.setActiveTab("accounting")
-				a.CurrentTableView = a.SacctMgrView
+				a.SwitchToPage(SACCTMGR_PAGE)
+				a.CurrentTableView = a.SacctMgrView.Table
 				a.SetHeaderGridInnerContents(a.SacctMgrEntitySelector)
 				if a.SearchPattern != "" {
-					a.ShowSearchBox(a.AcctGrid)
+					a.ShowSearchBox(a.SacctMgrView.Grid)
 				} else {
 					a.HideSearchBox()
 				}
-				a.App.SetFocus(a.SacctMgrView)
-				a.RerenderTableView(a.SacctMgrView)
+				a.App.SetFocus(a.SacctMgrView.Table)
+				a.SacctMgrView.Render()
+				go a.SacctMgrView.FetchAndRenderIfStale(config.RefreshInterval)
 			}
 			return nil
 		}
@@ -102,11 +105,11 @@ func (a *App) SetupKeybinds() {
 	})
 
 	if config.SacctEnabled {
-		a.SacctMgrView.SetInputCapture(
+		a.SacctMgrView.Table.SetInputCapture(
 			tableviewInputCapture(
 				a,
-				a.SacctMgrView,
-				&a.SelectedAcctRows,
+				a.SacctMgrView.Table,
+				&a.SacctMgrView.Selection,
 				"",              // Used for command modal, ignored if blank
 				func(string) {}, // Null func for detail view
 			),
@@ -114,20 +117,20 @@ func (a *App) SetupKeybinds() {
 	}
 
 	// Table view keybinds
-	a.NodesView.SetInputCapture(
+	a.NodesView.Table.SetInputCapture(
 		tableviewInputCapture(
 			a,
-			a.NodesView,
-			&a.SelectedNodes,
+			a.NodesView.Table,
+			&a.NodesView.Selection,
 			"NodeName", // Used for command modal
 			a.ShowNodeDetails,
 		),
 	)
-	a.JobsView.SetInputCapture(
+	a.JobsView.Table.SetInputCapture(
 		tableviewInputCapture(
 			a,
-			a.JobsView,
-			&a.SelectedJobs,
+			a.JobsView.Table,
+			&a.JobsView.Selection,
 			"JobId", // Used for command modal
 			a.ShowJobDetails,
 		),
@@ -148,26 +151,36 @@ func tableviewInputCapture(
 		var data *model.TableData
 		var grid *tview.Grid
 		switch view {
-		case a.NodesView:
-			data = a.NodesTableData
-			grid = a.NodeGrid
-		case a.JobsView:
-			data = a.JobsTableData
-			grid = a.JobGrid
-		case a.SacctMgrView:
-			data = a.AcctTableData
-			grid = a.AcctGrid
+		case a.NodesView.Table:
+			data = a.NodesProvider.Data()
+			grid = a.NodesView.Grid
+		case a.JobsView.Table:
+			data = a.JobsProvider.Data()
+			grid = a.JobsView.Grid
+		case a.SacctMgrView.Table:
+			data = a.SacctMgrProvider.Data()
+			grid = a.SacctMgrView.Grid
 		}
 		switch event.Rune() {
 		case '/':
 			a.ShowSearchBox(grid)
-			a.RerenderTableView(view)
+			a.RenderCurrentView()
 			a.App.SetFocus(a.SearchBox) // Only focus search when / is pressed
 			return nil
 		case ' ':
 			row, _ := view.GetSelection()
+			// Certain tables in Sacctmgr have no clear ID, and the current selection implementation relies
+			// on the first column of a row to be an identifier column.
+			if view == a.SacctMgrView.Table &&
+				slices.Contains(
+					model.SACCTMGR_ENTITY_TABLES_WITH_NO_CLEAR_ID,
+					config.SacctMgrCurrentEntity,
+				) {
+				return nil
+			}
 			if row > 0 { // Skip header row
 				entryName := view.GetCell(row, 0).Text
+
 				if (*selection)[entryName] {
 					delete(*selection, entryName)
 					// Set all cells in row to default background
@@ -194,29 +207,26 @@ func tableviewInputCapture(
 			}
 			return nil
 		case 'p':
-			// TODO: This is gross, fix
-			if a.CurrentTableView != a.SacctMgrView {
+			if a.GetCurrentPageName() != SACCTMGR_PAGE {
 				a.App.SetFocus(a.PartitionSelector)
 			}
 		case 'e':
-			// TODO: This is gross, fix
-			if a.CurrentTableView == a.SacctMgrView {
+			if a.GetCurrentPageName() == SACCTMGR_PAGE {
 				a.App.SetFocus(a.SacctMgrEntitySelector)
 			}
 		case 's':
-			// TODO: This is gross, fix
-			if a.CurrentTableView == a.NodesView {
+			switch a.GetCurrentPageName() {
+			case NODES_PAGE:
 				a.App.SetFocus(a.NodeStateSelector)
-			} else if a.CurrentTableView == a.JobsView {
+			case JOBS_PAGE:
 				a.App.SetFocus(a.JobStateSelector)
 			}
-
 		case 'c':
 			// This section is only active if there is a commandModalFilter specified.
 			if commandModalFilter != "" {
 				// If user has a selection, use the selection
 				if len(*selection) > 0 {
-					a.ShowCommandModal(commandModalFilter, *selection)
+					a.ShowCommandModal(commandModalFilter, *selection, a.GetCurrentPageName())
 				} else {
 					// Otherwise, try to use the current node under the cursor, if any
 					row, _ := view.GetSelection()
@@ -224,6 +234,7 @@ func tableviewInputCapture(
 						a.ShowCommandModal(commandModalFilter, map[string]bool{
 							view.GetCell(row, 0).Text: true,
 						},
+							a.GetCurrentPageName(),
 						)
 					}
 				}
@@ -235,7 +246,7 @@ func tableviewInputCapture(
 				for entryName := range *selection {
 					// Find the node in our table data
 					for _, row := range data.Rows {
-						if row[0] == entryName { // NodeName is first column
+						if row[0] == entryName {
 							if config.CopyFirstColumnOnly {
 								sb.WriteString(row[0])
 							} else {
@@ -262,7 +273,7 @@ func tableviewInputCapture(
 		case tcell.KeyEsc:
 			if a.SearchActive {
 				a.HideSearchBox()
-				a.RerenderTableView(view)
+				a.RenderCurrentView()
 				return nil
 			}
 		}

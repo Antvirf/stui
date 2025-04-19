@@ -22,7 +22,8 @@ func (a *App) SetupSacctMgrEntitySelector() {
 	a.SacctMgrEntitySelector.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
-			a.App.SetFocus(a.CurrentTableView)
+			_, frontpage := a.Pages.GetFrontPage()
+			a.App.SetFocus(frontpage)
 			return nil
 		}
 		return event
@@ -42,8 +43,10 @@ func (a *App) applySacctMgrEntitySelector(entity string) func() {
 		config.SacctMgrCurrentEntity = entity
 		a.SacctMgrProvider.Fetch()
 		if a.FirstRenderComplete {
-			a.UpdateAllViews()
-			a.App.SetFocus(a.CurrentTableView)
+			a.SacctMgrView.SetTitleHeader(entity)
+			a.SacctMgrView.Render()
+			_, frontpage := a.Pages.GetFrontPage()
+			a.App.SetFocus(frontpage)
 		}
 	}
 }

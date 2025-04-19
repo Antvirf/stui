@@ -2,14 +2,15 @@
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experience users.
 
-- List and view nodes and jobs, across all partitions or a specific partition
-- Quickly filter list nodes/jobs list with regular expressions
+- List and view nodes and jobs, filter by partition and state
+- Quickly search across nodes/jobs list with regular expressions
 - Select multiple nodes/jobs and run `scontrol` commands on them, or copy rows to clipboard
-- Configure table views with specific columns/content of your choice
 - View individual node details (`scontrol show node` equivalent)
 - View individual job details (`scontrol show job` equivalent)
 - Show `sdiag` output for scheduler diagnostics
-- (if Slurm accounting is enabled) Explore `sacctmgr` tables, filter rows with regular expressions
+- (if Slurm accounting is enabled) Explore `sacctmgr` tables, search across rows with regular expressions
+- Configure table views with specific columns/content of your choice
+- Optimized to minimzie load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute.
 
 `stui` requires no configuration - if you can talk to your Slurm cluster with `squeue`/`scontrol`, you can run `stui`. Several configuration options are available and detailed below.
 
@@ -123,23 +124,18 @@ make setup                   # install pre-commit and download Go deps
 GIT_TAG=0.0.8 make release   # create release commit for given tag
 ```
 
-## To-do
+## To-do / roadmap
 
-- Beta support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
-- Break apart app.go into smaller pieces
-  - Initialization
-  - Layout
-  - Refactor search bar / overall grid layout logic. Quite gross atm
-- Proper error propagation, so that individual data update calls to e.g. permission denied resources will fail gracefully and with clear error messages (e.g. for `sacctmgr` some commands may be off limits)
-  - `sacctmgr`: support `Problem`, `RunAwayJobs`, `WCKey`
-  - `sacctmgr`: support text entities: `Configuration`, `Stats`
-- When viewing a table, show the last refreshed relevant to that table
+- Refactor: Move search into a shared component that is shared/present across all table views, rather than something set at view level
+- Refactor: Providers should either be fully aware of `config`, or not at all (currently some configs are passed in as args, and others are referred to directly)
+- Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
 - Feat: View stdout / tail output target of running jobs
-- Improve handling of sdiag/other calls if no scheduler available - by default they hang for a long time, perhaps check at launch that a cluster is reachable
-- Add view for `sacct`: first version can use default time interval, but should be more configurable
-- Ability to use `slurmrestd` / REST API instead of Slurm binaries
-- Config option for which view to start app in
+- Feat: Add view for `sacct`: first version can use default time interval, but should be more configurable
+- Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
+- Feat: Config option for which view to start app in
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
+- Feat: support selection of objects without a clear ID column, such as certain `sacctmgtr` data like `Event`
+- Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`
 
 ## Alternatives and why this project exists
 

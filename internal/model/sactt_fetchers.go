@@ -40,15 +40,16 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 		path.Join(config.SlurmBinariesPath, "sacctmgr"),
 		strings.Split(command, " ")...,
 	)
-	out, err := cmd.Output()
+	rawOut, err := cmd.CombinedOutput()
+	out := string(rawOut)
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
 		}
-		return &TableData{}, fmt.Errorf("sacctmgr failed: %v", err)
+		return &TableData{}, fmt.Errorf("%v", out)
 	}
 
-	rawRows := parseSacctOutput(string(out))
+	rawRows := parseSacctOutput(out)
 
 	var rows [][]string
 	for _, rawRow := range rawRows {

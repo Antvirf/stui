@@ -11,7 +11,7 @@ import (
 	"github.com/antvirf/stui/internal/config"
 )
 
-func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, partitionFilter string, prefix string, timeout time.Duration) (*TableData, error) {
+func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, prefix string, timeout time.Duration) (*TableData, error) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -20,33 +20,19 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 		path.Join(config.SlurmBinariesPath, "scontrol"),
 		strings.Split(command, " ")...,
 	)
-	out, err := cmd.Output()
+	rawOut, err := cmd.CombinedOutput()
+	out := string(rawOut)
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
 		}
-		return &TableData{}, fmt.Errorf("scontrol failed: %v", err)
+		return &TableData{}, fmt.Errorf("%v", err)
 	}
 
-	rawRows := parseScontrolOutput(prefix, string(out))
-
-	// Depending on data, the partition field name may be called differently. Deal with both cases.
-	partitionFieldname := "Partition"
-	if len(rawRows) != 0 {
-		if _, exists := rawRows[0]["Partitions"]; exists {
-			partitionFieldname = "Partitions"
-		}
-	}
+	rawRows := parseScontrolOutput(prefix, out)
 
 	var rows [][]string
 	for _, rawRow := range rawRows {
-		// Apply partition filter if set
-		if partitionFilter != "" {
-			if !strings.Contains(rawRow[partitionFieldname], partitionFilter) {
-				continue
-			}
-		}
-
 		row := make([]string, len(*columns))
 		for j, col := range *columns {
 			if col.DividedByColumn {

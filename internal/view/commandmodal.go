@@ -11,7 +11,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool) {
+func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool, pageName string) {
 	a.CommandModalOpen = true
 	var selected []string
 	prefix := fmt.Sprintf("scontrol update %s=", commandFilter)
@@ -61,12 +61,10 @@ func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool
 		AddItem(nil, 0, 1, false)
 
 	// Store current page before showing modal
-	previousPageName, _ := a.Pages.GetFrontPage()
 	previousFocus := a.App.GetFocus()
 
 	// Add as overlay
-	pageName := "commandModal"
-	a.Pages.AddPage(pageName, centered, true, true)
+	a.Pages.AddPage(COMMAND_PAGE, centered, true, true)
 	a.App.SetFocus(input)
 
 	// Set up input capture
@@ -94,15 +92,15 @@ func (a *App) ShowCommandModal(commandFilter string, selectedMap map[string]bool
 					output.SetText(output.GetText(true) + commandOutput)
 				}
 				// Trigger table refresh in the background after a successful command
-				go a.UpdateAllViews()
+				a.RefreshAndRenderPage(pageName)
 			}
 
 			return nil
 
 		case tcell.KeyEsc:
 			a.CommandModalOpen = false
-			a.Pages.RemovePage(pageName)
-			a.Pages.SwitchToPage(previousPageName)
+			a.Pages.RemovePage(COMMAND_PAGE)
+			a.Pages.SwitchToPage(pageName)
 			a.App.SetFocus(previousFocus)
 			return nil
 		}

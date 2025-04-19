@@ -17,7 +17,9 @@ func (a *App) SetupSearchBox() {
 		SetFieldWidth(0).
 		SetChangedFunc(func(text string) {
 			a.SearchPattern = strings.TrimSpace(text)
-			a.SearchActive = a.SearchPattern != ""
+			a.NodesView.SetSearchPattern(a.SearchPattern)
+			a.JobsView.SetSearchPattern(a.SearchPattern)
+			a.SacctMgrView.SetSearchPattern(a.SearchPattern)
 
 			// Cancel any pending updates
 			if a.searchTimer != nil {
@@ -27,9 +29,7 @@ func (a *App) SetupSearchBox() {
 			// Schedule new update after delay
 			a.searchTimer = time.AfterFunc(config.SearchDebounceInterval, func() {
 				a.App.QueueUpdateDraw(func() {
-					if a.CurrentTableView != nil {
-						a.RerenderTableView(a.CurrentTableView)
-					}
+					a.RenderCurrentView()
 				})
 			})
 		})
@@ -40,13 +40,14 @@ func (a *App) SetupSearchBox() {
 		switch event.Key() {
 		case tcell.KeyEsc:
 			a.HideSearchBox()
-			a.RerenderTableView(a.CurrentTableView)
+			a.RenderCurrentView()
 			return nil
 		case tcell.KeyEnter:
 			if a.SearchPattern == "" {
 				a.HideSearchBox()
 			} else {
-				a.App.SetFocus(a.CurrentTableView)
+				a.RenderCurrentView()
+				a.App.SetFocus(*a.GetCurrentPage())
 			}
 			return nil
 		}
@@ -55,46 +56,65 @@ func (a *App) SetupSearchBox() {
 }
 
 func (a *App) ShowSearchBox(grid *tview.Grid) {
-	if a.CurrentTableView == nil {
-		return
+	pageName, _ := a.Pages.GetFrontPage()
+	var table *tview.Table
+	switch pageName {
+	case SDIAG_PAGE:
+		return // No search on sdiag
+	case NODES_PAGE:
+		a.NodesView.SetSearchEnabled(true)
+		table = a.NodesView.Table
+	case JOBS_PAGE:
+		a.JobsView.SetSearchEnabled(true)
+		table = a.JobsView.Table
+	case SACCTMGR_PAGE:
+		a.SacctMgrView.SetSearchEnabled(true)
+		table = a.SacctMgrView.Table
 	}
 
 	// Clear and rebuild the grid with search box
-	grid.Clear()
-	grid.SetRows(1, 0)                                       // 1 row for search, rest for table
-	grid.AddItem(a.SearchBox, 0, 0, 1, 1, 0, 0, false)       // Don't focus by default
-	grid.AddItem(a.CurrentTableView, 1, 0, 1, 1, 0, 0, true) // Keep table focused
-
+	// grid.Clear()
+	grid.SetRows(1, 0)                                 // 1 row for search, rest for table
+	grid.AddItem(a.SearchBox, 0, 0, 1, 1, 0, 0, false) // Don't focus by default
+	grid.AddItem(table, 1, 0, 1, 1, 0, 0, true)        // Keep table focused
 	a.SearchActive = true
 }
 
 func (a *App) HideSearchBox() {
+	pageName, page := a.Pages.GetFrontPage()
+	// TODO: This is really gross
+	var grid *tview.Grid
+	var table *tview.Table
+	switch pageName {
+	case SDIAG_PAGE:
+		return // No search on sdiag
+	case NODES_PAGE:
+		a.NodesView.SetSearchEnabled(false)
+		grid = a.NodesView.Grid
+		table = a.NodesView.Table
+	case JOBS_PAGE:
+		a.JobsView.SetSearchEnabled(false)
+		grid = a.JobsView.Grid
+		table = a.JobsView.Table
+	case SACCTMGR_PAGE:
+		a.SacctMgrView.SetSearchEnabled(false)
+		grid = a.SacctMgrView.Grid
+		table = a.SacctMgrView.Table
+	}
+
 	// Stop any pending search updates
 	if a.searchTimer != nil {
 		a.searchTimer.Stop()
 		a.searchTimer = nil
 	}
 
-	if a.CurrentTableView == nil {
-		return
-	}
-
-	// Get the appropriate grid
-	// Gross, search bar should not need to figure this out..
-	grid := a.NodeGrid
-	if a.CurrentTableView == a.JobsView {
-		grid = a.JobGrid
-	} else if a.CurrentTableView == a.SacctMgrView {
-		grid = a.AcctGrid
-	}
-
 	// Clear and rebuild grid without search box
 	grid.Clear()
 	grid.SetRows(0) // Just table
-	grid.AddItem(a.CurrentTableView, 0, 0, 1, 1, 0, 0, true)
+	grid.AddItem(table, 0, 0, 1, 1, 0, 0, true)
 
 	// Reset search state
 	a.SearchBox.SetText("")
 	a.SearchActive = false
-	a.App.SetFocus(a.CurrentTableView)
+	a.App.SetFocus(page)
 }
