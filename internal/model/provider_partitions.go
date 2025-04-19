@@ -20,7 +20,6 @@ func (p *PartitionsProvider) Fetch() error {
 	rawData, err := getScontrolDataWithTimeout(
 		"show partitions --detail --all --oneliner",
 		&[]config.ColumnConfig{{Name: "PartitionName"}},
-		"PartitionName=",
 		config.RequestTimeout,
 	)
 

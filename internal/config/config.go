@@ -98,7 +98,7 @@ func Configure() {
 
 	flag.Parse()
 
-	// Handle oneshots
+	// Handle ones hots commands
 	if *versionFlag {
 		fmt.Printf("stui version %s\n", STUI_VERSION)
 		os.Exit(0)

@@ -30,7 +30,7 @@ func formatMemoryValue(raw string) string {
 }
 
 // parseScontrolOutput parses the scontrol show output into a slice of maps
-func parseScontrolOutput(prefix string, output string) (entries []map[string]string) {
+func parseScontrolOutput(output string) (entries []map[string]string) {
 	for _, line := range strings.Split(output, "\n") {
 		// Trim surrounding whitespace and ignore empty lines
 		line = strings.TrimSpace(line)

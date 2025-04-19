@@ -22,7 +22,6 @@ func (p *JobsProvider) Fetch() error {
 	rawData, err := getScontrolDataWithTimeout(
 		"show job --detail --all --oneliner",
 		config.JobViewColumns,
-		"JobId=",
 		config.RequestTimeout,
 	)
 	if err != nil {

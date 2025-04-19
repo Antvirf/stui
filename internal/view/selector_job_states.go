@@ -22,8 +22,8 @@ func (a *App) SetupJobStateSelector() {
 	a.JobStateSelector.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
-			_, frontpage := a.Pages.GetFrontPage()
-			a.App.SetFocus(frontpage)
+			_, frontPage := a.Pages.GetFrontPage()
+			a.App.SetFocus(frontPage)
 			return nil
 		}
 		return event
@@ -43,8 +43,8 @@ func (a *App) applyJobStateSelector(entity string) func() {
 		config.JobStateCurrentChoice = entity
 		if a.FirstRenderComplete {
 			a.RenderCurrentView()
-			_, frontpage := a.Pages.GetFrontPage()
-			a.App.SetFocus(frontpage)
+			_, frontPage := a.Pages.GetFrontPage()
+			a.App.SetFocus(frontPage)
 		}
 	}
 }

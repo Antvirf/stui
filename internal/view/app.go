@@ -17,7 +17,7 @@ const (
 	JOBS_PAGE     = "jobs"
 	SACCTMGR_PAGE = "sacctmgr"
 	SDIAG_PAGE    = "sdiag"
-	COMMAND_PAGE  = "commandmodal"
+	COMMAND_PAGE  = "command_modal"
 )
 
 type App struct {
@@ -82,14 +82,6 @@ type App struct {
 	SchedView    *tview.TextView // Special case, text only
 }
 
-// Exit and log error details
-func (a *App) closeOnError(err error) {
-	if err != nil {
-		a.App.Stop()
-		log.Fatal(err)
-	}
-}
-
 // Initializes a `stui` instance tview Application using the config module
 func InitializeApplication() *App {
 	application := App{
@@ -147,7 +139,7 @@ func (a *App) SetupViews() {
 		a.SetupSacctMgrEntitySelector()
 	}
 
-	{ // Headerlines
+	{ // Header lines
 		a.HeaderLineOne = tview.NewTextView().
 			SetDynamicColors(true).
 			SetTextAlign(tview.AlignLeft)
@@ -305,7 +297,7 @@ func (a *App) StartRefresh() {
 	// 1. Do a full fetch of all sources once, at the start
 	// 2. After that, only fetch data periodically for the active pane
 	// 3. On switching panes, if the data is older than refresh interval, we trigger a background refresh
-	//    this happens in keybinds.
+	//    this happens in the key binds file.
 	go func() {
 		renderTicker := time.NewTicker(3 * time.Second) // Render every 3 seconds, regardless of data refresh frequency
 		fetchTicker := time.NewTicker(config.RefreshInterval)

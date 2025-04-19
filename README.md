@@ -80,7 +80,7 @@ sudo mv ~/go/bin/stui /usr/bin
     ```
     <!-- REPLACE_END -->
 
-3. Keyboard shorcuts within `stui`
+3. Keyboard shortcuts within `stui`:
 
     <!-- REPLACE_SHORTCUTS_START -->
     ```txt
@@ -136,7 +136,7 @@ GIT_TAG=0.0.8 make release   # create release commit for given tag
 - Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: Config option for which view to start app in
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
-- Feat: support selection of objects without a clear ID column, such as certain `sacctmgtr` data like `Event`
+- Feat: support selection of objects without a clear ID column, such as certain `sacctmgr` data like `Event`
 - Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`
 
 ## Alternatives and why this project exists

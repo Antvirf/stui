@@ -106,7 +106,7 @@ func (a *App) SetupKeybinds() {
 
 	if config.SacctEnabled {
 		a.SacctMgrView.Table.SetInputCapture(
-			tableviewInputCapture(
+			tableViewInputCapture(
 				a,
 				a.SacctMgrView.Table,
 				&a.SacctMgrView.Selection,
@@ -118,7 +118,7 @@ func (a *App) SetupKeybinds() {
 
 	// Table view keybinds
 	a.NodesView.Table.SetInputCapture(
-		tableviewInputCapture(
+		tableViewInputCapture(
 			a,
 			a.NodesView.Table,
 			&a.NodesView.Selection,
@@ -127,7 +127,7 @@ func (a *App) SetupKeybinds() {
 		),
 	)
 	a.JobsView.Table.SetInputCapture(
-		tableviewInputCapture(
+		tableViewInputCapture(
 			a,
 			a.JobsView.Table,
 			&a.JobsView.Selection,
@@ -138,7 +138,7 @@ func (a *App) SetupKeybinds() {
 }
 
 // Handles all inputs for table views (nodes and jobs)
-func tableviewInputCapture(
+func tableViewInputCapture(
 	a *App,
 	view *tview.Table,
 	selection *map[string]bool,

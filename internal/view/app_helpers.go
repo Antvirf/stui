@@ -67,7 +67,7 @@ func (a *App) optionalRefreshAndRenderPage(pageName string, refresh bool) {
 			d := a.SdiagProvider.Data()
 			a.SchedView.SetText(d.Data)
 		}
-		// No rendering operation needed, textview just gets its data set periodically
+		// No rendering operation needed, TextView just gets its data set periodically
 	}
 	go a.App.QueueUpdateDraw(func() {})
 }

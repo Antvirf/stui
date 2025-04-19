@@ -29,8 +29,8 @@ func (a *App) SetupPartitionSelector() {
 	a.PartitionSelector.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
-			_, frontpage := a.Pages.GetFrontPage()
-			a.App.SetFocus(frontpage)
+			_, frontPage := a.Pages.GetFrontPage()
+			a.App.SetFocus(frontPage)
 			return nil
 		}
 		return event
@@ -84,7 +84,7 @@ func (a *App) applyPartitionSelector(partition string) func() {
 			config.PartitionFilter = partition
 		}
 		a.RenderCurrentView()
-		_, frontpage := a.Pages.GetFrontPage()
-		a.App.SetFocus(frontpage)
+		_, frontPage := a.Pages.GetFrontPage()
+		a.App.SetFocus(frontPage)
 	}
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/antvirf/stui/internal/config"
 )
 
-func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, prefix string, timeout time.Duration) (*TableData, error) {
+func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, timeout time.Duration) (*TableData, error) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -29,7 +29,7 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 		return &TableData{}, fmt.Errorf("%v", err)
 	}
 
-	rawRows := parseScontrolOutput(prefix, out)
+	rawRows := parseScontrolOutput(out)
 
 	var rows [][]string
 	for _, rawRow := range rawRows {

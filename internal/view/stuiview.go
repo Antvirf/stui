@@ -16,7 +16,7 @@ func NewStuiView(
 	provider model.DataProvider[*model.TableData],
 	updateTitleFunc func(string) *tview.Box,
 	errorNotifyFunc func(string),
-	datastateNotifyFunc func(string),
+	dataStateNotifyFunc func(string),
 ) *StuiView {
 
 	view := StuiView{
@@ -27,7 +27,7 @@ func NewStuiView(
 		searchEnabled:                 false,
 		updateTitleFunction:           updateTitleFunc,
 		errorNotificationFunction:     errorNotifyFunc,
-		datastateNotificationFunction: datastateNotifyFunc,
+		dataStateNotificationFunction: dataStateNotifyFunc,
 	}
 
 	view.Table = tview.NewTable()
@@ -60,12 +60,6 @@ type StuiViewInt interface {
 
 	// Updates data from provider and renders the view
 	FetchAndRender()
-
-	// Shows time of last data update
-	LastUpdated() time.Time
-
-	// Returns error encountered on last fetch, if any
-	LastError() error
 }
 
 type StuiView struct {
@@ -80,20 +74,12 @@ type StuiView struct {
 	// Callback functions
 	updateTitleFunction           func(string) *tview.Box
 	errorNotificationFunction     func(string)
-	datastateNotificationFunction func(string)
+	dataStateNotificationFunction func(string)
 
 	// Data components
 	provider model.DataProvider[*model.TableData]
 	data     *model.TableData
 	filter   string
-}
-
-func (s *StuiView) LastUpdated() time.Time {
-	return s.provider.LastUpdated()
-}
-
-func (s *StuiView) Lasterror() error {
-	return s.provider.LastError()
 }
 
 func (s *StuiView) SetFilter(filter string) {
@@ -194,7 +180,7 @@ func (s *StuiView) Render() {
 
 	lastUpdated := s.provider.LastUpdated()
 	timeSince := int(time.Since(lastUpdated).Seconds())
-	s.datastateNotificationFunction(fmt.Sprintf(
+	s.dataStateNotificationFunction(fmt.Sprintf(
 		"%s data as of %s (since %d seconds ago)",
 		s.titleHeader,
 		lastUpdated.Local().Format("15:04:05"),

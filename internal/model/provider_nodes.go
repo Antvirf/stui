@@ -22,7 +22,6 @@ func (p *NodesProvider) Fetch() error {
 	rawData, err := getScontrolDataWithTimeout(
 		"show node --detail --all --oneliner",
 		config.NodeViewColumns,
-		"NodeName=",
 		config.RequestTimeout,
 	)
 	if err != nil {
@@ -48,7 +47,7 @@ func (p *NodesProvider) FilteredData(filter string) *TableData {
 			}
 		}
 
-		// Ignore row if state filtr doesn't match
+		// Ignore row if state filter doesn't match
 		if config.NodeStateCurrentChoice != "(all)" {
 			if !strings.Contains(row[config.NodeViewColumnsStateIndex], config.NodeStateCurrentChoice) {
 				continue

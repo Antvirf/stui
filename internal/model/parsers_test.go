@@ -11,7 +11,7 @@ import (
 
 func TestParseScontrolOutput_Nodes(t *testing.T) {
 	data := readTestData(t, "nodes.txt")
-	entries := parseScontrolOutput("NodeName=", data)
+	entries := parseScontrolOutput(data)
 
 	require.NotEmpty(t, entries, "should parse node entries")
 
@@ -29,7 +29,7 @@ func TestParseScontrolOutput_Nodes(t *testing.T) {
 
 func TestParseScontrolOutput_Jobs(t *testing.T) {
 	data := readTestData(t, "jobs.txt")
-	entries := parseScontrolOutput("JobId=", data)
+	entries := parseScontrolOutput(data)
 
 	require.NotEmpty(t, entries, "should parse job entries")
 
@@ -44,7 +44,7 @@ func TestParseScontrolOutput_Jobs(t *testing.T) {
 
 func TestParseScontrolOutput_Partitions(t *testing.T) {
 	data := readTestData(t, "partitions.txt")
-	entries := parseScontrolOutput("PartitionName=", data)
+	entries := parseScontrolOutput(data)
 	require.NotEmpty(t, entries, "should parse partition entries")
 
 	partition := entries[0]
@@ -56,13 +56,13 @@ func TestParseScontrolOutput_Partitions(t *testing.T) {
 }
 
 func TestParseScontrolOutput_EmptyInput(t *testing.T) {
-	entries := parseScontrolOutput("", "")
+	entries := parseScontrolOutput("")
 	assert.Empty(t, entries, "empty input should return empty entries")
 }
 
 func TestParseScontrolOutput_InvalidLines(t *testing.T) {
 	input := "Header line\nInvalid line\nKey=Value\n"
-	entries := parseScontrolOutput("", input)
+	entries := parseScontrolOutput(input)
 
 	require.Len(t, entries, 1, "should only parse valid key=value lines")
 	assert.Equal(t, "Value", entries[0]["Key"])
