@@ -25,7 +25,7 @@ const (
 	rowCursorColorBackground   = tcell.Color240
 	rowCursorColorForeground   = tcell.ColorWhite
 	selectionColor             = tcell.Color28 // Darker green
-	selectionHighlightColor    = tcell.Color82 // Light green
+	selectionHighlightColor    = tcell.Color70 // Light green
 	paneSelectorHighlightColor = tcell.Color172
 	modalBorderColor           = tcell.Color172
 	dropdownBackgroundColor    = tcell.Color240 // Medium gray
