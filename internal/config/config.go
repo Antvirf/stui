@@ -23,8 +23,8 @@ var (
 	Quiet                  bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
-	rawNodeViewColumns string = "NodeName,Partitions:15,State,CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards"
-	rawJobViewColumns  string = "JobId,Partition,UserId,JobName:25,JobState,RunTime,NodeList,QOS,NumCPUs,Mem"
+	rawNodeViewColumns string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES:20,Reason:25,Boards"
+	rawJobViewColumns  string = "UserId,JobName:25,RunTime,NodeList,QOS,NumCPUs,Mem"
 	NodeViewColumns    *[]ColumnConfig
 	JobViewColumns     *[]ColumnConfig
 
@@ -131,10 +131,19 @@ func ComputeConfigurations() {
 
 	// Parse raw config entries
 	var err error
+	// Add hardcoded fields to Node
+	// NodeName must be first column, as it is unique and used for selections
+	// Partitions and State are used as filters and must be included.
+	rawNodeViewColumns = fmt.Sprintf("NodeName,Partitions,State,%s", rawNodeViewColumns) // Must have NodeName for selection to work!
 	NodeViewColumns, err = parseColumnConfigLine(rawNodeViewColumns)
 	if err != nil {
 		log.Fatalf("Failed to parse node column config: %v", err)
 	}
+
+	// Add hardcoded fields to Job columns
+	// JobID must be first column, as it is unique and used for selections
+	// Partition and JobState are used as filters and must be included.
+	rawJobViewColumns = fmt.Sprintf("JobId,Partition,JobState,%s", rawJobViewColumns) // Must have JobID for selection to work!
 	JobViewColumns, err = parseColumnConfigLine(rawJobViewColumns)
 	if err != nil {
 		log.Fatalf("Failed to parse job column config: %v", err)
