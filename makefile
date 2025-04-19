@@ -13,7 +13,7 @@ lint:
 	go vet ./...
 
 build: lint
-	go build
+	goreleaser build --auto-snapshot --clean --id stui-linux --single-target
 
 run:
 	go run main.go
@@ -45,8 +45,11 @@ update-readme: build
 	@LOC=$$(rg 'package' -l | grep ".go" | xargs wc -l | grep total | cut -d' ' -f2) && \
 	sed -i "s/lines%20of%20code-[0-9]*/lines%20of%20code-$${LOC}/" README.md
 
-	@echo "README.md updated successfully"
+	@echo "Updating README.md with binary size badge..."
+	@SIZE=$$(du -h ./dist/stui-linux_linux_amd64_v1/stui | cut -f1 | sed 's/\./%2E/') && \
+	sed -i "s/binary%20size-[^-]*/binary%20size-$${SIZE}/" README.md
 
+	@echo "README.md updated successfully"
 
 ## DEVELOPMENT SLURM CLUSTER
 

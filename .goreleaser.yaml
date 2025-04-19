@@ -5,7 +5,6 @@ before:
     - go mod tidy
     - make lint
     - make update-version-in-go
-    - make fail-if-any-files-changed # ensure we don't have any uncommitted changes
 
 builds:
   # Building for supported Slurm platforms only
