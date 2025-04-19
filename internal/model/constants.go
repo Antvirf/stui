@@ -75,17 +75,20 @@ var (
 		// "Stats", // Requires admin
 	}
 
+	// https://slurm.schedmd.com/sacctmgr.html
 	SACCTMGR_ENTITY_COLUMN_CONFIGS = map[string]string{
-		"Account":     "Org,Account,Descr",
+		"Account":     "Account,Org,Descr",
 		"Association": "Cluster,Account,User,Partition,Share,QOS,Def QOS,Priority,GrpJobs,GrpTRES,GrpSubmit,GrpWall,GrpTRESMins,MaxJobs,MaxTRES,MaxTRESPerNode,MaxSubmit,MaxWall,MaxTRESMins,GrpTRESRunMins",
 		"Cluster":     "Cluster,ControlHost,ControlPort,RPC,Share,QOS,Def QOS,GrpJobs,GrpTRES,GrpSubmit,MaxJobs,MaxTRES,MaxSubmit,MaxWall",
 		"Event":       "Cluster,NodeName,TimeStart,TimeEnd,State,Reason,User",
-		"Federation":  "Cluster,NodeName,TimeStart,TimeEnd,State,Reason,User",
+		"Federation":  "ID,Federation,Cluster,Features,FedState",
+		"Problem":     "Cluster,Account,User,Problem",
 		"QOS":         "Name,Priority,GraceTime,Preempt,PreemptExemptTime,PreemptMode,Flags,UsageThres,UsageFactor,GrpTRES,GrpTRESMins,GrpTRESRunMins,GrpJobs,GrpSubmit,GrpWall,MaxTRES,MaxTRESPerNode,MaxTRESMins,MaxWall,MaxTRESPU,MaxJobsPU,MaxSubmitPU,MaxTRESPA,MaxTRESRunMinsPA,MaxTRESRunMinsPU,MaxJobsPA,MaxSubmitPA,MinTRES",
 		"Resource":    "Name,Server,Type,Count,LastConsumed,Allocated,ServerType,Flags",
-		"Reservation": "Cluster,Name,TRES,TimeStart,TimeEnd,UnusedWall",
+		"Reservation": "Name,Cluster,TRES,TimeStart,TimeEnd,UnusedWall",
+		"RunAwayJobs": "ID,Name, State,Partition,Cluster,TimeEnd,TimeStart",
 		"Transaction": "Time,Action,Actor,Where,Info",
-		"TRES":        "Type,Name,ID",
-		"User":        "User, Def Acct, Def WCKey, Admin",
+		"TRES":        "ID,Type,Name",
+		"User":        "User,Def Acct,Def WCKey,Admin",
 	}
 )
