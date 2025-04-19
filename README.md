@@ -1,5 +1,9 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
+![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
+![loc](https://img.shields.io/badge/lines%20of%20code-2900-blue)
+![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
+
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experience users.
 
 - List and view nodes and jobs, filter by partition and state
@@ -10,7 +14,7 @@
 - Show `sdiag` output for scheduler diagnostics
 - (if Slurm accounting is enabled) Explore `sacctmgr` tables, search across rows with regular expressions
 - Configure table views with specific columns/content of your choice
-- Optimized to minimzie load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute.
+- Optimized to minimize load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute after initial startup.
 
 `stui` requires no configuration - if you can talk to your Slurm cluster with `squeue`/`scontrol`, you can run `stui`. Several configuration options are available and detailed below.
 
