@@ -55,18 +55,25 @@ do(
         ["1"],  # choose nodes view
         ["j", 3, 100],  # go down
         ["p", 1, 100],  # choose partition
-        ["down", 2, 100],  # go down in the partition list
+        [
+            "down",
+            2,
+            100,
+        ],  # go down in the partition list - this puts you in 'chemistry'
         ["enter"],  # select the partition
+        ["s", 1, 100],  # focus node state
+        ("idl"),  # search for 'idl' for idle
+        ["enter"],  # select idle
         ["/"],  # open search view
         ("linux..3"),  # search for linux..3
         ["enter"],  # exit search view
         [" "],  # select
-        ["k"],  # up
+        ["j"],  # down
         [" "],  # select a node
-        ["k"],
+        ["j"],
         [" "],  # down one, select a node
         ["enter"],  # view details
-        500,
+        300,
         ["esc"],  #  exit
         ["c"],  # enter command mode
         150,
@@ -76,7 +83,7 @@ do(
         200,
         (" reason='maintenance'"),  # set state to drain
         ["enter"],  # execute, this will succed
-        500,
+        250,
         ["esc"],  # exit
     ]
 )
@@ -87,18 +94,22 @@ time.sleep(2)
 do(
     [
         ["2"],  # choose jobs view
-        ["j", 3, 100],  # choose jobs view
+        ["j", 3, 100],  # go down
         ["p", 1, 100],  # choose partition
-        ["up", 1, 100],  # go up in the partition list
-        ["enter"],  # select the partition
+        ["down", 2, 100],  # go up in the partition list
+        ["enter"],  # select the partition, this puts you in 'biology'
+        ["s"],  # focus state
+        ("run"),  # search for RUNNING state
+        ["enter"],  # confirm
+        ["up", 1, 100],  # go up
         ["/"],  # open search view
         ["backspace", 8, 15],  # select the partition
-        ("RUNNING"),  # search for RUNNING
+        ("spare"),  # search for 'spare' to find QOS
         ["enter"],  # exit search view
         [" "],  # select
-        ["k"],
+        ["j"],
         [" "],
-        ["k"],
+        ["j"],
         [" "],
         ["enter"],  # view details
         500,
@@ -106,7 +117,7 @@ do(
         ["c"],  # enter command mode
         ("timelimit=1-12:00:00"),
         ["enter"],  # execute
-        500,
+        250,
         ["esc"],  # exit
         ["esc"],  # exit
         ["esc"],  # exit
@@ -119,7 +130,7 @@ do(
     [
         ["3"],  # choose sdiag view
         100,
-        ["down", 10, 25],  # go down in the partition list
+        ["down", 10, 10],  # go down in the partition list
     ]
 )
 
@@ -128,14 +139,14 @@ do(
 do(
     [
         ["4"],
+        ["esc"],  # exit search view, clear out search
         50,
         ["down", 5, 25],
         ["e"],
-        ["down", 8, 25],
-        ["enter"],
-        ["down", 10, 25],
+        ["down", 10, 25],  # this gives you 'Transaction'
+        ["enter"],  # confirm entity selection
         ["/"],  # open search view
-        ("assoc"),
+        ("john"),
         ["enter"],  # exit search view
         ["down", 3, 25],
     ]
