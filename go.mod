@@ -1,6 +1,6 @@
 module github.com/antvirf/stui
 
-go 1.22
+go 1.22.1
 
 require (
 	github.com/gdamore/tcell/v2 v2.8.1
