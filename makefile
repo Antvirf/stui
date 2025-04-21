@@ -13,7 +13,7 @@ lint:
 	go vet ./...
 
 build: lint
-	goreleaser build --auto-snapshot --clean --id stui-linux --single-target
+	goreleaser build --snapshot --clean --id stui-linux --single-target
 
 run:
 	go run main.go
