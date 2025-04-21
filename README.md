@@ -25,12 +25,20 @@
 ### Install latest release for `x86_64` Linux
 
 ```bash
+curl -sL stui.dev/install | sh 
+```
+
+*Installation script can be found [here](./docs/public/install) for reference.*
+
+### Install latest release for `x86_64` Linux (manual method)
+
+```bash
 curl -sL github.com/Antvirf/stui/releases/latest/download/stui_Linux_x86_64.tar.gz | tar xzv stui
 ```
 
 You can then move the binary to a more convenient location, e.g. `sudo mv stui /usr/bin/local`.
 
-### Build + install with Go (does not require root)
+### Build + install with Go
 
 With [`go 1.22`](https://go.dev/doc/install) or newer installed;
 
