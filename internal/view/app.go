@@ -118,9 +118,7 @@ func InitializeApplication() *App {
 	}()
 	go func() {
 		defer wg.Done()
-		if config.SacctEnabled {
-			application.SacctMgrProvider = model.NewSacctMgrProvider()
-		}
+		application.SacctMgrProvider = model.NewSacctMgrProvider()
 	}()
 	wg.Wait()
 	if !config.Quiet {
@@ -135,9 +133,7 @@ func (a *App) SetupViews() {
 	a.SetupNodeStateSelector()
 	a.SetupJobStateSelector()
 
-	if config.SacctEnabled {
-		a.SetupSacctMgrEntitySelector()
-	}
+	a.SetupSacctMgrEntitySelector()
 
 	{ // Header lines
 		a.HeaderLineOne = tview.NewTextView().
