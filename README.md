@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-2900-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-2896-blue)
 ![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experience users.
@@ -166,3 +166,9 @@ Which is in contrast to other existing projects:
 - [sview](https://slurm.schedmd.com/sview.html) is the official Slurm GUI, but requires build-time configurations of Slurm, has dependencies on the OS itself
 - [CLIP-HPC/SlurmCommander](https://github.com/CLIP-HPC/SlurmCommander) is an extensive project but no longer maintained, being incompatible with Slurm 23.02 and onward. Additionally, it relies on Slurm build-time configs (JSON parser) which makes it inoperable in certain environments.
 - [mil-ad/stui](https://github.com/mil-ad/stui) is an older project, implementing a small terminal user interface that only supports viewing jobs, and being written in Python, needs extra work for distribution.
+
+## FAQ / Troubleshooting
+
+### Strange colors on tmux
+
+This is likely the result of `tmux` defaulting to a different colour mode than the terminal emulator being used to run it is expecting. You can usually fix this by adding `export TERM=screen-256color` to your shell RC files.
