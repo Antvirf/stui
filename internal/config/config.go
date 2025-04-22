@@ -126,6 +126,11 @@ func Configure() {
 	}
 
 	ComputeConfigurations()
+
+	if err := checkIfClusterIsReachable(); err != nil {
+		log.Fatalf("Failed to connect to Slurm: %v", err)
+	}
+
 	checkIfSacctMgrIsAvailable()
 }
 
