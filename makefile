@@ -14,7 +14,7 @@ lint:
 
 build: lint
 	goreleaser build --snapshot --clean --id stui-linux --single-target
-	cp dist/stui-linux_linux_amd64_v1/stui ./stui
+	cp dist/stui-linux_linux_amd64_v1/stui ./stue
 
 run:
 	go run main.go
@@ -133,7 +133,7 @@ update-version-in-go:
 	echo $$GIT_TAG && \
 	sed -i "s/\(STUI_VERSION[[:space:]]*=[[:space:]]*\)\".*\"/\1\"$$GIT_TAG\"/" ./internal/config/config.go
 
-release:
+gh-release:
 	sed -i "s/\(STUI_VERSION[[:space:]]*=[[:space:]]*\)\".*\"/\1\"$$GIT_TAG\"/" ./internal/config/config.go
 	git add internal/config/config.go
 	git commit -m "release: $$GIT_TAG"

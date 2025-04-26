@@ -137,8 +137,8 @@ make setup-sacct        # set up sacct
 make launch-jobs        # launch few hundred sleep jobs
 make stop-cluster       # stop cluster
 
-make setup                   # install pre-commit and download Go deps
-GIT_TAG=0.0.8 make release   # create release commit for given tag
+make setup                      # install pre-commit and download Go deps
+GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 ```
 
 ## To-do / roadmap
