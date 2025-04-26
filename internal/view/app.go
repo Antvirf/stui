@@ -60,15 +60,11 @@ type App struct {
 	// Command modal state
 	CommandModalOpen bool
 
-	// Stored Data
-	JobsTableData  *model.TableData
-	AcctTableData  *model.TableData
-	PartitionsData *model.TableData
-
 	// Data  and providers
 	SchedulerHostName     string
 	SchedulerClusterName  string
 	SchedulerSlurmVersion string
+	PartitionsData        *model.TableData
 	PartitionsProvider    model.DataProvider[*model.TableData]
 	NodesProvider         model.DataProvider[*model.TableData]
 	JobsProvider          model.DataProvider[*model.TableData]
