@@ -1,14 +1,14 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-2920-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-2941-blue)
 ![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
 
 - List and view nodes and jobs, filter by partition and state
 - Quickly search across nodes/jobs list with regular expressions
-- Select multiple nodes/jobs and run `scontrol` commands on them, or copy rows to clipboard
+- Select multiple nodes/jobs and run `scontrol` commands on them, run `scancel` on jobs, or copy rows to clipboard
 - View individual node details (`scontrol show node` equivalent)
 - View individual job details (`scontrol show job` equivalent)
 - Show `sdiag` output for scheduler diagnostics
@@ -113,9 +113,12 @@ sudo mv ~/go/bin/stui /usr/local/bin
     s        Focus on state selector, 'esc' to close
     Space    Select/deselect row
     y        Copy selected content (either rows, or currently open details) to clipboard
-    c        Run command on selected items, or on current row if no selection (opens prompt)
+    c        Open 'scontrol' prompt for selected items, or current row if no selection (opens prompt)
     Enter    Show details for selected row
     Esc      Close modal
+    
+    Additional shortcuts in Jobs view
+    Ctrl+D   Open 'scancel' prompt for selected jobs, or current row if no selection
     
     Additional shortcuts in Accounting Manager view
     e        Focus on Entity type selector, 'esc' to close

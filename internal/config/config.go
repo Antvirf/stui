@@ -63,9 +63,12 @@ p        Focus on partition selector, 'esc' to close
 s        Focus on state selector, 'esc' to close
 Space    Select/deselect row
 y        Copy selected content (either rows, or currently open details) to clipboard
-c        Run command on selected items, or on current row if no selection (opens prompt)
+c        Open 'scontrol' prompt for selected items, or current row if no selection (opens prompt)
 Enter    Show details for selected row
 Esc      Close modal
+
+Additional shortcuts in Jobs view
+Ctrl+D   Open 'scancel' prompt for selected jobs, or current row if no selection
 
 Additional shortcuts in Accounting Manager view
 e        Focus on Entity type selector, 'esc' to close

@@ -122,7 +122,7 @@ func (a *App) SetupKeybinds() {
 			a,
 			a.NodesView.Table,
 			&a.NodesView.Selection,
-			"NodeName", // Used for command modal
+			"scontrol update NodeName=", // Used for command modal
 			a.ShowNodeDetails,
 		),
 	)
@@ -131,7 +131,7 @@ func (a *App) SetupKeybinds() {
 			a,
 			a.JobsView.Table,
 			&a.JobsView.Selection,
-			"JobId", // Used for command modal
+			"scontrol update JobId=", // Used for command modal
 			a.ShowJobDetails,
 		),
 	)
@@ -270,6 +270,26 @@ func tableViewInputCapture(
 				detailsFunction(entryName)
 				return nil
 			}
+		case tcell.KeyCtrlD:
+			// The below is an ugly way to check that we're in the jobs view
+			if strings.Contains(commandModalFilter, "JobId") {
+				SCANCEL_COMMAND := "scancel "
+				// If user has a selection, use the selection
+				if len(*selection) > 0 {
+					a.ShowCommandModal(SCANCEL_COMMAND, *selection, a.GetCurrentPageName())
+				} else {
+					// Otherwise, try to use the current node under the cursor, if any
+					row, _ := view.GetSelection()
+					if row > 0 {
+						a.ShowCommandModal(SCANCEL_COMMAND, map[string]bool{
+							view.GetCell(row, 0).Text: true,
+						},
+							a.GetCurrentPageName(),
+						)
+					}
+				}
+			}
+			return nil
 		case tcell.KeyEsc:
 			if a.SearchActive {
 				a.HideSearchBox()
