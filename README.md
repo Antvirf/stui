@@ -144,6 +144,7 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 ## To-do / roadmap
 
 - Feat: Summary stats in top middle pane: Node and job states
+- Feat: Sorting: Ctrl+s, open a pane to select one of the visible columns
 - Feat: View stdout / tail output target of running jobs, in cases where this is straightforward to do
 - Feat: Add view for `sacct`: first version can use default time interval, but should be more configurable and allow user to search jobs across larger time periods
 - Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`

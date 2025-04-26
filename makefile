@@ -14,7 +14,7 @@ lint:
 
 build: lint
 	goreleaser build --snapshot --clean --id stui-linux --single-target
-	cp dist/stui-linux_linux_amd64_v1/stui ./stue
+	cp dist/stui-linux_linux_amd64_v1/stui ./stui
 
 run:
 	go run main.go
