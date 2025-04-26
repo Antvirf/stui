@@ -143,16 +143,17 @@ GIT_TAG=0.0.8 make release   # create release commit for given tag
 
 ## To-do / roadmap
 
-- Refactor: Move search into a shared component that is shared/present across all table views, rather than something set at view level
-- Refactor: Providers should either be fully aware of `config`, or not at all (currently some configs are passed in as args, and others are referred to directly)
+- Feat: Summary stats in top middle pane: Node and job states
+- Feat: View stdout / tail output target of running jobs, in cases where this is straightforward to do
+- Feat: Add view for `sacct`: first version can use default time interval, but should be more configurable and allow user to search jobs across larger time periods
 - Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
-- Feat: View stdout / tail output target of running jobs
-- Feat: Add view for `sacct`: first version can use default time interval, but should be more configurable
 - Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: Config option for which view to start app in
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
 - Feat: support selection of objects without a clear ID column, such as certain `sacctmgr` data like `Event`
 - Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`
+- Refactor: Move search into a shared component that is shared/present across all table views, rather than something set at view level
+- Refactor: Providers should either be fully aware of `config`, or not at all (currently some configs are passed in as args, and others are referred to directly)
 
 ## Alternatives and why this project exists
 
