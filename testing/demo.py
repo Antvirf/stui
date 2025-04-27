@@ -47,7 +47,7 @@ print("proceeding in 10 seconds...")
 for i in range(10, 0, -1):
     print(i)
     time.sleep(1)
-
+print("starting now...")
 
 ## NODES
 do(
@@ -124,18 +124,27 @@ do(
     ]
 )
 
+## SACCT
 
-## SDIAG
 do(
     [
-        ["3"],  # choose sdiag view
-        100,
-        ["down", 10, 10],  # go down in the partition list
+        ["3"],  # choose jobs acct view
+        ["j", 3, 100],  # go down
+        ["esc"],  # exit search view, clear out search
+        ["/"],  # open search view
+        ("job-biology-7"),  # search
+        ["enter"],  # exit search view
+        ["j"],
+        ["j"],
+        [" "],
+        ["enter"],  # view details
+        250,
+        ["esc"],  # exit
+        250,
     ]
 )
 
-
-## SACCT
+## SACCT MGR
 do(
     [
         ["4"],
@@ -149,5 +158,15 @@ do(
         ("john"),
         ["enter"],  # exit search view
         ["down", 3, 25],
+    ]
+)
+
+
+## SDIAG
+do(
+    [
+        ["5"],  # choose sdiag view
+        100,
+        ["down", 10, 10],  # go down in the partition list
     ]
 )
