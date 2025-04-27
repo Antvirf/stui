@@ -17,7 +17,11 @@ build: lint
 	cp dist/stui-linux_linux_amd64_v1/stui ./stui
 
 run:
-	go run main.go
+	go run main.go \
+		-log-level=4 \
+		-refresh-interval 5s \
+		-request-timeout 1s \
+		-load-sacct-cache-since 100h
 
 run-with-all-columns:
 	go run main.go -show-all-columns
