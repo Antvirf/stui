@@ -1,8 +1,8 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-2941-blue)
-![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3429-blue)
+![size](https://img.shields.io/badge/binary%20size-4%2E0M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
 
@@ -67,6 +67,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
           minimum default width of columns in table views, if not overridden in column config (default 2)
       -job-columns-config string
           comma-separated list of scontrol fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem")
+      -load-sacct-cache-since duration
+          load sacct data from this duration ago on startup, defaults to time of last refresh or 7 days if cache is empty (default 12h0m0s)
       -node-columns-config string
           comma-separated list of scontrol fields to show in node view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES::20,Reason::25,Boards")
       -partition string
@@ -143,18 +145,19 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 
 ## To-do / roadmap
 
+- Feat: `sacct` detail view for a job
+- Feat: commas to total count lines for thousands, e.g. `12,000`
 - Feat: Summary stats in top middle pane: Node and job states
 - Feat: Sorting: Ctrl+s, open a pane to select one of the visible columns
 - Feat: View stdout / tail output target of running jobs, in cases where this is straightforward to do
-- Feat: Add view for `sacct`: first version can use default time interval, but should be more configurable and allow user to search jobs across larger time periods
 - Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
 - Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: Config option for which view to start app in
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
 - Feat: support selection of objects without a clear ID column, such as certain `sacctmgr` data like `Event`
 - Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`
-- Refactor: Move search into a shared component that is shared/present across all table views, rather than something set at view level
-- Refactor: Providers should either be fully aware of `config`, or not at all (currently some configs are passed in as args, and others are referred to directly)
+- Refactor: Move search into a shared component that is shared/present across all table views, rather than something set at view level. First step to this is to share the searchpattern through the `config` package, rather than having each view do `SetSearchPattern` in [searchbox.go](./internal/view/searchbox.go)
+- Refactor: Providers should rely on `config` package directly. No need to pass around args such as partition filter, use it directly the same way we do with state
 
 ## Alternatives and why this project exists
 

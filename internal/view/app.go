@@ -16,6 +16,7 @@ const (
 	NODES_PAGE    = "nodes"
 	JOBS_PAGE     = "jobs"
 	SACCTMGR_PAGE = "sacctmgr"
+	SACCT_PAGE    = "sacct"
 	SDIAG_PAGE    = "sdiag"
 	COMMAND_PAGE  = "command_modal"
 )
@@ -40,10 +41,11 @@ type App struct {
 	HeaderLineThree *tview.TextView
 
 	// Current tab indicators
-	TabNodesBox      *tview.TextView
-	TabJobsBox       *tview.TextView
-	TabSchedulerBox  *tview.TextView
-	TabAccountingBox *tview.TextView
+	TabNodesBox         *tview.TextView
+	TabJobsBox          *tview.TextView
+	TabSchedulerBox     *tview.TextView
+	TabAccountingMgrBox *tview.TextView
+	TabAccountingBox    *tview.TextView
 
 	// Dropdown selectors
 	PartitionSelector      *tview.DropDown
@@ -69,12 +71,14 @@ type App struct {
 	NodesProvider         model.DataProvider[*model.TableData]
 	JobsProvider          model.DataProvider[*model.TableData]
 	SacctMgrProvider      model.DataProvider[*model.TableData]
+	SacctProvider         model.DataProvider[*model.TableData]
 	SdiagProvider         model.DataProvider[*model.TextData]
 
 	// New style views
 	NodesView    *StuiView
 	JobsView     *StuiView
 	SacctMgrView *StuiView
+	SacctView    *StuiView
 	SchedView    *tview.TextView // Special case, text only
 }
 
@@ -91,7 +95,7 @@ func InitializeApplication() *App {
 	// Init data providers at start - in parallel, as they all do their first fetch on initialization
 	start := time.Now()
 	var wg sync.WaitGroup
-	wg.Add(6)
+	wg.Add(7)
 	go func() {
 		defer wg.Done()
 		application.PartitionsProvider = model.NewPartitionsProvider()
@@ -111,6 +115,11 @@ func InitializeApplication() *App {
 	go func() {
 		defer wg.Done()
 		application.SchedulerHostName, application.SchedulerClusterName, application.SchedulerSlurmVersion = model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
+	}()
+	go func() {
+		defer wg.Done()
+		application.SacctProvider = model.NewSacctProvider()
+		application.SacctProvider.(*model.SacctProvider).FetchToCache(config.LoadSacctCacheSince)
 	}()
 	go func() {
 		defer wg.Done()
@@ -150,25 +159,33 @@ func (a *App) SetupViews() {
 
 	{ // Current tab boxes
 		a.TabNodesBox = tview.NewTextView().
-			SetText("(1) Nodes")
-		a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
+			SetText("(1) Nodes              [scontrol]")
 		a.TabJobsBox = tview.NewTextView().
-			SetText("(2) Jobs")
-		a.TabSchedulerBox = tview.NewTextView().
-			SetText("(3) Scheduler")
+			SetText("(2) Jobs queue         [scontrol]")
 		a.TabAccountingBox = tview.NewTextView().
-			SetText("(4) Acct Manager")
+			SetText("(3) Jobs accounting    [sacct]")
+		a.TabAccountingMgrBox = tview.NewTextView().
+			SetText("(4) Accounting manager [sacctmgr]")
+		a.TabSchedulerBox = tview.NewTextView().
+			SetText("(5) Scheduler          [sdiag]")
+
+		// If sacct disabled, blank out those rows
+		if !config.SacctEnabled {
+			a.TabAccountingBox.SetText("")
+			a.TabAccountingMgrBox.SetText("")
+		}
+
+		// Initial selection - nodes
+		a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
 	}
 
 	// Create a grid for the tabs
 	tabGrid := tview.NewGrid().
 		AddItem(a.TabNodesBox, FRST_ROW, FRST_COL, 1, 1, 1, 0, false).
 		AddItem(a.TabJobsBox, SCND_ROW, FRST_COL, 1, 1, 1, 0, false).
-		AddItem(a.TabSchedulerBox, THRD_ROW, FRST_COL, 1, 1, 1, 0, false)
-
-	if config.SacctEnabled {
-		tabGrid.AddItem(a.TabAccountingBox, FRTH_ROW, FRST_COL, 1, 1, 1, 0, false)
-	}
+		AddItem(a.TabAccountingBox, THRD_ROW, FRST_COL, 1, 1, 1, 0, false).
+		AddItem(a.TabAccountingMgrBox, FRTH_ROW, FRST_COL, 1, 1, 1, 0, false).
+		AddItem(a.TabSchedulerBox, FFTH_ROW, FRST_COL, 1, 1, 1, 0, false)
 
 	a.HeaderGrid = tview.NewGrid().
 		SetColumns(-1, -2, -1).
@@ -195,7 +212,7 @@ func (a *App) SetupViews() {
 
 	// Main grid layout, implemented with Flex
 	a.MainFlex = tview.NewFlex().SetDirection(tview.FlexRow).
-		AddItem(a.HeaderGrid, 6, 0, false).
+		AddItem(a.HeaderGrid, 7, 0, false).
 		AddItem(a.PagesContainer, 0, 1, true)
 
 	a.MainFlex.SetBorder(true).
@@ -228,7 +245,7 @@ func (a *App) SetupViews() {
 	}
 
 	{
-		// Accounting view - we create this view whether not it will be used.
+		// Accounting views - we create these views whether not they will be used.
 		// This way we do not need to gate our code everywhere to check for
 		// whether it's enabled, just to avoid segfaults.
 		a.SacctMgrView = NewStuiView(
@@ -238,8 +255,17 @@ func (a *App) SetupViews() {
 			a.UpdateHeaderLineTwo, // errors
 			a.UpdateHeaderLineOne, // data updates notify
 		)
-
 		a.Pages.AddPage(SACCTMGR_PAGE, a.SacctMgrView.Grid, true, false)
+
+		a.SacctView = NewStuiView(
+			"Jobs Accounting",
+			a.SacctProvider,
+			a.PagesContainer.SetTitle,
+			a.UpdateHeaderLineTwo, // errors
+			a.UpdateHeaderLineOne, // data updates notify
+		)
+
+		a.Pages.AddPage(SACCT_PAGE, a.SacctView.Grid, true, false)
 	}
 
 	{ // Scheduler View
@@ -270,6 +296,7 @@ func (a *App) StartRefresh() {
 	// First render of all views
 	a.NodesView.Render()
 	a.JobsView.Render()
+	a.SacctView.Render()
 	a.SacctMgrView.Render()
 	{ // Render sdiag
 		d := a.SdiagProvider.Data()
@@ -283,6 +310,7 @@ func (a *App) StartRefresh() {
 	a.JobsView.Table.ScrollToBeginning()
 	if config.SacctEnabled {
 		a.SacctMgrView.Table.ScrollToBeginning()
+		a.SacctView.Table.ScrollToBeginning()
 	}
 
 	// Set periodic refreshes running. To make this very light on the scheduler, we:
@@ -311,6 +339,8 @@ func (a *App) StartRefresh() {
 						a.JobsView.FetchAndRender()
 					case SACCTMGR_PAGE:
 						a.SacctMgrView.FetchAndRender()
+					case SACCT_PAGE:
+						a.SacctView.FetchAndRender()
 					case SDIAG_PAGE:
 						a.SdiagProvider.Fetch()
 						a.SchedView.SetText(a.SdiagProvider.Data().Data)

@@ -14,6 +14,7 @@ var (
 	SearchDebounceInterval time.Duration = 50 * time.Millisecond
 	RefreshInterval        time.Duration = 60 * time.Second
 	RequestTimeout         time.Duration = 5 * time.Second
+	LoadSacctCacheSince    time.Duration = 12 * time.Hour
 	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = ""
 	CopyFirstColumnOnly    bool          = true
@@ -35,13 +36,15 @@ var (
 	SacctEnabled    bool   = false
 
 	// Internal configs
-	SacctMgrCurrentEntity         string = "Account" // Default starting point
-	NodeStateCurrentChoice        string = "(all)"
-	JobStateCurrentChoice         string = "(all)"
-	NodeViewColumnsPartitionIndex int
-	NodeViewColumnsStateIndex     int
-	JobsViewColumnsPartitionIndex int
-	JobsViewColumnsStateIndex     int
+	SacctMgrCurrentEntity          string = "Account" // Default starting point
+	NodeStateCurrentChoice         string = "(all)"
+	JobStateCurrentChoice          string = "(all)"
+	NodeViewColumnsPartitionIndex  int
+	NodeViewColumnsStateIndex      int
+	JobsViewColumnsPartitionIndex  int
+	JobsViewColumnsStateIndex      int
+	SacctViewColumnsPartitionIndex int
+	SacctViewColumnsStateIndex     int
 )
 
 const (
@@ -77,6 +80,9 @@ e        Focus on Entity type selector, 'esc' to close
 	// Below columns list fetched from Slurm 24.11.3
 	ALL_OTHER_JOB_COLUMNS  = "JobName,UserId,GroupId,MCS_label,Priority,Nice,Account,QOS,WCKey,Reason,Dependency,Requeue,Restarts,BatchFlag,Reboot,ExitCode,DerivedExitCode,RunTime,TimeLimit,TimeMin,SubmitTime,EligibleTime,AccrueTime,StartTime,EndTime,Deadline,SuspendTime,SecsPreSuspend,LastSchedEval,Scheduler,AllocNode:Sid,ReqNodeList,ExcNodeList,NodeList,NumNodes,NumCPUs,NumTasks,CPUs/Task,ReqB:S:C:T,ReqTRES,AllocTRES,Socks/Node,NtasksPerN:B:S:C,CoreSpec,MinCPUsNode,MinMemoryNode,MinTmpDiskNode,Features,DelayBoot,OverSubscribe,Contiguous,Licenses,Network,Command,WorkDir,StdErr,StdIn,StdOut,TresPerTask"
 	ALL_OTHER_NODE_COLUMNS = "CoresPerSocket,CPUAlloc,CPUEfctv,CPUTot,CPULoad,AvailableFeatures,ActiveFeatures,Gres,GresDrain,NodeAddr,NodeHostName,Port,RealMemory,AllocMem,FreeMem,Sockets,Boards,ThreadsPerCore,TmpDisk,Weight,Owner,MCS_label,BootTime,SlurmdStartTime,LastBusyTime,ResumeAfterTime,CfgTRES,AllocTRES,CurrentWatts,AveWatts"
+
+	// Certain config option names are specified as vars since they are used in other places
+	CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE = "load-sacct-cache-since"
 )
 
 func Configure() {
@@ -94,6 +100,7 @@ func Configure() {
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for both Nodes and Jobs, overriding other specific config")
 	flag.BoolVar(&Quiet, "quiet", Quiet, "if set, do not print any log lines to console")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
+	flag.DurationVar(&LoadSacctCacheSince, CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE, LoadSacctCacheSince, "load sacct data from this duration ago on startup, defaults to time of last refresh or 7 days if cache is empty")
 
 	// One-shot-and-exit flags
 	versionFlag := flag.Bool("version", false, "print version information and exit")
@@ -101,7 +108,7 @@ func Configure() {
 
 	flag.Parse()
 
-	// Handle ones hots commands
+	// Handle one shot commands
 	if *versionFlag {
 		fmt.Printf("stui version %s\n", STUI_VERSION)
 		os.Exit(0)
@@ -179,5 +186,10 @@ func ComputeConfigurations() {
 	}
 	JobsViewColumnsPartitionIndex = 1
 	JobsViewColumnsStateIndex = 2
+
+	// Sacct view
+	// Currently these fields are not configurable, and the indexes are hardcoded
+	SacctViewColumnsPartitionIndex = 3
+	SacctViewColumnsStateIndex = 4
 
 }

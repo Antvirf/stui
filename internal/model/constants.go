@@ -95,4 +95,6 @@ var (
 	SACCTMGR_ENTITY_TABLES_WITH_NO_CLEAR_ID = []string{
 		"Association", "Event", "Problem", "Transaction",
 	}
+
+	SACCT_COLUMNS = "JobIDRaw,JobID,JobName,Partition,State,AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,ReqCPUFreqMin,ReqCPUFreqMax,ReqCPUFreqGov,MaxVMSize,MaxVMSizeNode,MaxVMSizeTask,AveVMSize,MaxRSS,MaxRSSNode,MaxRSSTask,AveRSS,MaxPages,MaxPagesNode,MaxPagesTask,AvePages,MinCPU,MinCPUNode,MinCPUTask,AveCPU,NTasks,AveCPUFreq,ConsumedEnergy,MaxDiskRead,MaxDiskReadNode,MaxDiskReadTask,AveDiskRead,MaxDiskWrite,MaxDiskWriteNode,MaxDiskWriteTask,AveDiskWrite,TRESUsageInAve,TRESUsageInMax,TRESUsageInMaxNode,TRESUsageInMaxTask,TRESUsageInMin,TRESUsageInMinNode,TRESUsageInMinTask,TRESUsageInTot,TRESUsageOutMax,TRESUsageOutMaxNode,TRESUsageOutMaxTask,TRESUsageOutAve,TRESUsageOutTot"
 )
