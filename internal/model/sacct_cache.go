@@ -46,7 +46,7 @@ func NewSacctCache() (*SacctCache, error) {
 		if err != nil {
 			return
 		}
-		filePath := path.Join(homeDir, ".config", "sacct_cache.gob")
+		filePath := path.Join(homeDir, ".cache", "stui_sacct_cache.gob")
 
 		if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
 			initErr = err
