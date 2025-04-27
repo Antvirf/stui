@@ -77,13 +77,22 @@ func (a *App) SetupKeybinds() {
 			go a.JobsView.FetchAndRenderIfStale(config.RefreshInterval)
 			return nil
 		case '3':
-			a.SwitchToPage(SDIAG_PAGE)
-			a.PagesContainer.SetTitle(" Scheduler status (sdiag) ")
-			a.CurrentTableView = nil
-			a.HideSearchBox()
-			a.SetHeaderGridInnerContents(tview.NewBox())
-			a.UpdateHeaderLineOne("")
-			a.UpdateHeaderLineTwo("")
+			if config.SacctEnabled {
+				a.SwitchToPage(SACCT_PAGE)
+				a.CurrentTableView = a.SacctView.Table
+				a.SetHeaderGridInnerContents(
+					a.PartitionSelector,
+					a.JobStateSelector,
+				)
+				if a.SearchPattern != "" {
+					a.ShowSearchBox(a.SacctView.Grid)
+				} else {
+					a.HideSearchBox()
+				}
+				a.App.SetFocus(a.SacctView.Table)
+				a.SacctView.Render()
+				go a.SacctView.FetchAndRenderIfStale(config.RefreshInterval) // TODO: Figure out updates separately for job accounting
+			}
 			return nil
 		case '4':
 			if config.SacctEnabled {
@@ -100,11 +109,29 @@ func (a *App) SetupKeybinds() {
 				go a.SacctMgrView.FetchAndRenderIfStale(config.RefreshInterval)
 			}
 			return nil
+		case '5':
+			a.SwitchToPage(SDIAG_PAGE)
+			a.PagesContainer.SetTitle(" Scheduler status (sdiag) ")
+			a.CurrentTableView = nil
+			a.HideSearchBox()
+			a.SetHeaderGridInnerContents(tview.NewBox())
+			a.UpdateHeaderLineOne("")
+			a.UpdateHeaderLineTwo("")
+			return nil
 		}
 		return event
 	})
 
 	if config.SacctEnabled {
+		a.SacctView.Table.SetInputCapture(
+			tableViewInputCapture(
+				a,
+				a.SacctView.Table,
+				&a.SacctView.Selection,
+				"",              // Used for command modal
+				func(string) {}, // Null func for detail view
+			),
+		)
 		a.SacctMgrView.Table.SetInputCapture(
 			tableViewInputCapture(
 				a,
@@ -160,6 +187,9 @@ func tableViewInputCapture(
 		case a.SacctMgrView.Table:
 			data = a.SacctMgrProvider.Data()
 			grid = a.SacctMgrView.Grid
+		case a.SacctView.Table:
+			data = a.SacctProvider.Data()
+			grid = a.SacctView.Grid
 		}
 		switch event.Rune() {
 		case '/':
@@ -207,7 +237,7 @@ func tableViewInputCapture(
 			}
 			return nil
 		case 'p':
-			if a.GetCurrentPageName() != SACCTMGR_PAGE {
+			if a.GetCurrentPageName() == JOBS_PAGE || a.GetCurrentPageName() == NODES_PAGE || a.GetCurrentPageName() == SACCT_PAGE {
 				a.App.SetFocus(a.PartitionSelector)
 			}
 		case 'e':
@@ -219,6 +249,8 @@ func tableViewInputCapture(
 			case NODES_PAGE:
 				a.App.SetFocus(a.NodeStateSelector)
 			case JOBS_PAGE:
+				a.App.SetFocus(a.JobStateSelector)
+			case SACCT_PAGE:
 				a.App.SetFocus(a.JobStateSelector)
 			}
 		case 'c':

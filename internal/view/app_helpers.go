@@ -62,6 +62,12 @@ func (a *App) optionalRefreshAndRenderPage(pageName string, refresh bool) {
 			a.SacctMgrProvider.Fetch()
 		}
 		a.SacctMgrView.Render()
+	case SACCT_PAGE:
+		if refresh {
+			a.SacctProvider.Fetch()
+		}
+		a.SacctView.SetFilter(config.PartitionFilter)
+		a.SacctView.Render()
 	case SDIAG_PAGE:
 		if refresh {
 			d := a.SdiagProvider.Data()
@@ -134,6 +140,7 @@ func (a *App) setActiveTab(active string) {
 	a.TabNodesBox.SetBackgroundColor(generalBackgroundColor)
 	a.TabJobsBox.SetBackgroundColor(generalBackgroundColor)
 	a.TabSchedulerBox.SetBackgroundColor(generalBackgroundColor)
+	a.TabAccountingMgrBox.SetBackgroundColor(generalBackgroundColor)
 	a.TabAccountingBox.SetBackgroundColor(generalBackgroundColor)
 
 	// Set active color
@@ -145,6 +152,8 @@ func (a *App) setActiveTab(active string) {
 	case SDIAG_PAGE:
 		a.TabSchedulerBox.SetBackgroundColor(paneSelectorHighlightColor)
 	case SACCTMGR_PAGE:
+		a.TabAccountingMgrBox.SetBackgroundColor(paneSelectorHighlightColor)
+	case SACCT_PAGE:
 		a.TabAccountingBox.SetBackgroundColor(paneSelectorHighlightColor)
 	}
 }
