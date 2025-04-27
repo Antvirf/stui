@@ -74,12 +74,15 @@ func (p *SacctProvider) FetchToCache(since time.Duration) error {
 		return err
 	}
 
-	p.cache.WriteToCache(
+	err = p.cache.WriteToCache(
 		data,
 		cacheStartTime, // from
 		time.Now(),     // to
 		rewriteEntireCache,
 	)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
