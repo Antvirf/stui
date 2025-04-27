@@ -43,7 +43,7 @@ update-readme: build
 	@rm -f .help.tmp
 
 	@echo "Updating README.md with lines of code badge..."
-	@LOC=$$(rg 'package' -l | grep ".go" | xargs wc -l | grep total | cut -d' ' -f2) && \
+	@LOC=$$(rg 'package' -l | grep ".go" | xargs wc -l | grep total | tr -s ' ' |cut -d' ' -f2) && \
 	sed -i "s/lines%20of%20code-[0-9]*/lines%20of%20code-$${LOC}/" README.md
 
 	@echo "Updating README.md with binary size badge..."

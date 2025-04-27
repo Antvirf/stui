@@ -10,7 +10,11 @@ import (
 	"github.com/antvirf/stui/internal/config"
 )
 
-func GetSacctData(since time.Duration) (*TableData, error) {
+// GetSacctDataFunc is the function signature for getting sacct data
+type GetSacctDataFunc func(since time.Duration) (*TableData, error)
+
+// RealGetSacctData is the actual implementation of GetSacctData
+func RealGetSacctData(since time.Duration) (*TableData, error) {
 	cmd := exec.Command(
 		path.Join(config.SlurmBinariesPath, "sacct"),
 		"--allusers",
@@ -27,6 +31,10 @@ func GetSacctData(since time.Duration) (*TableData, error) {
 
 	return parseSacctOutputToTableData(string(rawOut))
 }
+
+// GetSacctData is a variable that points to the function to use for getting sacct data.
+// This allows us to mock it in tests.
+var GetSacctData GetSacctDataFunc = RealGetSacctData
 
 func parseSacctOutputToTableData(output string) (*TableData, error) {
 	entries := parseSacctOutput(output)
