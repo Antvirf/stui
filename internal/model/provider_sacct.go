@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -15,7 +16,10 @@ type SacctProvider struct {
 }
 
 func NewSacctProvider() *SacctProvider {
-	cache, _ := NewSacctCache()
+	cache, err := NewSacctCache()
+	if err != nil {
+		log.Fatalf("Failed to initialize sacct cache: %v", err)
+	}
 
 	p := SacctProvider{
 		BaseProvider: BaseProvider[*TableData]{},
