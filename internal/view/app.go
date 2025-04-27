@@ -2,11 +2,11 @@ package view
 
 import (
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/antvirf/stui/internal/config"
+	"github.com/antvirf/stui/internal/logger"
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -126,9 +126,7 @@ func InitializeApplication() *App {
 		application.SacctMgrProvider = model.NewSacctMgrProvider()
 	}()
 	wg.Wait()
-	if !config.Quiet {
-		log.Printf("START: Initial data load from scheduler took %d ms", time.Since(start).Milliseconds())
-	}
+	logger.Printf("START: Initial data load from scheduler took %d ms", time.Since(start).Milliseconds())
 	return &application
 }
 

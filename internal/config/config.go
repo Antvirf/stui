@@ -21,7 +21,7 @@ var (
 	CopiedLinesSeparator   string        = "\n"
 	PartitionFilter        string        = ""
 	DefaultColumnWidth     int           = 2
-	Quiet                  bool          = false
+	LogLevel               int           = 2
 	ShowAllColumns         bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
@@ -83,6 +83,12 @@ e        Focus on Entity type selector, 'esc' to close
 
 	// Certain config option names are specified as vars since they are used in other places
 	CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE = "load-sacct-cache-since"
+
+	// Log levels
+	LOG_LEVEL_NONE  = 0
+	LOG_LEVEL_ERROR = 1
+	LOG_LEVEL_INFO  = 2
+	LOG_LEVEL_DEBUG = 3
 )
 
 func Configure() {
@@ -98,7 +104,7 @@ func Configure() {
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for both Nodes and Jobs, overriding other specific config")
-	flag.BoolVar(&Quiet, "quiet", Quiet, "if set, do not print any log lines to console")
+	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
 	flag.DurationVar(&LoadSacctCacheSince, CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE, LoadSacctCacheSince, "load sacct data from this duration ago on startup, defaults to time of last refresh or 7 days if cache is empty")
 

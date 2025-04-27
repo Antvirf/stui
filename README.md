@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4214-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-4254-blue)
 ![size](https://img.shields.io/badge/binary%20size-4%2E0M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -69,12 +69,12 @@ sudo mv ~/go/bin/stui /usr/local/bin
           comma-separated list of scontrol fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem")
       -load-sacct-cache-since duration
           load sacct data from this duration ago on startup, defaults to time of last refresh or 7 days if cache is empty (default 12h0m0s)
+      -log-level int
+          log level, 0=none, 1=error, 2=info, 3=debug (default 2)
       -node-columns-config string
           comma-separated list of scontrol fields to show in node view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES::20,Reason::25,Boards")
       -partition string
           limit views to specific partition only, leave empty to show all partitions
-      -quiet
-          if set, do not print any log lines to console
       -refresh-interval duration
           interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
       -request-timeout duration

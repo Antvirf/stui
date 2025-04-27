@@ -1,12 +1,12 @@
 package view
 
 import (
-	"log"
 	"slices"
 	"strings"
 	"time"
 
 	"github.com/antvirf/stui/internal/config"
+	"github.com/antvirf/stui/internal/logger"
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -18,18 +18,16 @@ func (a *App) SetupKeybinds() {
 
 		if event.Key() == tcell.KeyCtrlC {
 			a.App.Stop()
-			if !config.Quiet {
-				duration := time.Since(a.startTime)
-				rpm := float64(model.FetchCounter.Count) / duration.Seconds() * 60
-				rpm = min(rpm, float64(model.FetchCounter.Count))
-				log.Printf(
-					"END: Session stats: duration=%s, total_scheduler_calls=%d, requests_per_minute=%.1f",
-					duration.Round(time.Second),
-					model.FetchCounter.Count,
-					rpm,
-				)
-				log.Print("Thank you for using stui!")
-			}
+			duration := time.Since(a.startTime)
+			rpm := float64(model.FetchCounter.Count) / duration.Seconds() * 60
+			rpm = min(rpm, float64(model.FetchCounter.Count))
+			logger.Printf(
+				"END: Session stats: duration=%s, total_scheduler_calls=%d, requests_per_minute=%.1f",
+				duration.Round(time.Second),
+				model.FetchCounter.Count,
+				rpm,
+			)
+			logger.Printf("Thank you for using stui!")
 			return event
 		}
 

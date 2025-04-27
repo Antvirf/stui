@@ -2,11 +2,11 @@ package model
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/antvirf/stui/internal/config"
+	"github.com/antvirf/stui/internal/logger"
 )
 
 type SacctProvider struct {
@@ -28,9 +28,7 @@ func NewSacctProvider() *SacctProvider {
 // Fetches data into cached file. Does NOT make it available to user, use Fetch() for that.
 func (p *SacctProvider) FetchToCache(since time.Duration) error {
 	if since == 0 {
-		if !config.Quiet {
-			log.Printf("Ignoring sacct cache refresh as '%s'=0", config.CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE)
-		}
+		logger.Debugf("Ignoring sacct cache refresh as '%s'=0", config.CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE)
 
 		return nil
 	}
@@ -67,9 +65,7 @@ func (p *SacctProvider) FetchToCache(since time.Duration) error {
 		msg = fmt.Sprintf("Cache is not usable. Performing full refresh with requested duration (%s).", since.Truncate(time.Second))
 	}
 
-	if !config.Quiet {
-		log.Printf("sacct cache: %s", msg)
-	}
+	logger.Debugf("sacct cache: %s", msg)
 
 	// Get fresh data and cache it
 	data, err := GetSacctData(fetchSince)
