@@ -91,10 +91,29 @@ func (c *SacctCache) WriteToCache(data *TableData, start, end time.Time, rewrite
 			return err
 		}
 
-		if err := gob.NewEncoder(c.writer).Encode(entry); err != nil {
+		// Create a fresh encoder
+		encoder := gob.NewEncoder(c.writer)
+		if err := encoder.Encode(entry); err != nil {
 			return err
 		}
-		return c.writer.Flush()
+
+		if err := c.writer.Flush(); err != nil {
+			return err
+		}
+
+		// Make sure data is persisted to disk
+		if err := c.file.Sync(); err != nil {
+			return err
+		}
+
+		// Update the content and mark cache as usable
+		c.Content = entry
+		c.IsUsable = true
+
+		// Reset the reader to reflect new file content
+		c.reader = bufio.NewReader(c.file)
+
+		return nil
 	}
 
 	// Merge new data with existing cache
@@ -113,6 +132,7 @@ func (c *SacctCache) WriteToCache(data *TableData, start, end time.Time, rewrite
 
 	// Update the object
 	c.Content = mergedEntry
+	c.IsUsable = true
 
 	// Update cache file
 	if err := c.file.Truncate(0); err != nil {
@@ -125,7 +145,14 @@ func (c *SacctCache) WriteToCache(data *TableData, start, end time.Time, rewrite
 	if err := gob.NewEncoder(c.writer).Encode(mergedEntry); err != nil {
 		return err
 	}
-	return c.writer.Flush()
+	if err := c.writer.Flush(); err != nil {
+		return err
+	}
+
+	// Reset the reader to reflect new file content
+	c.reader = bufio.NewReader(c.file)
+
+	return nil
 }
 
 func mergeTableData(oldData, newData *TableData) *TableData {
@@ -183,16 +210,23 @@ func mergeTableData(oldData, newData *TableData) *TableData {
 }
 
 func (c *SacctCache) GetFromCache() (*TableData, error) {
+	// Reset to beginning of file
 	if _, err := c.file.Seek(0, 0); err != nil {
-		return nil, err
-	}
-	var entry SacctCacheContents
-	if err := gob.NewDecoder(c.reader).Decode(&entry); err != nil {
+		c.IsUsable = false
 		return nil, err
 	}
 
-	// If the cache is empty, return an empty TableData
-	if len(entry.Data.Rows) == 0 {
+	// Refresh the reader
+	c.reader = bufio.NewReader(c.file)
+
+	var entry SacctCacheContents
+	if err := gob.NewDecoder(c.reader).Decode(&entry); err != nil {
+		c.IsUsable = false
+		return nil, err
+	}
+
+	// If the cache is empty or data is invalid, return an empty TableData
+	if entry.Data == nil || len(entry.Data.Rows) == 0 {
 		c.IsUsable = false
 		return &TableData{
 			Headers: &[]config.ColumnConfig{},
