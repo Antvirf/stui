@@ -70,4 +70,8 @@ func (c *threadSafeCounter) increment() {
 
 func init() {
 	FetchCounter = threadSafeCounter{Count: 0}
+
+	// We increment count here, because we do a call during
+	// config initialization.
+	FetchCounter.increment()
 }

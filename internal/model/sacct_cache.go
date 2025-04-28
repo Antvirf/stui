@@ -3,6 +3,8 @@ package model
 import (
 	"bufio"
 	"encoding/gob"
+	"encoding/hex"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -46,7 +48,15 @@ func NewSacctCache() (*SacctCache, error) {
 		if err != nil {
 			return
 		}
-		filePath := path.Join(homeDir, ".cache", "stui_sacct_cache.gob")
+
+		filePath := path.Join(
+			homeDir,
+			".cache",
+			fmt.Sprintf(
+				"stui_sacct_cache_%s.gob",
+				hex.EncodeToString([]byte(config.ClusterName)),
+			),
+		)
 
 		if err := os.MkdirAll(filepath.Dir(filePath), 0700); err != nil {
 			initErr = err

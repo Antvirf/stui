@@ -93,49 +93,6 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 	return string(out), nil
 }
 
-func GetSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clusterName, slurmVersion string) {
-	FetchCounter.increment()
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	cmd := exec.CommandContext(ctx,
-		path.Join(config.SlurmBinariesPath, "scontrol"),
-		"show", "config",
-	)
-	out, err := cmd.Output()
-	if err != nil {
-		schedulerHostName = "(failed to fetch scheduler info)"
-	}
-
-	// Parse output for controller host
-	var host string
-	for _, line := range strings.Split(string(out), "\n") {
-		if strings.HasPrefix(line, "SlurmctldHost") {
-			parts := strings.SplitN(line, "=", 2)
-			if len(parts) == 2 {
-				// Extract host from SlurmctldHost[0]=hostname
-				host = strings.TrimSpace(parts[1])
-			}
-		}
-
-		if strings.HasPrefix(line, "ClusterName") {
-			parts := strings.SplitN(line, "=", 2)
-			if len(parts) == 2 {
-				// Extract host from ClusterName = name
-				clusterName = strings.TrimSpace(parts[1])
-			}
-		}
-
-		if strings.HasPrefix(line, "SLURM_VERSION") {
-			parts := strings.SplitN(line, "=", 2)
-			if len(parts) == 2 {
-				// Extract host from ClusterName = name
-				slurmVersion = strings.TrimSpace(parts[1])
-			}
-		}
-	}
-	return host, clusterName, slurmVersion
-}
-
 func getSdiagWithTimeout(timeout time.Duration) (string, error) {
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)

@@ -63,16 +63,13 @@ type App struct {
 	CommandModalOpen bool
 
 	// Data  and providers
-	SchedulerHostName     string
-	SchedulerClusterName  string
-	SchedulerSlurmVersion string
-	PartitionsData        *model.TableData
-	PartitionsProvider    model.DataProvider[*model.TableData]
-	NodesProvider         model.DataProvider[*model.TableData]
-	JobsProvider          model.DataProvider[*model.TableData]
-	SacctMgrProvider      model.DataProvider[*model.TableData]
-	SacctProvider         model.DataProvider[*model.TableData]
-	SdiagProvider         model.DataProvider[*model.TextData]
+	PartitionsData     *model.TableData
+	PartitionsProvider model.DataProvider[*model.TableData]
+	NodesProvider      model.DataProvider[*model.TableData]
+	JobsProvider       model.DataProvider[*model.TableData]
+	SacctMgrProvider   model.DataProvider[*model.TableData]
+	SacctProvider      model.DataProvider[*model.TableData]
+	SdiagProvider      model.DataProvider[*model.TextData]
 
 	// New style views
 	NodesView    *StuiView
@@ -95,7 +92,7 @@ func InitializeApplication() *App {
 	// Init data providers at start - in parallel, as they all do their first fetch on initialization
 	start := time.Now()
 	var wg sync.WaitGroup
-	wg.Add(7)
+	wg.Add(6)
 	go func() {
 		defer wg.Done()
 		application.PartitionsProvider = model.NewPartitionsProvider()
@@ -111,10 +108,6 @@ func InitializeApplication() *App {
 	go func() {
 		defer wg.Done()
 		application.SdiagProvider = model.NewSdiagProvider()
-	}()
-	go func() {
-		defer wg.Done()
-		application.SchedulerHostName, application.SchedulerClusterName, application.SchedulerSlurmVersion = model.GetSchedulerInfoWithTimeout(config.RequestTimeout)
 	}()
 	go func() {
 		defer wg.Done()
@@ -216,7 +209,7 @@ func (a *App) SetupViews() {
 	a.MainFlex.SetBorder(true).
 		SetBorderAttributes(tcell.AttrDim).
 		SetTitle(fmt.Sprintf(
-			" stui on [%s / %s / Slurm %s] ", a.SchedulerClusterName, a.SchedulerHostName, a.SchedulerSlurmVersion,
+			" stui on [%s / %s / Slurm %s] ", config.ClusterName, config.SchedulerHostName, config.SchedulerSlurmVersion,
 		)).
 		SetTitleAlign(tview.AlignCenter)
 
