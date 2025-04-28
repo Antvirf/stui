@@ -163,6 +163,8 @@ func (c *SacctCache) WriteToCache(data *TableData, start, end time.Time, rewrite
 	// Reset the reader to reflect new file content
 	c.reader = bufio.NewReader(c.file)
 
+	logger.Debugf("sacct cache: write success (%s - %s), updated %d rows", start.Format(time.RFC3339), end.Format(time.RFC3339), len(mergedData.Rows))
+
 	return nil
 }
 
