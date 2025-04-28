@@ -113,6 +113,7 @@ func InitializeApplication() *App {
 		defer wg.Done()
 		application.SacctProvider = model.NewSacctProvider()
 		application.SacctProvider.(*model.SacctProvider).FetchToCache(config.LoadSacctCacheSince)
+		application.SacctProvider.Fetch() // Makes data available to the view
 	}()
 	go func() {
 		defer wg.Done()

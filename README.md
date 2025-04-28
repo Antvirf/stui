@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4268-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-4275-blue)
 ![size](https://img.shields.io/badge/binary%20size-4%2E0M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -147,7 +147,6 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 
 ## To-do / roadmap
 
-- Fix: jobs accounting refresh on startup, need to render table after fetch? it is empty on first start
 - Feat: `sacct` detail view for a job
 - Feat: commas to total count lines for thousands, e.g. `12,000`
 - Feat: Summary stats in top middle pane: Node and job states

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/antvirf/stui/internal/config"
+	"github.com/antvirf/stui/internal/logger"
 )
 
 func init() {
@@ -223,6 +224,7 @@ func (c *SacctCache) GetFromCache() (*TableData, error) {
 	// Reset to beginning of file
 	if _, err := c.file.Seek(0, 0); err != nil {
 		c.IsUsable = false
+		logger.Debugf("sacct cache: read failed: %v", err)
 		return nil, err
 	}
 
@@ -231,6 +233,7 @@ func (c *SacctCache) GetFromCache() (*TableData, error) {
 
 	var entry SacctCacheContents
 	if err := gob.NewDecoder(c.reader).Decode(&entry); err != nil {
+		logger.Debugf("sacct cache: read failed: %v", err)
 		c.IsUsable = false
 		return nil, err
 	}
@@ -238,6 +241,7 @@ func (c *SacctCache) GetFromCache() (*TableData, error) {
 	// If the cache is empty or data is invalid, return an empty TableData
 	if entry.Data == nil || len(entry.Data.Rows) == 0 {
 		c.IsUsable = false
+		logger.Debugf("sacct cache: read success but is empty")
 		return &TableData{
 			Headers: &[]config.ColumnConfig{},
 			Rows:    [][]string{},
@@ -246,6 +250,8 @@ func (c *SacctCache) GetFromCache() (*TableData, error) {
 
 	c.Content = entry
 	c.IsUsable = true
+
+	logger.Debugf("sacct cache: read success (%s - %s), returned %d rows", entry.StartTime, entry.EndTime, len(entry.Data.Rows))
 
 	return entry.Data, nil
 }
