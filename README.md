@@ -100,10 +100,11 @@ sudo mv ~/go/bin/stui /usr/local/bin
     <!-- REPLACE_SHORTCUTS_START -->
     ```txt
     General Shortcuts
-    1        Switch to Nodes view
-    2        Switch to Jobs view
-    3        Switch to Scheduler view
-    4        Switch to Accounting Manager view (if sacctmgr is available)
+    1        Switch to Nodes view (scontrol)
+    2        Switch to Jobs view (scontrol)
+    3        Switch to Jobs accounting view (sacct)
+    4        Switch to Accounting Manager view (sacctmgr)
+    5        Switch to Scheduler view (sdiag)
     k/j      Move selection up/down in table view
     h/l      Scroll left/right in table view
     Arrows   Scroll up/down/left/right in table view
