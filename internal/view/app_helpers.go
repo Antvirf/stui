@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/antvirf/stui/internal/config"
 	"github.com/antvirf/stui/internal/model"
@@ -172,4 +173,26 @@ func (a *App) ShowJobDetails(jobID string) {
 		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
 	}
 	a.ShowModalPopup(fmt.Sprintf("Job Details: %s", jobID), details)
+}
+
+// FormatNumberWithCommas adds thousand separators to an integer
+// e.g., 1000 -> "1,000", 1000000 -> "1,000,000"
+func FormatNumberWithCommas(n int) string {
+	sign := ""
+	if n < 0 {
+		sign = "-"
+		n = -n
+	}
+
+	// Start from the right and work backwards
+	str := strconv.Itoa(n)
+	result := ""
+	for i := len(str) - 1; i >= 0; i-- {
+		if (len(str)-i-1)%3 == 0 && i != len(str)-1 {
+			result = "," + result
+		}
+		result = string(str[i]) + result
+	}
+
+	return sign + result
 }

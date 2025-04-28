@@ -175,7 +175,7 @@ func (s *StuiView) Render() {
 
 	// Callbacks
 	s.updateTitleFunction(fmt.Sprintf(
-		" %s (%d / %d) ", s.titleHeader, filteredCount, totalCount,
+		" %s (%s / %s) ", s.titleHeader, FormatNumberWithCommas(filteredCount), FormatNumberWithCommas(totalCount),
 	))
 
 	lastUpdated := s.provider.LastUpdated()

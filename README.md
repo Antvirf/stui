@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4275-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-4298-blue)
 ![size](https://img.shields.io/badge/binary%20size-4%2E0M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -148,10 +148,8 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 ## To-do / roadmap
 
 - Feat: `sacct` detail view for a job
-- Feat: commas to total count lines for thousands, e.g. `12,000`
 - Feat: Summary stats in top middle pane: Node and job states
 - Feat: Sorting: Ctrl+s, open a pane to select one of the visible columns
-- Feat: View stdout / tail output target of running jobs, in cases where this is straightforward to do
 - Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
 - Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: Config option for which view to start app in
