@@ -21,7 +21,11 @@ func RealGetSacctData(since time.Duration) (*TableData, error) {
 
 	fullCommand := fmt.Sprintf("%s --allusers --long --allocations --parsable2 --starttime=now-%d",
 		path.Join(config.SlurmBinariesPath, "sacct"),
-		max(int(since.Seconds()), 1))
+		max(
+			int(config.RefreshInterval.Seconds()),
+			int(since.Seconds()),
+			1,
+		))
 
 	cmd := exec.Command(
 		strings.Split(fullCommand, " ")[0],

@@ -12,7 +12,8 @@ import (
 
 type SacctProvider struct {
 	BaseProvider[*TableData]
-	cache *SacctCache
+	cache     *SacctCache
+	lastFetch time.Time
 }
 
 func NewSacctProvider() *SacctProvider {
@@ -24,6 +25,7 @@ func NewSacctProvider() *SacctProvider {
 	p := SacctProvider{
 		BaseProvider: BaseProvider[*TableData]{},
 		cache:        cache,
+		lastFetch:    time.Time{}, // Zero time indicates no fetch performed yet
 	}
 	return &p
 }
@@ -32,7 +34,6 @@ func NewSacctProvider() *SacctProvider {
 func (p *SacctProvider) FetchToCache(since time.Duration) error {
 	if since == 0 {
 		logger.Debugf("Ignoring sacct cache refresh as '%s'=0", config.CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE)
-
 		return nil
 	}
 
@@ -42,8 +43,19 @@ func (p *SacctProvider) FetchToCache(since time.Duration) error {
 	rewriteEntireCache := true
 	msg := ""
 
-	// Check the state of the cache to determine the fetch strategy.
-	if p.cache.IsUsable {
+	// If this is not the first fetch, use a more efficient strategy
+	isFirstFetch := p.lastFetch.IsZero()
+	if !isFirstFetch {
+		// For subsequent fetches, only get data since the last fetch
+		// This avoids repeatedly fetching the entire duration
+		sinceLastFetch := time.Since(p.lastFetch)
+		if sinceLastFetch > 0 {
+			fetchSince = sinceLastFetch
+			rewriteEntireCache = false
+			msg = fmt.Sprintf("subsequent fetch, only getting data since last fetch (%s ago)", sinceLastFetch.Truncate(time.Second))
+		}
+	} else if p.cache.IsUsable {
+		// First fetch but we have a usable cache, check its state
 		cacheAge := time.Since(p.cache.Content.StartTime).Truncate(time.Second)
 		cacheEndAge := time.Since(p.cache.Content.EndTime).Truncate(time.Second)
 
@@ -64,8 +76,8 @@ func (p *SacctProvider) FetchToCache(since time.Duration) error {
 			msg = fmt.Sprintf("requested refresh-since of (%s) is more recent than the cache end time (%s). Adjusting fetch duration to %s.", since.Truncate(time.Second), cacheEndAge, fetchSince)
 		}
 	} else {
-		// Cache is not usable, full refresh needed.
-		msg = fmt.Sprintf("cache is not usable. Performing full refresh with requested duration (%s).", since.Truncate(time.Second))
+		// First fetch with no usable cache, full refresh needed.
+		msg = fmt.Sprintf("first fetch, cache is not usable. Performing full refresh with requested duration (%s).", since.Truncate(time.Second))
 	}
 
 	logger.Debugf("sacct cache: %s", msg)
@@ -77,10 +89,13 @@ func (p *SacctProvider) FetchToCache(since time.Duration) error {
 		return err
 	}
 
+	// Update the last fetch time
+	p.lastFetch = time.Now()
+
 	err = p.cache.WriteToCache(
 		data,
 		cacheStartTime, // from
-		time.Now(),     // to
+		p.lastFetch,    // to
 		rewriteEntireCache,
 	)
 	if err != nil {
