@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/antvirf/stui/internal/config"
+	"github.com/antvirf/stui/internal/logger"
 )
 
 // GetSacctDataFunc is the function signature for getting sacct data
@@ -15,20 +16,27 @@ type GetSacctDataFunc func(since time.Duration) (*TableData, error)
 
 // RealGetSacctData is the actual implementation of GetSacctData
 func RealGetSacctData(since time.Duration) (*TableData, error) {
-	cmd := exec.Command(
+	startTime := time.Now()
+	FetchCounter.increment()
+
+	fullCommand := fmt.Sprintf("%s --allusers --long --allocations --parsable2 --starttime=now-%d",
 		path.Join(config.SlurmBinariesPath, "sacct"),
-		"--allusers",
-		"--long",
-		"--allocations",
-		"--parsable2",
-		fmt.Sprintf("--starttime=now-%d", int(since.Seconds())),
+		max(int(since.Seconds()), 1))
+
+	cmd := exec.Command(
+		strings.Split(fullCommand, " ")[0],
+		strings.Split(fullCommand, " ")[1:]...,
 	)
 
 	rawOut, err := cmd.CombinedOutput()
+	execTime := time.Since(startTime)
+
 	if err != nil {
+		logger.Debugf("sacct: failed after %v: %s (%v)", execTime, fullCommand, err)
 		return nil, fmt.Errorf("sacct failed: %v\nOutput: %s", err, string(rawOut))
 	}
 
+	logger.Debugf("sacct: completed in %v: %s", execTime, fullCommand)
 	return parseSacctOutputToTableData(string(rawOut))
 }
 

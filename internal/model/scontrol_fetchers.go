@@ -9,12 +9,16 @@ import (
 	"time"
 
 	"github.com/antvirf/stui/internal/config"
+	"github.com/antvirf/stui/internal/logger"
 )
 
 func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, timeout time.Duration) (*TableData, error) {
+	startTime := time.Now()
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	fullCommand := path.Join(config.SlurmBinariesPath, "scontrol") + " " + command
 
 	cmd := exec.CommandContext(ctx,
 		path.Join(config.SlurmBinariesPath, "scontrol"),
@@ -22,12 +26,18 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 	)
 	rawOut, err := cmd.CombinedOutput()
 	out := string(rawOut)
+	execTime := time.Since(startTime)
+
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
+			logger.Debugf("scontrol: timed out after %v: %s", execTime, fullCommand)
 			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
 		}
+		logger.Debugf("scontrol: failed after %v: %s (%v)", execTime, fullCommand, err)
 		return &TableData{}, fmt.Errorf("%v", err)
 	}
+
+	logger.Debugf("scontrol: completed in %v: %s", execTime, fullCommand)
 
 	rawRows := parseScontrolOutput(out)
 
@@ -57,57 +67,84 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 }
 
 func GetNodeDetailsWithTimeout(nodeName string, timeout time.Duration) (string, error) {
+	startTime := time.Now()
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	fullCommand := fmt.Sprintf("%s show node %s", path.Join(config.SlurmBinariesPath, "scontrol"), nodeName)
 
 	cmd := exec.CommandContext(ctx,
 		path.Join(config.SlurmBinariesPath, "scontrol"),
 		"show", "node", nodeName,
 	)
 	out, err := cmd.Output()
+	execTime := time.Since(startTime)
+
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
+			logger.Debugf("scontrol: timed out after %v: %s", execTime, fullCommand)
 			return "", fmt.Errorf("timeout after %v", timeout)
 		}
+		logger.Debugf("scontrol: failed after %v: %s (%v)", execTime, fullCommand, err)
 		return "", fmt.Errorf("scontrol failed: %v", err)
 	}
+
+	logger.Debugf("scontrol: completed in %v: %s", execTime, fullCommand)
 	return string(out), nil
 }
 
 func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, error) {
+	startTime := time.Now()
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	fullCommand := fmt.Sprintf("%s show job %s", path.Join(config.SlurmBinariesPath, "scontrol"), jobID)
+
 	cmd := exec.CommandContext(ctx,
 		path.Join(config.SlurmBinariesPath, "scontrol"),
 		"show", "job", jobID,
 	)
 	out, err := cmd.Output()
+	execTime := time.Since(startTime)
+
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
+			logger.Debugf("scontrol: timed out after %v: %s", execTime, fullCommand)
 			return "", fmt.Errorf("timeout after %v", timeout)
 		}
+		logger.Debugf("scontrol: failed after %v: %s (%v)", execTime, fullCommand, err)
 		return "", fmt.Errorf("scontrol failed: %v", err)
 	}
+
+	logger.Debugf("scontrol: completed in %v: %s", execTime, fullCommand)
 	return string(out), nil
 }
 
 func getSdiagWithTimeout(timeout time.Duration) (string, error) {
+	startTime := time.Now()
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	fullCommand := path.Join(config.SlurmBinariesPath, "sdiag")
 
 	cmd := exec.CommandContext(ctx,
 		path.Join(config.SlurmBinariesPath, "sdiag"),
 	)
 	out, err := cmd.Output()
+	execTime := time.Since(startTime)
+
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
+			logger.Debugf("sdiag: timed out after %v: %s", execTime, fullCommand)
 			return "", fmt.Errorf("timeout after %v", timeout)
 		}
+		logger.Debugf("sdiag: failed after %v: %s (%v)", execTime, fullCommand, err)
 		return "", fmt.Errorf("sdiag failed: %v", err)
 	}
 
+	logger.Debugf("sdiag: completed in %v: %s", execTime, fullCommand)
 	return string(out), nil
 }

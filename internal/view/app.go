@@ -332,6 +332,7 @@ func (a *App) StartRefresh() {
 					case SACCTMGR_PAGE:
 						a.SacctMgrView.FetchAndRender()
 					case SACCT_PAGE:
+						a.SacctProvider.(*model.SacctProvider).FetchToCache(config.LoadSacctCacheSince)
 						a.SacctView.FetchAndRender()
 					case SDIAG_PAGE:
 						a.SdiagProvider.Fetch()
