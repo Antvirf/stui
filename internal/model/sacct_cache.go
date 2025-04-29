@@ -87,6 +87,8 @@ func (c *SacctCache) WriteToCache(data *TableData, start, end time.Time, rewrite
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	writeStartTime := time.Now()
+
 	entry := SacctCacheContents{
 		StartTime: start,
 		EndTime:   end,
@@ -128,12 +130,14 @@ func (c *SacctCache) WriteToCache(data *TableData, start, end time.Time, rewrite
 	}
 
 	// Merge new data with existing cache
+	mergeStartTime := time.Now()
 	existingData, err := c.GetFromCache()
 	if err != nil {
 		return err
 	}
 
 	mergedData := mergeTableData(existingData, data)
+	mergeTimeMs := time.Since(mergeStartTime).Milliseconds()
 
 	mergedEntry := SacctCacheContents{
 		StartTime: start,
@@ -163,7 +167,9 @@ func (c *SacctCache) WriteToCache(data *TableData, start, end time.Time, rewrite
 	// Reset the reader to reflect new file content
 	c.reader = bufio.NewReader(c.file)
 
-	logger.Debugf("sacct cache: write success (%s - %s), saved %d rows", start.Format(time.RFC3339), end.Format(time.RFC3339), len(mergedData.Rows))
+	writeTimeMs := time.Since(writeStartTime).Milliseconds()
+	logger.Debugf("sacct cache: write success (%s - %s), saved %d rows, total write time: %dms, out of which merge time: %dms",
+		start.Format(time.RFC3339), end.Format(time.RFC3339), len(mergedData.Rows), writeTimeMs, mergeTimeMs)
 
 	return nil
 }
@@ -223,6 +229,8 @@ func mergeTableData(oldData, newData *TableData) *TableData {
 }
 
 func (c *SacctCache) GetFromCache() (*TableData, error) {
+	readStartTime := time.Now()
+
 	// Reset to beginning of file
 	if _, err := c.file.Seek(0, 0); err != nil {
 		c.IsUsable = false
@@ -253,7 +261,8 @@ func (c *SacctCache) GetFromCache() (*TableData, error) {
 	c.Content = entry
 	c.IsUsable = true
 
-	logger.Debugf("sacct cache: read success (%s - %s), returned %d rows", entry.StartTime, entry.EndTime, len(entry.Data.Rows))
+	logger.Debugf("sacct cache: read success (%s - %s), returned %d rows, read time: %dms",
+		entry.StartTime, entry.EndTime, len(entry.Data.Rows), time.Since(readStartTime).Milliseconds())
 
 	return entry.Data, nil
 }

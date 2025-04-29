@@ -33,14 +33,14 @@ func RealGetSacctData(since time.Duration) (*TableData, error) {
 	)
 
 	rawOut, err := cmd.CombinedOutput()
-	execTime := time.Since(startTime)
+	execTime := time.Since(startTime).Milliseconds()
 
 	if err != nil {
-		logger.Debugf("sacct: failed after %v: %s (%v)", execTime, fullCommand, err)
+		logger.Debugf("sacct: failed after %dms: %s (%v)", execTime, fullCommand, err)
 		return nil, fmt.Errorf("sacct failed: %v\nOutput: %s", err, string(rawOut))
 	}
 
-	logger.Debugf("sacct: completed in %v: %s", execTime, fullCommand)
+	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
 	return parseSacctOutputToTableData(string(rawOut))
 }
 

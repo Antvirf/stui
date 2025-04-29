@@ -35,11 +35,11 @@ func GetSacctMgrEntityWithTimeout(entity string, timeout time.Duration) (*TableD
 		&columns,
 	)
 
-	execTime := time.Since(startTime)
+	execTime := time.Since(startTime).Milliseconds()
 	if err != nil {
-		logger.Debugf("sacctmgr: failed after %v: %s (%v)", execTime, fullCommand, err)
+		logger.Debugf("sacctmgr: failed after %dms: %s (%v)", execTime, fullCommand, err)
 	} else {
-		logger.Debugf("sacctmgr: completed in %v: %s", execTime, fullCommand)
+		logger.Debugf("sacctmgr: completed in %dms: %s", execTime, fullCommand)
 	}
 
 	return data, err
@@ -59,18 +59,18 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 	)
 	rawOut, err := cmd.CombinedOutput()
 	out := string(rawOut)
-	execTime := time.Since(startTime)
+	execTime := time.Since(startTime).Milliseconds()
 
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			logger.Debugf("sacctmgr: timed out after %v: %s", execTime, fullCommand)
+			logger.Debugf("sacctmgr: timed out after %dms: %s", execTime, fullCommand)
 			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
 		}
-		logger.Debugf("sacctmgr: failed after %v: %s (%v)", execTime, fullCommand, err)
+		logger.Debugf("sacctmgr: failed after %dms: %s (%v)", execTime, fullCommand, err)
 		return &TableData{}, fmt.Errorf("%v", out)
 	}
 
-	logger.Debugf("sacctmgr: completed in %v: %s", execTime, fullCommand)
+	logger.Debugf("sacctmgr: completed in %dms: %s", execTime, fullCommand)
 
 	rawRows := parseSacctOutput(out)
 

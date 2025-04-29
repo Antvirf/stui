@@ -26,18 +26,18 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 	)
 	rawOut, err := cmd.CombinedOutput()
 	out := string(rawOut)
-	execTime := time.Since(startTime)
+	execTime := time.Since(startTime).Milliseconds()
 
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			logger.Debugf("scontrol: timed out after %v: %s", execTime, fullCommand)
+			logger.Debugf("scontrol: timed out after %dms: %s", execTime, fullCommand)
 			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
 		}
-		logger.Debugf("scontrol: failed after %v: %s (%v)", execTime, fullCommand, err)
+		logger.Debugf("scontrol: failed after %dms: %s (%v)", execTime, fullCommand, err)
 		return &TableData{}, fmt.Errorf("%v", err)
 	}
 
-	logger.Debugf("scontrol: completed in %v: %s", execTime, fullCommand)
+	logger.Debugf("scontrol: completed in %dms: %s", execTime, fullCommand)
 
 	rawRows := parseScontrolOutput(out)
 
@@ -79,18 +79,18 @@ func GetNodeDetailsWithTimeout(nodeName string, timeout time.Duration) (string, 
 		"show", "node", nodeName,
 	)
 	out, err := cmd.Output()
-	execTime := time.Since(startTime)
+	execTime := time.Since(startTime).Milliseconds()
 
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			logger.Debugf("scontrol: timed out after %v: %s", execTime, fullCommand)
+			logger.Debugf("scontrol: timed out after %dms: %s", execTime, fullCommand)
 			return "", fmt.Errorf("timeout after %v", timeout)
 		}
-		logger.Debugf("scontrol: failed after %v: %s (%v)", execTime, fullCommand, err)
+		logger.Debugf("scontrol: failed after %dms: %s (%v)", execTime, fullCommand, err)
 		return "", fmt.Errorf("scontrol failed: %v", err)
 	}
 
-	logger.Debugf("scontrol: completed in %v: %s", execTime, fullCommand)
+	logger.Debugf("scontrol: completed in %dms: %s", execTime, fullCommand)
 	return string(out), nil
 }
 
@@ -107,18 +107,18 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 		"show", "job", jobID,
 	)
 	out, err := cmd.Output()
-	execTime := time.Since(startTime)
+	execTime := time.Since(startTime).Milliseconds()
 
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			logger.Debugf("scontrol: timed out after %v: %s", execTime, fullCommand)
+			logger.Debugf("scontrol: timed out after %dms: %s", execTime, fullCommand)
 			return "", fmt.Errorf("timeout after %v", timeout)
 		}
-		logger.Debugf("scontrol: failed after %v: %s (%v)", execTime, fullCommand, err)
+		logger.Debugf("scontrol: failed after %dms: %s (%v)", execTime, fullCommand, err)
 		return "", fmt.Errorf("scontrol failed: %v", err)
 	}
 
-	logger.Debugf("scontrol: completed in %v: %s", execTime, fullCommand)
+	logger.Debugf("scontrol: completed in %dms: %s", execTime, fullCommand)
 	return string(out), nil
 }
 
@@ -134,17 +134,17 @@ func getSdiagWithTimeout(timeout time.Duration) (string, error) {
 		path.Join(config.SlurmBinariesPath, "sdiag"),
 	)
 	out, err := cmd.Output()
-	execTime := time.Since(startTime)
+	execTime := time.Since(startTime).Milliseconds()
 
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			logger.Debugf("sdiag: timed out after %v: %s", execTime, fullCommand)
-			return "", fmt.Errorf("timeout after %v", timeout)
+			logger.Debugf("sdiag: timed out after %dms: %s", execTime, fullCommand)
+			return "", fmt.Errorf("timeout after %dms", timeout)
 		}
-		logger.Debugf("sdiag: failed after %v: %s (%v)", execTime, fullCommand, err)
+		logger.Debugf("sdiag: failed after %dms: %s (%v)", execTime, fullCommand, err)
 		return "", fmt.Errorf("sdiag failed: %v", err)
 	}
 
-	logger.Debugf("sdiag: completed in %v: %s", execTime, fullCommand)
+	logger.Debugf("sdiag: completed in %dms: %s", execTime, fullCommand)
 	return string(out), nil
 }
