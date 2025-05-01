@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3385-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3409-blue)
 ![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -83,7 +83,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -sacct-columns-config string
           comma-separated list of sacct fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown. (default "JobName,AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,ReqCPUFreqMin,ReqCPUFreqMax,ReqCPUFreqGov")
       -search-debounce-interval duration
-          interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 50ms)
+          interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 500ms)
       -show-all-columns
           if set, shows all columns for both Nodes and Jobs, overriding other specific config
       -show-keyboard-shortcuts

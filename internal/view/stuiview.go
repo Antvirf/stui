@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/antvirf/stui/internal/logger"
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -99,15 +100,47 @@ func (s *StuiView) SetSearchPattern(v string) {
 }
 
 func (s *StuiView) Render() {
+	startTime := time.Now()
 	s.data = s.provider.FilteredData(s.filter)
+	filterDataTime := time.Since(startTime).Milliseconds()
 
 	s.Table.Clear()
 
 	// Compute counts
 	totalCount := s.provider.Length()
 	filteredCount := s.data.Length()
-	if s.searchEnabled {
+
+	searchFilterTime := int64(0)
+	filteredRows := s.data.Rows
+	if s.searchEnabled && s.searchPattern != "" {
 		filteredCount = 0 // Will be updated in the filtering loop below
+		searchFilterStartTime := time.Now()
+		filteredRows = [][]string{}
+
+		pattern, err := regexp.Compile("(?i)" + regexp.QuoteMeta(s.searchPattern))
+		if err != nil {
+			s.errorNotificationFunction(fmt.Sprintf("[red]Invalid search pattern: %v[white]", err))
+		} else {
+			// Preallocate slice with reasonable capacity
+			filteredRows = make([][]string, 0, len(s.data.Rows)/2)
+
+			for _, row := range s.data.Rows {
+				// Check each column individually to avoid string concatenation when possible
+				matched := false
+				for _, cell := range row {
+					if pattern.MatchString(cell) {
+						matched = true
+						break
+					}
+				}
+
+				if matched {
+					filteredRows = append(filteredRows, row)
+					filteredCount++
+				}
+			}
+		}
+		searchFilterTime = time.Since(searchFilterStartTime).Milliseconds()
 	}
 
 	// Set headers with fixed widths and padding
@@ -127,20 +160,6 @@ func (s *StuiView) Render() {
 			SetBackgroundColor(generalBackgroundColor).
 			SetTextColor(generalTextColor).
 			SetAttributes(tcell.AttrBold))
-	}
-
-	// Filter rows if search is active
-	filteredRows := s.data.Rows
-	if s.searchEnabled {
-		filteredRows = [][]string{}
-		for _, row := range s.data.Rows {
-			// Combine the entire row into a single string for regex matching
-			rowString := strings.Join(row, " ")
-			if matched, _ := regexp.MatchString("(?i)"+s.searchPattern, rowString); matched {
-				filteredRows = append(filteredRows, row)
-				filteredCount++
-			}
-		}
 	}
 
 	// Set rows with text wrapping
@@ -194,6 +213,14 @@ func (s *StuiView) Render() {
 	} else {
 		s.errorNotificationFunction("")
 	}
+
+	execTime := time.Since(startTime).Milliseconds()
+	searchInfo := ""
+	if s.searchEnabled {
+		searchInfo = fmt.Sprintf(", search_filter=%dms", searchFilterTime)
+	}
+	logger.Debugf("%s: render completed in %dms (filter_data_time=%dms%s, rows=%d)",
+		s.titleHeader, execTime, filterDataTime, searchInfo, filteredCount)
 }
 
 func (s *StuiView) FetchAndRenderIfStale(since time.Duration) {
