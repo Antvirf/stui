@@ -48,8 +48,5 @@ func (p *SacctMgrProvider) Fetch() error {
 
 // SacctMgrProvider data does not have a categorical filter, so this just returns the current data.
 func (p *SacctMgrProvider) FilteredData(filter string) *TableData {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	data := *p.data.DeepCopy()
-	return &data
+	return p.data
 }
