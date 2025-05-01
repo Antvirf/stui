@@ -1,7 +1,9 @@
 package model
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os/exec"
 	"path"
 	"strings"
@@ -11,7 +13,7 @@ import (
 	"github.com/antvirf/stui/internal/logger"
 )
 
-func getSacctDataSince(since time.Duration) (*TableData, error) {
+func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnConfig, timeout time.Duration) (*TableData, error) {
 	startTime := time.Now()
 	FetchCounter.increment()
 
@@ -23,24 +25,26 @@ func getSacctDataSince(since time.Duration) (*TableData, error) {
 			1,
 		))
 
-	cmd := exec.Command(
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx,
 		strings.Split(fullCommand, " ")[0],
 		strings.Split(fullCommand, " ")[1:]...,
 	)
-
 	rawOut, err := cmd.CombinedOutput()
+	out := string(rawOut)
 	execTime := time.Since(startTime).Milliseconds()
 
 	if err != nil {
 		logger.Debugf("sacct: failed after %dms: %s (%v)", execTime, fullCommand, err)
-		return nil, fmt.Errorf("sacct failed: %v\nOutput: %s", err, string(rawOut))
+		log.Fatalf("sacct: timed out after %dms (its timeout setting is %d times the standard request timeout): %s", execTime, config.SacctTimeoutMultiplier, fullCommand)
 	}
 
 	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
-	return parseSacctOutputToTableData(string(rawOut))
+	return parseSacctOutputToTableData(out, columns)
 }
 
-func parseSacctOutputToTableData(output string) (*TableData, error) {
+func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig) (*TableData, error) {
 	entries := parseSacctOutput(output)
 	if len(entries) == 0 {
 		return &TableData{
@@ -49,23 +53,17 @@ func parseSacctOutputToTableData(output string) (*TableData, error) {
 		}, nil
 	}
 
-	var headers []config.ColumnConfig
-	columnConfig := strings.Split(SACCT_COLUMNS, ",")
-	for _, key := range columnConfig {
-		headers = append(headers, config.ColumnConfig{Name: key})
-	}
-
 	var rows [][]string
 	for _, entry := range entries {
-		row := make([]string, len(headers))
-		for i, col := range headers {
+		row := make([]string, len(*columns))
+		for i, col := range *columns {
 			row[i] = safeGetFromMap(entry, col.Name)
 		}
 		rows = append(rows, row)
 	}
 
 	return &TableData{
-		Headers: &headers,
+		Headers: columns,
 		Rows:    rows,
 	}, nil
 }

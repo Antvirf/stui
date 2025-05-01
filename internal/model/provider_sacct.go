@@ -2,6 +2,7 @@ package model
 
 import (
 	"strings"
+	"time"
 
 	"github.com/antvirf/stui/internal/config"
 )
@@ -19,8 +20,12 @@ func NewSacctProvider() *SacctProvider {
 }
 
 func (p *SacctProvider) Fetch() error {
-	rawData, err := getSacctDataSince(
+	rawData, err := getSacctDataSinceWithTimeout(
 		config.LoadSacctDataFrom,
+		config.SacctViewColumns,
+		time.Duration(
+			config.SacctTimeoutMultiplier*config.RequestTimeout.Milliseconds(),
+		)*time.Millisecond,
 	)
 	if err != nil {
 		p.updateError(err)

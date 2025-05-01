@@ -25,10 +25,12 @@ var (
 	ShowAllColumns         bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
-	rawNodeViewColumns string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES::20,Reason::25,Boards"
-	rawJobViewColumns  string = "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem"
-	NodeViewColumns    *[]ColumnConfig
-	JobViewColumns     *[]ColumnConfig
+	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES::20,Reason::25,Boards"
+	rawJobViewColumns   string = "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem"
+	rawSacctViewColumns string = "JobName,AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,ReqCPUFreqMin,ReqCPUFreqMax,ReqCPUFreqGov"
+	NodeViewColumns     *[]ColumnConfig
+	JobViewColumns      *[]ColumnConfig
+	SacctViewColumns    *[]ColumnConfig
 
 	// Derived config options
 	NodeStatusField string = "State"
@@ -45,6 +47,7 @@ var (
 	JobsViewColumnsStateIndex      int
 	SacctViewColumnsPartitionIndex int
 	SacctViewColumnsStateIndex     int
+	SacctTimeoutMultiplier         int64 = 5 // sacct can be slow, so we give it extra time
 
 	// Cluster information
 	ClusterName           string = "unknown"
@@ -84,8 +87,9 @@ e        Focus on Entity type selector, 'esc' to close
 `
 
 	// Below columns list fetched from Slurm 24.11.3
-	ALL_OTHER_JOB_COLUMNS  = "JobName,UserId,GroupId,MCS_label,Priority,Nice,Account,QOS,WCKey,Reason,Dependency,Requeue,Restarts,BatchFlag,Reboot,ExitCode,DerivedExitCode,RunTime,TimeLimit,TimeMin,SubmitTime,EligibleTime,AccrueTime,StartTime,EndTime,Deadline,SuspendTime,SecsPreSuspend,LastSchedEval,Scheduler,AllocNode:Sid,ReqNodeList,ExcNodeList,NodeList,NumNodes,NumCPUs,NumTasks,CPUs/Task,ReqB:S:C:T,ReqTRES,AllocTRES,Socks/Node,NtasksPerN:B:S:C,CoreSpec,MinCPUsNode,MinMemoryNode,MinTmpDiskNode,Features,DelayBoot,OverSubscribe,Contiguous,Licenses,Network,Command,WorkDir,StdErr,StdIn,StdOut,TresPerTask"
-	ALL_OTHER_NODE_COLUMNS = "CoresPerSocket,CPUAlloc,CPUEfctv,CPUTot,CPULoad,AvailableFeatures,ActiveFeatures,Gres,GresDrain,NodeAddr,NodeHostName,Port,RealMemory,AllocMem,FreeMem,Sockets,Boards,ThreadsPerCore,TmpDisk,Weight,Owner,MCS_label,BootTime,SlurmdStartTime,LastBusyTime,ResumeAfterTime,CfgTRES,AllocTRES,CurrentWatts,AveWatts"
+	ALL_OTHER_JOB_COLUMNS   = "JobName,UserId,GroupId,MCS_label,Priority,Nice,Account,QOS,WCKey,Reason,Dependency,Requeue,Restarts,BatchFlag,Reboot,ExitCode,DerivedExitCode,RunTime,TimeLimit,TimeMin,SubmitTime,EligibleTime,AccrueTime,StartTime,EndTime,Deadline,SuspendTime,SecsPreSuspend,LastSchedEval,Scheduler,AllocNode:Sid,ReqNodeList,ExcNodeList,NodeList,NumNodes,NumCPUs,NumTasks,CPUs/Task,ReqB:S:C:T,ReqTRES,AllocTRES,Socks/Node,NtasksPerN:B:S:C,CoreSpec,MinCPUsNode,MinMemoryNode,MinTmpDiskNode,Features,DelayBoot,OverSubscribe,Contiguous,Licenses,Network,Command,WorkDir,StdErr,StdIn,StdOut,TresPerTask"
+	ALL_OTHER_NODE_COLUMNS  = "CoresPerSocket,CPUAlloc,CPUEfctv,CPUTot,CPULoad,AvailableFeatures,ActiveFeatures,Gres,GresDrain,NodeAddr,NodeHostName,Port,RealMemory,AllocMem,FreeMem,Sockets,Boards,ThreadsPerCore,TmpDisk,Weight,Owner,MCS_label,BootTime,SlurmdStartTime,LastBusyTime,ResumeAfterTime,CfgTRES,AllocTRES,CurrentWatts,AveWatts"
+	ALL_OTHER_SACCT_COLUMNS = "MaxVMSize,MaxVMSizeNode,MaxVMSizeTask,AveVMSize,MaxRSS,MaxRSSNode,MaxRSSTask,AveRSS,MaxPages,MaxPagesNode,MaxPagesTask,AvePages,MinCPU,MinCPUNode,MinCPUTask,AveCPU,NTasks,AveCPUFreq,ConsumedEnergy,MaxDiskRead,MaxDiskReadNode,MaxDiskReadTask,AveDiskRead,MaxDiskWrite,MaxDiskWriteNode,MaxDiskWriteTask,AveDiskWrite,TRESUsageInAve,TRESUsageInMax,TRESUsageInMaxNode,TRESUsageInMaxTask,TRESUsageInMin,TRESUsageInMinNode,TRESUsageInMinTask,TRESUsageInTot,TRESUsageOutMax,TRESUsageOutMaxNode,TRESUsageOutMaxTask,TRESUsageOutAve,TRESUsageOutTot"
 
 	// Certain config option names are specified as vars since they are used in other places
 	CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM = "load-sacct-data-from"
@@ -106,6 +110,7 @@ func Configure() {
 	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", SlurmConfLocation, "path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set")
 	flag.StringVar(&rawNodeViewColumns, "node-columns-config", rawNodeViewColumns, "comma-separated list of scontrol fields to show in node view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown.")
 	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown.")
+	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
 	flag.IntVar(&DefaultColumnWidth, "default-column-width", DefaultColumnWidth, "minimum default width of columns in table views, if not overridden in column config")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
@@ -166,6 +171,9 @@ func ComputeConfigurations() {
 	if !strings.Contains(rawJobViewColumns, JobStatusField) {
 		JobStatusField = ""
 	}
+	if !strings.Contains(rawSacctViewColumns, JobStatusField) {
+		JobStatusField = ""
+	}
 
 	// Parse raw config entries
 	var err error
@@ -201,7 +209,20 @@ func ComputeConfigurations() {
 	JobsViewColumnsStateIndex = 2
 
 	// Sacct view
-	// Currently these fields are not configurable, and the indexes are hardcoded
-	SacctViewColumnsPartitionIndex = 3
-	SacctViewColumnsStateIndex = 4
+	// JobID must be first column, as it is unique and used for selections
+	// Partition and State are used as filters and must be included.
+	// If all columns are requested, override list here.
+	if ShowAllColumns {
+		rawSacctViewColumns = fmt.Sprintf("JobIDRaw,Partition,State,%s", ALL_OTHER_SACCT_COLUMNS)
+	} else {
+		rawSacctViewColumns = fmt.Sprintf("JobIDRaw,Partition,State,%s", rawSacctViewColumns)
+	}
+
+	SacctViewColumns, err = parseColumnConfigLine(rawSacctViewColumns)
+	if err != nil {
+		log.Fatalf("Failed to parse sacct column config: %v", err)
+	}
+	SacctViewColumnsPartitionIndex = 1
+	SacctViewColumnsStateIndex = 2
+
 }
