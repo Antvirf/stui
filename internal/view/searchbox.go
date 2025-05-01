@@ -16,14 +16,7 @@ func (a *App) SetupSearchBox() {
 		SetFieldBackgroundColor(dropdownBackgroundColor).
 		SetFieldWidth(0).
 		SetChangedFunc(func(text string) {
-			// TODO: This is really stupid! We should share the search
-			// pattern between all views, not just the one that is
-			// currently focused.
 			a.SearchPattern = strings.TrimSpace(text)
-			a.NodesView.SetSearchPattern(a.SearchPattern)
-			a.JobsView.SetSearchPattern(a.SearchPattern)
-			a.SacctMgrView.SetSearchPattern(a.SearchPattern)
-			a.SacctView.SetSearchPattern(a.SearchPattern)
 
 			// Cancel any pending updates
 			if a.searchTimer != nil {

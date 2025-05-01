@@ -18,6 +18,7 @@ func NewStuiView(
 	updateTitleFunc func(string) *tview.Box,
 	errorNotifyFunc func(string),
 	dataStateNotifyFunc func(string),
+	searchStringPointer *string,
 ) *StuiView {
 
 	view := StuiView{
@@ -26,6 +27,7 @@ func NewStuiView(
 		Selection:                     make(map[string]bool),
 		filter:                        "",
 		searchEnabled:                 false,
+		searchPattern:                 searchStringPointer,
 		updateTitleFunction:           updateTitleFunc,
 		errorNotificationFunction:     errorNotifyFunc,
 		dataStateNotificationFunction: dataStateNotifyFunc,
@@ -70,7 +72,7 @@ type StuiView struct {
 	Selection     map[string]bool
 	titleHeader   string
 	searchEnabled bool
-	searchPattern string
+	searchPattern *string // Pointer to a shared string
 
 	// Callback functions
 	updateTitleFunction           func(string) *tview.Box
@@ -95,10 +97,6 @@ func (s *StuiView) SetSearchEnabled(value bool) {
 	s.searchEnabled = value
 }
 
-func (s *StuiView) SetSearchPattern(v string) {
-	s.searchPattern = v
-}
-
 func (s *StuiView) Render() {
 	startTime := time.Now()
 	s.data = s.provider.FilteredData(s.filter)
@@ -112,12 +110,12 @@ func (s *StuiView) Render() {
 
 	searchFilterTime := int64(0)
 	filteredRows := s.data.Rows
-	if s.searchEnabled && s.searchPattern != "" {
+	if s.searchEnabled && *s.searchPattern != "" {
 		filteredCount = 0 // Will be updated in the filtering loop below
 		searchFilterStartTime := time.Now()
 		filteredRows = [][]string{}
 
-		pattern, err := regexp.Compile("(?i)" + regexp.QuoteMeta(s.searchPattern))
+		pattern, err := regexp.Compile("(?i)" + regexp.QuoteMeta(*s.searchPattern))
 		if err != nil {
 			s.errorNotificationFunction(fmt.Sprintf("[red]Invalid search pattern: %v[white]", err))
 		} else {

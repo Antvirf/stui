@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3409-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3404-blue)
 ![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -158,7 +158,6 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
 - Feat: support selection of objects without a clear ID column, such as certain `sacctmgr` data like `Event`
 - Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`
-- Refactor: Move search into a shared component that is shared/present across all table views, rather than something set at view level. First step to this is to share the searchpattern through the `config` package, rather than having each view do `SetSearchPattern` in [searchbox.go](./internal/view/searchbox.go)
 - Refactor: Providers should rely on `config` package directly. No need to pass around args such as partition filter, use it directly the same way we do with state
 - Refactor: clean up where/how commands are defined, currently has some repetition
 

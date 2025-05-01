@@ -219,6 +219,7 @@ func (a *App) SetupViews() {
 			a.PagesContainer.SetTitle,
 			a.UpdateHeaderLineTwo, // errors
 			a.UpdateHeaderLineOne, // data updates notify
+			&a.SearchPattern,      // pointer to search string
 		)
 		a.Pages.AddPage(NODES_PAGE, a.NodesView.Grid, true, true)
 	}
@@ -230,6 +231,7 @@ func (a *App) SetupViews() {
 			a.PagesContainer.SetTitle,
 			a.UpdateHeaderLineTwo, // errors
 			a.UpdateHeaderLineOne, // data updates notify
+			&a.SearchPattern,      // pointer to search string
 		)
 		a.Pages.AddPage(JOBS_PAGE, a.JobsView.Grid, true, false)
 	}
@@ -244,6 +246,7 @@ func (a *App) SetupViews() {
 			a.PagesContainer.SetTitle,
 			a.UpdateHeaderLineTwo, // errors
 			a.UpdateHeaderLineOne, // data updates notify
+			&a.SearchPattern,      // pointer to search string
 		)
 		a.Pages.AddPage(SACCTMGR_PAGE, a.SacctMgrView.Grid, true, false)
 
@@ -253,6 +256,7 @@ func (a *App) SetupViews() {
 			a.PagesContainer.SetTitle,
 			a.UpdateHeaderLineTwo, // errors
 			a.UpdateHeaderLineOne, // data updates notify
+			&a.SearchPattern,      // pointer to search string
 		)
 
 		a.Pages.AddPage(SACCT_PAGE, a.SacctView.Grid, true, false)
