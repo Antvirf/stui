@@ -55,8 +55,10 @@ func (a *App) SetupKeybinds() {
 				a.HideSearchBox()
 			}
 			a.App.SetFocus(a.NodesView.Table)
-			a.NodesView.Render()
-			go a.NodesView.FetchAndRenderIfStale(config.RefreshInterval)
+			a.PagesContainer.SetTitle(a.NodesView.titleHeader)
+			go a.App.QueueUpdateDraw(func() {
+				a.NodesView.FetchIfStaleAndRender(config.RefreshInterval)
+			})
 			return nil
 		case '2':
 			a.SwitchToPage(JOBS_PAGE)
@@ -71,8 +73,10 @@ func (a *App) SetupKeybinds() {
 				a.HideSearchBox()
 			}
 			a.App.SetFocus(a.JobsView.Table)
-			a.JobsView.Render()
-			go a.JobsView.FetchAndRenderIfStale(config.RefreshInterval)
+			a.PagesContainer.SetTitle(a.JobsView.titleHeader)
+			go a.App.QueueUpdateDraw(func() {
+				a.JobsView.FetchIfStaleAndRender(config.RefreshInterval)
+			})
 			return nil
 		case '3':
 			if config.SacctEnabled {
@@ -88,8 +92,10 @@ func (a *App) SetupKeybinds() {
 					a.HideSearchBox()
 				}
 				a.App.SetFocus(a.SacctView.Table)
-				a.SacctView.Render()
-				go a.SacctView.FetchAndRenderIfStale(config.RefreshInterval) // TODO: Figure out updates separately for job accounting
+				a.PagesContainer.SetTitle(a.SacctView.titleHeader)
+				go a.App.QueueUpdateDraw(func() {
+					a.SacctView.Render()
+				})
 			}
 			return nil
 		case '4':
@@ -103,8 +109,10 @@ func (a *App) SetupKeybinds() {
 					a.HideSearchBox()
 				}
 				a.App.SetFocus(a.SacctMgrView.Table)
-				a.SacctMgrView.Render()
-				go a.SacctMgrView.FetchAndRenderIfStale(config.RefreshInterval)
+				a.PagesContainer.SetTitle(a.SacctMgrView.titleHeader)
+				go a.App.QueueUpdateDraw(func() {
+					a.SacctMgrView.FetchIfStaleAndRender(config.RefreshInterval)
+				})
 			}
 			return nil
 		case '5':

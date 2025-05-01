@@ -20,7 +20,7 @@ run:
 	go run main.go \
 		-log-level=4 \
 		-refresh-interval 15s \
-		-request-timeout 1s \
+		-request-timeout 2s \
 		-load-sacct-data-from 48h
 
 run-with-all-columns:

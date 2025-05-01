@@ -221,9 +221,11 @@ func (s *StuiView) Render() {
 		s.titleHeader, execTime, filterDataTime, searchInfo, filteredCount)
 }
 
-func (s *StuiView) FetchAndRenderIfStale(since time.Duration) {
+func (s *StuiView) FetchIfStaleAndRender(since time.Duration) {
 	if time.Since(s.provider.LastUpdated()) > since {
 		s.FetchAndRender()
+	} else {
+		s.Render()
 	}
 }
 
