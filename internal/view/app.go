@@ -112,8 +112,6 @@ func InitializeApplication() *App {
 	go func() {
 		defer wg.Done()
 		application.SacctProvider = model.NewSacctProvider()
-		application.SacctProvider.(*model.SacctProvider).FetchToCache(config.LoadSacctCacheSince)
-		application.SacctProvider.Fetch() // Makes data available to the view
 	}()
 	go func() {
 		defer wg.Done()
@@ -332,8 +330,7 @@ func (a *App) StartRefresh() {
 					case SACCTMGR_PAGE:
 						a.SacctMgrView.FetchAndRender()
 					case SACCT_PAGE:
-						a.SacctProvider.(*model.SacctProvider).FetchToCache(config.LoadSacctCacheSince)
-						a.SacctView.FetchAndRender()
+						// No periodic refresh/render for SACCT.
 					case SDIAG_PAGE:
 						a.SdiagProvider.Fetch()
 						a.SchedView.SetText(a.SdiagProvider.Data().Data)

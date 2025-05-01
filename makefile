@@ -19,9 +19,9 @@ build: lint
 run:
 	go run main.go \
 		-log-level=4 \
-		-refresh-interval 5s \
+		-refresh-interval 15s \
 		-request-timeout 1s \
-		-load-sacct-cache-since 100h
+		-load-sacct-data-from 48h
 
 run-with-all-columns:
 	go run main.go -show-all-columns

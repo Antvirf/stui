@@ -14,7 +14,7 @@ var (
 	SearchDebounceInterval time.Duration = 50 * time.Millisecond
 	RefreshInterval        time.Duration = 60 * time.Second
 	RequestTimeout         time.Duration = 5 * time.Second
-	LoadSacctCacheSince    time.Duration = 12 * time.Hour
+	LoadSacctDataFrom      time.Duration = 12 * time.Hour
 	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = ""
 	CopyFirstColumnOnly    bool          = true
@@ -88,7 +88,7 @@ e        Focus on Entity type selector, 'esc' to close
 	ALL_OTHER_NODE_COLUMNS = "CoresPerSocket,CPUAlloc,CPUEfctv,CPUTot,CPULoad,AvailableFeatures,ActiveFeatures,Gres,GresDrain,NodeAddr,NodeHostName,Port,RealMemory,AllocMem,FreeMem,Sockets,Boards,ThreadsPerCore,TmpDisk,Weight,Owner,MCS_label,BootTime,SlurmdStartTime,LastBusyTime,ResumeAfterTime,CfgTRES,AllocTRES,CurrentWatts,AveWatts"
 
 	// Certain config option names are specified as vars since they are used in other places
-	CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE = "load-sacct-cache-since"
+	CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM = "load-sacct-data-from"
 
 	// Log levels
 	LOG_LEVEL_NONE  = 0
@@ -112,7 +112,7 @@ func Configure() {
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for both Nodes and Jobs, overriding other specific config")
 	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
-	flag.DurationVar(&LoadSacctCacheSince, CONFIG_OPTION_NAME_LOAD_SACCT_CACHE_SINCE, LoadSacctCacheSince, "load sacct data from at least this duration ago on startup (actual period may be longer if existing cache is older) specify as a duration e.g. '12h', '7d'")
+	flag.DurationVar(&LoadSacctDataFrom, CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM, LoadSacctDataFrom, "load sacct data starting from this long ago, specify as a duration, e.g. '12h', '7d'")
 
 	// One-shot-and-exit flags
 	versionFlag := flag.Bool("version", false, "print version information and exit")

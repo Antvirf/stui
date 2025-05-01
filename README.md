@@ -1,8 +1,8 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4472-blue)
-![size](https://img.shields.io/badge/binary%20size-4%2E0M-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3363-blue)
+![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
 
@@ -12,7 +12,7 @@
 - View individual node details (`scontrol show node` equivalent)
 - View individual job details (`scontrol show job` equivalent)
 - Show `sdiag` output for scheduler diagnostics
-- (if Slurm accounting is enabled) Explore historical job accounting from `sacct` tables, search across rows with regular expressions, filtering by partition and state
+- (if Slurm accounting is enabled) Explore historical job accounting from `sacct` tables, search across rows with regular expressions, filtering by partition and state. This view is not refreshed automatically.
 - (if Slurm accounting is enabled) Explore `sacctmgr` tables, search across rows with regular expressions
 - Configure table views with specific columns/content of your choice
 - Optimized to minimize load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute after initial startup.
@@ -68,8 +68,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
           minimum default width of columns in table views, if not overridden in column config (default 2)
       -job-columns-config string
           comma-separated list of scontrol fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem")
-      -load-sacct-cache-since duration
-          load sacct data from at least this duration ago on startup (actual period may be longer if existing cache is older) specify as a duration e.g. '12h', '7d' (default 12h0m0s)
+      -load-sacct-data-from duration
+          load sacct data starting from this long ago, specify as a duration, e.g. '12h', '7d' (default 12h0m0s)
       -log-level int
           log level, 0=none, 1=error, 2=info, 3=debug (default 2)
       -node-columns-config string
@@ -181,13 +181,3 @@ Which is in contrast to other existing projects:
 ### Strange colors on tmux
 
 This is likely the result of `tmux` defaulting to a different colour mode than the terminal emulator being used to run it is expecting. You can usually fix this by adding `export TERM=screen-256color` to your shell RC files.
-
-### How do I identify which cache file belongs to which cluster?
-
-The `stui` cache files are stored in `~/.cache/` with names like `stui_sacct_cache_<encoded_cluster_name>.gob`. The cluster name is hex-encoded, and can be decoded with `xxd`;
-
-```bash
-# For a cache file named stui_sacct_cache_737475692d746573742d636c7573746572.gob
-echo "737475692d746573742d636c7573746572" | xxd -r -p
-# Output: stui-test-cluster
-```

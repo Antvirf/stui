@@ -11,11 +11,7 @@ import (
 	"github.com/antvirf/stui/internal/logger"
 )
 
-// GetSacctDataFunc is the function signature for getting sacct data
-type GetSacctDataFunc func(since time.Duration) (*TableData, error)
-
-// RealGetSacctData is the actual implementation of GetSacctData
-func RealGetSacctData(since time.Duration) (*TableData, error) {
+func getSacctDataSince(since time.Duration) (*TableData, error) {
 	startTime := time.Now()
 	FetchCounter.increment()
 
@@ -43,10 +39,6 @@ func RealGetSacctData(since time.Duration) (*TableData, error) {
 	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
 	return parseSacctOutputToTableData(string(rawOut))
 }
-
-// GetSacctData is a variable that points to the function to use for getting sacct data.
-// This allows us to mock it in tests.
-var GetSacctData GetSacctDataFunc = RealGetSacctData
 
 func parseSacctOutputToTableData(output string) (*TableData, error) {
 	entries := parseSacctOutput(output)
