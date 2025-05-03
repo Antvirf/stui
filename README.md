@@ -69,7 +69,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -job-columns-config string
           comma-separated list of scontrol fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem")
       -load-sacct-data-from duration
-          load sacct data starting from this long ago, specify as a duration, e.g. '12h', '7d' (default 12h0m0s)
+          load sacct data starting from this long ago, specify as a duration, e.g. '12h', '7d' (default 1h0m0s)
       -log-level int
           log level, 0=none, 1=error, 2=info, 3=debug (default 2)
       -node-columns-config string

@@ -14,7 +14,7 @@ var (
 	SearchDebounceInterval time.Duration = 500 * time.Millisecond
 	RefreshInterval        time.Duration = 60 * time.Second
 	RequestTimeout         time.Duration = 5 * time.Second
-	LoadSacctDataFrom      time.Duration = 12 * time.Hour
+	LoadSacctDataFrom      time.Duration = 1 * time.Hour
 	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = ""
 	CopyFirstColumnOnly    bool          = true
