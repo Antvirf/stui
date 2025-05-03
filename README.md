@@ -145,16 +145,16 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 
 ## To-do / roadmap
 
-- Feat: `sacct` detail view for a job
-- Feat: Summary stats in top middle pane: Node and job states
 - Feat: Sorting: Ctrl+s, open a pane to select one of the visible columns
+- Refactor: Providers should rely on `config` package directly. No need to pass around args such as partition filter, use it directly the same way we do with state
+- Feat: `sstat` option for running jobs (returns tabular data, tbc how to do that nicely)
+- Feat: Summary stats in top middle pane: Node and job states
 - Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
 - Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: Config option for which view to start app in
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
 - Feat: support selection of objects without a clear ID column, such as certain `sacctmgr` data like `Event`
 - Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`
-- Refactor: Providers should rely on `config` package directly. No need to pass around args such as partition filter, use it directly the same way we do with state
 - Refactor: clean up where/how commands are defined, currently has some repetition
 
 ## Alternatives and why this project exists
