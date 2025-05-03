@@ -27,10 +27,11 @@ var (
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
 	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES::20,Reason::25,Boards"
 	rawJobViewColumns   string = "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem"
-	rawSacctViewColumns string = "JobName,AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,ReqCPUFreqMin,ReqCPUFreqMax,ReqCPUFreqGov"
-	NodeViewColumns     *[]ColumnConfig
-	JobViewColumns      *[]ColumnConfig
-	SacctViewColumns    *[]ColumnConfig
+	rawSacctViewColumns string = "QOS::7,Account::10,User::10,JobName::25,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,Comment,SubmitLine"
+
+	NodeViewColumns  *[]ColumnConfig
+	JobViewColumns   *[]ColumnConfig
+	SacctViewColumns *[]ColumnConfig
 
 	// Derived config options
 	NodeStatusField string = "State"
@@ -86,10 +87,13 @@ Additional shortcuts in Accounting Manager view
 e        Focus on Entity type selector, 'esc' to close
 `
 
-	// Below columns list fetched from Slurm 24.11.3
-	ALL_OTHER_JOB_COLUMNS   = "JobName,UserId,GroupId,MCS_label,Priority,Nice,Account,QOS,WCKey,Reason,Dependency,Requeue,Restarts,BatchFlag,Reboot,ExitCode,DerivedExitCode,RunTime,TimeLimit,TimeMin,SubmitTime,EligibleTime,AccrueTime,StartTime,EndTime,Deadline,SuspendTime,SecsPreSuspend,LastSchedEval,Scheduler,AllocNode:Sid,ReqNodeList,ExcNodeList,NodeList,NumNodes,NumCPUs,NumTasks,CPUs/Task,ReqB:S:C:T,ReqTRES,AllocTRES,Socks/Node,NtasksPerN:B:S:C,CoreSpec,MinCPUsNode,MinMemoryNode,MinTmpDiskNode,Features,DelayBoot,OverSubscribe,Contiguous,Licenses,Network,Command,WorkDir,StdErr,StdIn,StdOut,TresPerTask"
-	ALL_OTHER_NODE_COLUMNS  = "CoresPerSocket,CPUAlloc,CPUEfctv,CPUTot,CPULoad,AvailableFeatures,ActiveFeatures,Gres,GresDrain,NodeAddr,NodeHostName,Port,RealMemory,AllocMem,FreeMem,Sockets,Boards,ThreadsPerCore,TmpDisk,Weight,Owner,MCS_label,BootTime,SlurmdStartTime,LastBusyTime,ResumeAfterTime,CfgTRES,AllocTRES,CurrentWatts,AveWatts"
-	ALL_OTHER_SACCT_COLUMNS = "MaxVMSize,MaxVMSizeNode,MaxVMSizeTask,AveVMSize,MaxRSS,MaxRSSNode,MaxRSSTask,AveRSS,MaxPages,MaxPagesNode,MaxPagesTask,AvePages,MinCPU,MinCPUNode,MinCPUTask,AveCPU,NTasks,AveCPUFreq,ConsumedEnergy,MaxDiskRead,MaxDiskReadNode,MaxDiskReadTask,AveDiskRead,MaxDiskWrite,MaxDiskWriteNode,MaxDiskWriteTask,AveDiskWrite,TRESUsageInAve,TRESUsageInMax,TRESUsageInMaxNode,TRESUsageInMaxTask,TRESUsageInMin,TRESUsageInMinNode,TRESUsageInMinTask,TRESUsageInTot,TRESUsageOutMax,TRESUsageOutMaxNode,TRESUsageOutMaxTask,TRESUsageOutAve,TRESUsageOutTot"
+	// Below columns list fetched from Slurm 24.11.3, and are the defaults output by `scontrol` with `--details`
+	ALL_OTHER_JOB_COLUMNS  = "JobName,UserId,GroupId,MCS_label,Priority,Nice,Account,QOS,WCKey,Reason,Dependency,Requeue,Restarts,BatchFlag,Reboot,ExitCode,DerivedExitCode,RunTime,TimeLimit,TimeMin,SubmitTime,EligibleTime,AccrueTime,StartTime,EndTime,Deadline,SuspendTime,SecsPreSuspend,LastSchedEval,Scheduler,AllocNode:Sid,ReqNodeList,ExcNodeList,NodeList,NumNodes,NumCPUs,NumTasks,CPUs/Task,ReqB:S:C:T,ReqTRES,AllocTRES,Socks/Node,NtasksPerN:B:S:C,CoreSpec,MinCPUsNode,MinMemoryNode,MinTmpDiskNode,Features,DelayBoot,OverSubscribe,Contiguous,Licenses,Network,Command,WorkDir,StdErr,StdIn,StdOut,TresPerTask"
+	ALL_OTHER_NODE_COLUMNS = "CoresPerSocket,CPUAlloc,CPUEfctv,CPUTot,CPULoad,AvailableFeatures,ActiveFeatures,Gres,GresDrain,NodeAddr,NodeHostName,Port,RealMemory,AllocMem,FreeMem,Sockets,Boards,ThreadsPerCore,TmpDisk,Weight,Owner,MCS_label,BootTime,SlurmdStartTime,LastBusyTime,ResumeAfterTime,CfgTRES,AllocTRES,CurrentWatts,AveWatts"
+
+	// Full list can be exported with from `sacct --helpformat | tr -s ' \n' ','`
+	// The column below is a subset that excludes the fields that are always shown.
+	ALL_OTHER_SACCT_COLUMNS = "AdminComment,AllocNodes,AssocID,AveCPU,AveCPUFreq,AveDiskRead,AveDiskWrite,AvePages,AveRSS,AveVMSize,BlockID,CPUTime,CPUTimeRAW,Cluster,Constraints,ConsumedEnergy,ConsumedEnergyRaw,Container,DBIndex,DerivedExitCode,ElapsedRaw,Eligible,End,Extra,FailedNode,Flags,GID,Group,JobID,Layout,Licenses,MaxDiskRead,MaxDiskReadNode,MaxDiskReadTask,MaxDiskWrite,MaxDiskWriteNode,MaxDiskWriteTask,MaxPages,MaxPagesNode,MaxPagesTask,MaxRSS,MaxRSSNode,MaxRSSTask,MaxVMSize,MaxVMSizeNode,MaxVMSizeTask,McsLabel,MinCPU,MinCPUNode,MinCPUTask,NCPUS,NNodes,NTasks,Planned,PlannedCPU,PlannedCPURAW,Priority,QOSRAW,QOSREQ,Reason,ReqCPUFreq,ReqCPUFreqGov,ReqCPUFreqMax,ReqCPUFreqMin,ReqNodes,Reservation,ReservationId,Restarts,SLUID,Start,StdErr,StdIn,StdOut,Submit,Suspended,SystemCPU,SystemComment,TRESUsageInAve,TRESUsageInMax,TRESUsageInMaxNode,TRESUsageInMaxTask,TRESUsageInMin,TRESUsageInMinNode,TRESUsageInMinTask,TRESUsageInTot,TRESUsageOutAve,TRESUsageOutMax,TRESUsageOutMaxNode,TRESUsageOutMaxTask,TRESUsageOutMin,TRESUsageOutMinNode,TRESUsageOutMinTask,TRESUsageOutTot,Timelimit,TimelimitRaw,TotalCPU,UID,UserCPU,WCKey,WCKeyID,WorkDir"
 
 	// Certain config option names are specified as vars since they are used in other places
 	CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM = "load-sacct-data-from"

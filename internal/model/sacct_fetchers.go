@@ -17,13 +17,15 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	startTime := time.Now()
 	FetchCounter.increment()
 
-	fullCommand := fmt.Sprintf("%s --allusers --long --allocations --parsable2 --starttime=now-%d",
+	fullCommand := fmt.Sprintf("%s --allusers --allocations --parsable2 --starttime=now-%d --format %s",
 		path.Join(config.SlurmBinariesPath, "sacct"),
 		max(
 			int(config.RefreshInterval.Seconds()),
 			int(since.Seconds()),
 			1,
-		))
+		),
+		strings.Join(config.GetColumnFields(columns), ","),
+	)
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -43,7 +45,6 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
 	return parseSacctOutputToTableData(out, columns)
 }
-
 func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig) (*TableData, error) {
 	entries := parseSacctOutput(output)
 	if len(entries) == 0 {
@@ -57,7 +58,20 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig) 
 	for _, entry := range entries {
 		row := make([]string, len(*columns))
 		for i, col := range *columns {
-			row[i] = safeGetFromMap(entry, col.Name)
+			// Check if it's a combined column
+			if strings.Contains(col.Name, "//") {
+				parts := strings.Split(col.Name, "//")
+				combinedValue := ""
+				for j, part := range parts {
+					if j > 0 {
+						combinedValue += " / "
+					}
+					combinedValue += safeGetFromMap(entry, part)
+				}
+				row[i] = combinedValue
+			} else {
+				row[i] = safeGetFromMap(entry, col.Name)
+			}
 		}
 		rows = append(rows, row)
 	}

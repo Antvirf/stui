@@ -19,6 +19,19 @@ func GetColumnNames(columnConfigs *[]ColumnConfig) (columns []string) {
 	return
 }
 
+// Get column fields returns the full expanded list of field names that
+// can be used in the --format argument sacct
+func GetColumnFields(columnConfigs *[]ColumnConfig) (columns []string) {
+	for _, col := range *columnConfigs {
+		if col.DividedByColumn {
+			columns = append(columns, strings.Split(col.Name, "//")...)
+		} else {
+			columns = append(columns, col.Name)
+		}
+	}
+	return
+}
+
 func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 	if input == "" {
 		return nil, errors.New("cannot parse empty column config")
