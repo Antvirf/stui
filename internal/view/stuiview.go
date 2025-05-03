@@ -141,7 +141,6 @@ func (s *StuiView) Render() {
 		searchFilterTime = time.Since(searchFilterStartTime).Milliseconds()
 	}
 
-	// Set headers with fixed widths and padding
 	for col, header := range *s.data.Headers {
 
 		// If header is a divided type, clean it up
@@ -151,8 +150,7 @@ func (s *StuiView) Render() {
 		}
 
 		// Pad header with spaces to maintain width
-		paddedHeader := fmt.Sprintf("%-*s", header.Width, headerName)
-		s.Table.SetCell(0, col, tview.NewTableCell(paddedHeader).
+		s.Table.SetCell(0, col, tview.NewTableCell(headerName).
 			SetSelectable(false).
 			SetAlign(tview.AlignLeft).
 			SetBackgroundColor(generalBackgroundColor).
@@ -165,7 +163,7 @@ func (s *StuiView) Render() {
 		for col, cell := range rowData {
 			cellView := tview.NewTableCell(cell).
 				SetAlign(tview.AlignLeft).
-				SetMaxWidth((*s.data.Headers)[col].Width).
+				SetMaxWidth(0).
 				SetExpansion(1)
 
 			// Highlight selected rows
@@ -179,13 +177,13 @@ func (s *StuiView) Render() {
 		}
 	}
 
-	// If no rows, set empty cells with spaces to maintain column widths
+	// If no rows, set empty cells with spaces to maintain a nice looking column structure
 	if len(filteredRows) == 0 {
-		for col, header := range *s.data.Headers {
-			spaces := strings.Repeat(" ", header.Width)
+		for col, _ := range *s.data.Headers {
+			spaces := strings.Repeat(" ", 1)
 			s.Table.SetCell(1, col, tview.NewTableCell(spaces).
 				SetAlign(tview.AlignLeft).
-				SetMaxWidth(header.Width).
+				SetMaxWidth(0).
 				SetExpansion(1))
 		}
 	}

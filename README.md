@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3445-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3426-blue)
 ![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -64,16 +64,14 @@ sudo mv ~/go/bin/stui /usr/local/bin
           string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
           if true, only copy the first column of the table to clipboard when copying (default true)
-      -default-column-width int
-          minimum default width of columns in table views, if not overridden in column config (default 2)
       -job-columns-config string
-          comma-separated list of scontrol fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem")
+          comma-separated list of scontrol fields to show in job view, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName,RunTime,NodeList,QOS,NumCPUs,Mem")
       -load-sacct-data-from duration
           load sacct data starting from this long ago, specify as a duration, e.g. '12h', '7d' (default 1h0m0s)
       -log-level int
           log level, 0=none, 1=error, 2=info, 3=debug (default 2)
       -node-columns-config string
-          comma-separated list of scontrol fields to show in node view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES::20,Reason::25,Boards")
+          comma-separated list of scontrol fields to show in node view, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES,Reason,Boards")
       -partition string
           limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
@@ -81,11 +79,9 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -request-timeout duration
           timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 5s)
       -sacct-columns-config string
-          comma-separated list of sacct fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown. (default "QOS::7,Account::10,User::10,JobName::25,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,Comment,SubmitLine")
-      -search-debounce-interval duration
-          interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m' (default 500ms)
+          comma-separated list of sacct fields to show in job view, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown. (default "QOS,Account,User,JobName,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,Comment,SubmitLine")
       -show-all-columns
-          if set, shows all columns for both Nodes and Jobs, overriding other specific config
+          if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config
       -show-keyboard-shortcuts
           print keyboard shortcuts and exit
       -slurm-binaries-path string
@@ -101,7 +97,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
 
     <!-- REPLACE_SHORTCUTS_START -->
     ```txt
-    General Shortcuts
+    GENERAL SHORTCUTS
     1        Switch to Nodes view (scontrol)
     2        Switch to Jobs view (scontrol)
     3        Switch to Jobs accounting view (sacct)
@@ -113,7 +109,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ?        Show this help
     Ctrl+C   Exit
     
-    Shortcuts in Job/Node view
+    SHORTCUTS IN JOB/NODE VIEW
     /        Open search bar to filter rows by regex, 'esc' to close, 'enter' to go back to table
     p        Focus on partition selector, 'esc' to close
     s        Focus on state selector, 'esc' to close
@@ -123,10 +119,10 @@ sudo mv ~/go/bin/stui /usr/local/bin
     Enter    Show details for selected row
     Esc      Close modal
     
-    Additional shortcuts in Jobs view
+    ADDITIONAL SHORTCUTS IN JOBS VIEW (SCONTROL)
     Ctrl+D   Open 'scancel' prompt for selected jobs, or current row if no selection
     
-    Additional shortcuts in Accounting Manager view
+    ADDITIONAL SHORTCUTS IN ACCOUNTING MANAGER VIEW (SACCTMGR)
     e        Focus on Entity type selector, 'esc' to close
     ```
     <!-- REPLACE_SHORTCUTS_END -->

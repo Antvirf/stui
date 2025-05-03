@@ -2,13 +2,11 @@ package config
 
 import (
 	"errors"
-	"strconv"
 	"strings"
 )
 
 type ColumnConfig struct {
 	Name            string
-	Width           int
 	DividedByColumn bool
 }
 
@@ -42,22 +40,7 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 
 	for _, part := range parts {
 		col := ColumnConfig{DividedByColumn: false}
-
-		if strings.Contains(part, "::") {
-			subParts := strings.Split(part, "::")
-			if len(subParts) != 2 {
-				return nil, errors.New("invalid column format: " + part)
-			}
-			col.Name = subParts[0]
-			width, err := strconv.Atoi(subParts[1])
-			if err != nil {
-				return nil, errors.New("invalid width value: " + subParts[1])
-			}
-			col.Width = width
-		} else {
-			col.Name = part
-			col.Width = DefaultColumnWidth
-		}
+		col.Name = strings.TrimSpace(part)
 
 		// Check if column contains '/', in which case it is a DividedByColumn
 		if strings.Contains(part, "//") {

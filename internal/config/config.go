@@ -20,14 +20,13 @@ var (
 	CopyFirstColumnOnly    bool          = true
 	CopiedLinesSeparator   string        = "\n"
 	PartitionFilter        string        = ""
-	DefaultColumnWidth     int           = 2
 	LogLevel               int           = 2
 	ShowAllColumns         bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
-	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES::20,Reason::25,Boards"
-	rawJobViewColumns   string = "UserId,JobName::25,RunTime,NodeList,QOS,NumCPUs,Mem"
-	rawSacctViewColumns string = "QOS::7,Account::10,User::10,JobName::25,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,Comment,SubmitLine"
+	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES,Reason,Boards"
+	rawJobViewColumns   string = "UserId,JobName,RunTime,NodeList,QOS,NumCPUs,Mem"
+	rawSacctViewColumns string = "QOS,Account,User,JobName,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,Comment,SubmitLine"
 
 	NodeViewColumns  *[]ColumnConfig
 	JobViewColumns   *[]ColumnConfig
@@ -58,7 +57,7 @@ var (
 
 const (
 	STUI_VERSION       = "0.4.0"
-	KEYBOARD_SHORTCUTS = `General Shortcuts
+	KEYBOARD_SHORTCUTS = `GENERAL SHORTCUTS
 1        Switch to Nodes view (scontrol)
 2        Switch to Jobs view (scontrol)
 3        Switch to Jobs accounting view (sacct)
@@ -70,7 +69,7 @@ Arrows   Scroll up/down/left/right in table view
 ?        Show this help
 Ctrl+C   Exit
 
-Shortcuts in Job/Node view
+SHORTCUTS IN JOB/NODE VIEW
 /        Open search bar to filter rows by regex, 'esc' to close, 'enter' to go back to table
 p        Focus on partition selector, 'esc' to close
 s        Focus on state selector, 'esc' to close
@@ -80,10 +79,10 @@ c        Open 'scontrol' prompt for selected items, or current row if no selecti
 Enter    Show details for selected row
 Esc      Close modal
 
-Additional shortcuts in Jobs view
+ADDITIONAL SHORTCUTS IN JOBS VIEW (SCONTROL)
 Ctrl+D   Open 'scancel' prompt for selected jobs, or current row if no selection
 
-Additional shortcuts in Accounting Manager view
+ADDITIONAL SHORTCUTS IN ACCOUNTING MANAGER VIEW (SACCTMGR)
 e        Focus on Entity type selector, 'esc' to close
 `
 
@@ -107,21 +106,22 @@ e        Focus on Entity type selector, 'esc' to close
 
 func Configure() {
 	// Config flags
-	flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.DurationVar(&RefreshInterval, "refresh-interval", RefreshInterval, "interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.DurationVar(&RequestTimeout, "request-timeout", RequestTimeout, "timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", SlurmBinariesPath, "path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH")
 	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", SlurmConfLocation, "path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set")
-	flag.StringVar(&rawNodeViewColumns, "node-columns-config", rawNodeViewColumns, "comma-separated list of scontrol fields to show in node view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown.")
-	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown.")
-	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, suffix field name with '::<width>' to set column width, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
-	flag.IntVar(&DefaultColumnWidth, "default-column-width", DefaultColumnWidth, "minimum default width of columns in table views, if not overridden in column config")
+	flag.StringVar(&rawNodeViewColumns, "node-columns-config", rawNodeViewColumns, "comma-separated list of scontrol fields to show in node view, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown.")
+	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown.")
+	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
-	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for both Nodes and Jobs, overriding other specific config")
+	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config")
 	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
 	flag.DurationVar(&LoadSacctDataFrom, CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM, LoadSacctDataFrom, "load sacct data starting from this long ago, specify as a duration, e.g. '12h', '7d'")
+
+	// Config flags that have been deprecated from user config
+	// flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
 
 	// One-shot-and-exit flags
 	versionFlag := flag.Bool("version", false, "print version information and exit")
