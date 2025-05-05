@@ -145,8 +145,9 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 
 ## To-do / roadmap
 
-- Feat: Sorting: Ctrl+s, open a pane to select one of the visible columns
 - Refactor: Providers should rely on `config` package directly. No need to pass around args such as partition filter, use it directly the same way we do with state
+- Feat: `sacct` view further features: ability to search for jobs beyond currently loaded data, and/or ability to change time range within the view itself
+- Feat: Sorting: Ctrl+s, open a pane to select one of the visible columns
 - Feat: `sstat` option for running jobs (returns tabular data, tbc how to do that nicely)
 - Feat: Summary stats in top middle pane: Node and job states
 - Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
