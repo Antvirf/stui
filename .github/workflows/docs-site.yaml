@@ -3,6 +3,8 @@ name: Deploy Docs site to GH pages
 on:
   push:
     branches: ["main"]
+    paths:
+      - "docs/**" # Only trigger when files in the docs directory change
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
