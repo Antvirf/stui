@@ -39,8 +39,8 @@ var (
 
 	// Internal configs
 	SacctMgrCurrentEntity          string = "Account" // Default starting point
-	NodeStateCurrentChoice         string = "(all)"
-	JobStateCurrentChoice          string = "(all)"
+	NodeStateCurrentChoice         string = ALL_CATEGORIES_OPTION
+	JobStateCurrentChoice          string = ALL_CATEGORIES_OPTION
 	NodeViewColumnsPartitionIndex  int
 	NodeViewColumnsStateIndex      int
 	JobsViewColumnsPartitionIndex  int
@@ -102,6 +102,9 @@ e        Focus on Entity type selector, 'esc' to close
 	LOG_LEVEL_ERROR = 1
 	LOG_LEVEL_INFO  = 2
 	LOG_LEVEL_DEBUG = 3
+
+	// Misc
+	ALL_CATEGORIES_OPTION = "(all)"
 )
 
 func Configure() {
@@ -229,4 +232,8 @@ func ComputeConfigurations() {
 	SacctViewColumnsPartitionIndex = 1
 	SacctViewColumnsStateIndex = 2
 
+	// Standardise partition filter
+	if PartitionFilter == "" {
+		PartitionFilter = ALL_CATEGORIES_OPTION
+	}
 }

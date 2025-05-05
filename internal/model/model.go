@@ -75,3 +75,26 @@ func init() {
 	// config initialization.
 	FetchCounter.increment()
 }
+
+// Applies a list of given filters to the data
+func (t *TableData) ApplyFilters(filters map[int]string) *TableData {
+	data := t.DeepCopy()
+
+	var rows [][]string
+rowLoop:
+	for _, row := range data.Rows {
+		for filterKey, filterValue := range filters {
+			if filterValue != config.ALL_CATEGORIES_OPTION {
+				if !strings.Contains(row[filterKey], filterValue) {
+					continue rowLoop
+				}
+			}
+		}
+		rows = append(rows, row)
+	}
+
+	return &TableData{
+		Headers: data.Headers,
+		Rows:    rows,
+	}
+}

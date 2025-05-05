@@ -29,7 +29,7 @@ func (p *SdiagProvider) Fetch() error {
 }
 
 // SdiagProvider data does not have a categorical filter, so this just returns the current data.
-func (p *SdiagProvider) FilteredData(filter string) *TextData {
+func (p *SdiagProvider) FilteredData() *TextData {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	data := *p.data.DeepCopy()

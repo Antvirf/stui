@@ -36,7 +36,8 @@ func TestNodesProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			data := provider.FilteredData(tt.partitionFilter)
+			config.PartitionFilter = tt.partitionFilter
+			data := provider.FilteredData()
 			assert.Equal(t, tt.expectedCount, len(data.Rows))
 			assert.Equal(t, *config.NodeViewColumns, *data.Headers)
 
@@ -50,7 +51,8 @@ func TestNodesProvider(t *testing.T) {
 func TestJobsProvider(t *testing.T) {
 	provider := NewJobsProvider()
 
-	data := provider.FilteredData("")
+	config.PartitionFilter = config.ALL_CATEGORIES_OPTION
+	data := provider.FilteredData()
 	assert.Greater(t, len(data.Rows), 0, "Expected at least one job")
 	assert.Equal(t, *config.JobViewColumns, *data.Headers)
 
@@ -64,7 +66,7 @@ func TestJobsProvider(t *testing.T) {
 func TestPartitionsProvider(t *testing.T) {
 	provider := NewPartitionsProvider()
 
-	data := provider.FilteredData("")
+	data := provider.FilteredData()
 	assert.Equal(t, 7, len(data.Rows))
 	assert.Equal(t, "general", data.Rows[0][0])
 	assert.Equal(t, "chemistry", data.Rows[1][0])

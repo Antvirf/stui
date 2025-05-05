@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// safeGetFromMap
+// safeGetFromMap retrieves a value from a map by key, returning an empty string if the key does not exist
 func safeGetFromMap(input map[string]string, key string) string {
 	value, exists := input[key]
 	if exists {

@@ -1,8 +1,6 @@
 package model
 
 import (
-	"strings"
-
 	"github.com/antvirf/stui/internal/config"
 )
 
@@ -33,31 +31,13 @@ func (p *NodesProvider) Fetch() error {
 	return nil
 }
 
-func (p *NodesProvider) FilteredData(filter string) *TableData {
+func (p *NodesProvider) FilteredData() *TableData {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	data := *p.data.DeepCopy()
-
-	var rows [][]string
-	for _, row := range data.Rows {
-		// Ignore row if partition filter doesn't match
-		if filter != "" {
-			if !strings.Contains(row[config.NodeViewColumnsPartitionIndex], filter) {
-				continue
-			}
-		}
-
-		// Ignore row if state filter doesn't match
-		if config.NodeStateCurrentChoice != "(all)" {
-			if !strings.Contains(row[config.NodeViewColumnsStateIndex], config.NodeStateCurrentChoice) {
-				continue
-			}
-		}
-		rows = append(rows, row)
-	}
-
-	return &TableData{
-		Headers: data.Headers,
-		Rows:    rows,
-	}
+	return p.data.ApplyFilters(
+		map[int]string{
+			config.NodeViewColumnsStateIndex:     config.NodeStateCurrentChoice,
+			config.NodeViewColumnsPartitionIndex: config.PartitionFilter,
+		},
+	)
 }

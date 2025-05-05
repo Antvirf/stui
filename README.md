@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3426-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3383-blue)
 ![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -145,7 +145,6 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 
 ## To-do / roadmap
 
-- Refactor: Providers should rely on `config` package directly. No need to pass around args such as partition filter, use it directly the same way we do with state
 - Feat: `sacct` view further features: ability to search for jobs beyond currently loaded data, and/or ability to change time range within the view itself
 - Feat: Sorting: Ctrl+s, open a pane to select one of the visible columns
 - Feat: `sstat` option for running jobs (returns tabular data, tbc how to do that nicely)

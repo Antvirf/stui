@@ -99,7 +99,7 @@ func (s *StuiView) SetSearchEnabled(value bool) {
 
 func (s *StuiView) Render() {
 	startTime := time.Now()
-	s.data = s.provider.FilteredData(s.filter)
+	s.data = s.provider.FilteredData()
 	filterDataTime := time.Since(startTime).Milliseconds()
 
 	s.Table.Clear()

@@ -46,7 +46,7 @@ func (p *SacctMgrProvider) Fetch() error {
 	return nil
 }
 
-// SacctMgrProvider data does not have a categorical filter, so this just returns the current data.
-func (p *SacctMgrProvider) FilteredData(filter string) *TableData {
+// SacctMgrProvider data does not have any categorical filters, so this just returns the current data.
+func (p *SacctMgrProvider) FilteredData() *TableData {
 	return p.data
 }

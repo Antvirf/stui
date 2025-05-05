@@ -9,10 +9,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-const (
-	ALL_PARTITIONS_OPTION = "(all)"
-)
-
 func (a *App) SetupPartitionSelector() {
 	// Partition selector
 	a.PartitionSelector = tview.NewDropDown().
@@ -41,8 +37,8 @@ func (a *App) setupPartitionSelectorOptions() {
 	for index, partition := range a.PartitionsData.Rows {
 		if index == 0 {
 			a.PartitionSelector.AddOption(
-				ALL_PARTITIONS_OPTION,
-				a.applyPartitionSelector(ALL_PARTITIONS_OPTION),
+				config.ALL_CATEGORIES_OPTION,
+				a.applyPartitionSelector(config.ALL_CATEGORIES_OPTION),
 			)
 		}
 
@@ -54,7 +50,7 @@ func (a *App) setupPartitionSelectorOptions() {
 	}
 
 	// Set selected option at start
-	if config.PartitionFilter == "" {
+	if config.PartitionFilter == config.ALL_CATEGORIES_OPTION {
 		a.PartitionSelector.SetCurrentOption(0)
 	} else {
 		found := false
@@ -71,15 +67,15 @@ func (a *App) setupPartitionSelectorOptions() {
 				2*time.Second,
 			)
 			a.PartitionSelector.SetCurrentOption(0)
-			config.PartitionFilter = ""
+			config.PartitionFilter = config.ALL_CATEGORIES_OPTION
 		}
 	}
 }
 
 func (a *App) applyPartitionSelector(partition string) func() {
 	return func() {
-		if partition == ALL_PARTITIONS_OPTION {
-			config.PartitionFilter = ""
+		if partition == config.ALL_CATEGORIES_OPTION {
+			config.PartitionFilter = config.ALL_CATEGORIES_OPTION
 		} else {
 			config.PartitionFilter = partition
 		}

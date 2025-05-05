@@ -16,7 +16,7 @@ type DataProvider[T DataInterface[T]] interface {
 	Length() int
 	Fetch() error
 	Data() T
-	FilteredData(string) T
+	FilteredData() T
 	LastUpdated() time.Time
 	LastError() error
 }

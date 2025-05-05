@@ -1,7 +1,6 @@
 package model
 
 import (
-	"strings"
 	"time"
 
 	"github.com/antvirf/stui/internal/config"
@@ -36,31 +35,13 @@ func (p *SacctProvider) Fetch() error {
 	return nil
 }
 
-func (p *SacctProvider) FilteredData(filter string) *TableData {
+func (p *SacctProvider) FilteredData() *TableData {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	data := *p.data.DeepCopy()
-
-	var rows [][]string
-	for _, row := range data.Rows {
-		// Ignore row if partition filter doesn't match
-		if filter != "" {
-			if !strings.Contains(row[config.SacctViewColumnsPartitionIndex], filter) {
-				continue
-			}
-		}
-
-		// Ignore row if state filter doesn't match
-		if config.JobStateCurrentChoice != "(all)" {
-			if !strings.Contains(row[config.SacctViewColumnsStateIndex], config.JobStateCurrentChoice) {
-				continue
-			}
-		}
-		rows = append(rows, row)
-	}
-
-	return &TableData{
-		Headers: data.Headers,
-		Rows:    rows,
-	}
+	return p.data.ApplyFilters(
+		map[int]string{
+			config.SacctViewColumnsStateIndex:     config.JobStateCurrentChoice,
+			config.SacctViewColumnsPartitionIndex: config.PartitionFilter,
+		},
+	)
 }

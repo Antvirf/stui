@@ -33,7 +33,7 @@ func (p *PartitionsProvider) Fetch() error {
 }
 
 // PartitionsProvider data does not have a categorical filter, so this just returns the current data.
-func (p *PartitionsProvider) FilteredData(filter string) *TableData {
+func (p *PartitionsProvider) FilteredData() *TableData {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	data := *p.data.DeepCopy()
