@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -33,9 +32,7 @@ var (
 	SacctViewColumns *[]ColumnConfig
 
 	// Derived config options
-	NodeStatusField string = "State"
-	JobStatusField  string = "JobState"
-	SacctEnabled    bool   = false
+	SacctEnabled bool = false
 
 	// Internal configs
 	SacctMgrCurrentEntity          string = "Account" // Default starting point
@@ -171,17 +168,6 @@ func Configure() {
 }
 
 func ComputeConfigurations() {
-	// Compute derived configs
-	if !strings.Contains(rawNodeViewColumns, NodeStatusField) {
-		NodeStatusField = ""
-	}
-	if !strings.Contains(rawJobViewColumns, JobStatusField) {
-		JobStatusField = ""
-	}
-	if !strings.Contains(rawSacctViewColumns, JobStatusField) {
-		JobStatusField = ""
-	}
-
 	// Parse raw config entries
 	var err error
 	// Add hardcoded fields to Node
@@ -196,8 +182,8 @@ func ComputeConfigurations() {
 	if err != nil {
 		log.Fatalf("Failed to parse node column config: %v", err)
 	}
-	NodeViewColumnsPartitionIndex = 1
-	NodeViewColumnsStateIndex = 2
+	NodeViewColumnsPartitionIndex = GetColumnIndexFromColumnConfig(NodeViewColumns, "Partitions")
+	NodeViewColumnsStateIndex = GetColumnIndexFromColumnConfig(NodeViewColumns, "State")
 
 	// Add hardcoded fields to Job columns
 	// JobID must be first column, as it is unique and used for selections
@@ -212,8 +198,8 @@ func ComputeConfigurations() {
 	if err != nil {
 		log.Fatalf("Failed to parse job column config: %v", err)
 	}
-	JobsViewColumnsPartitionIndex = 1
-	JobsViewColumnsStateIndex = 2
+	JobsViewColumnsPartitionIndex = GetColumnIndexFromColumnConfig(JobViewColumns, "Partition")
+	JobsViewColumnsStateIndex = GetColumnIndexFromColumnConfig(JobViewColumns, "JobState")
 
 	// Sacct view
 	// JobID must be first column, as it is unique and used for selections
@@ -229,8 +215,8 @@ func ComputeConfigurations() {
 	if err != nil {
 		log.Fatalf("Failed to parse sacct column config: %v", err)
 	}
-	SacctViewColumnsPartitionIndex = 1
-	SacctViewColumnsStateIndex = 2
+	SacctViewColumnsPartitionIndex = GetColumnIndexFromColumnConfig(SacctViewColumns, "Partition")
+	SacctViewColumnsStateIndex = GetColumnIndexFromColumnConfig(SacctViewColumns, "State")
 
 	// Standardise partition filter
 	if PartitionFilter == "" {

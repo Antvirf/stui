@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"log"
 	"strings"
 )
 
@@ -50,4 +51,15 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 	}
 
 	return &configs, nil
+}
+
+// GetColumnIndex returns the index of the column for a column config object. Panics if not found.
+func GetColumnIndexFromColumnConfig(columnConfigs *[]ColumnConfig, name string) int {
+	for i, col := range *columnConfigs {
+		if col.Name == name {
+			return i
+		}
+	}
+	log.Fatalf("Column %s not found in column configs %v", name, columnConfigs)
+	return -1
 }
