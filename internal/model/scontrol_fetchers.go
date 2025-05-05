@@ -31,10 +31,10 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			logger.Debugf("scontrol: timed out after %dms: %s", execTime, fullCommand)
-			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
+			return EmptyTableData(), fmt.Errorf("timeout after %v", timeout)
 		}
 		logger.Debugf("scontrol: failed after %dms: %s (%v)", execTime, fullCommand, err)
-		return &TableData{}, fmt.Errorf("%v", err)
+		return EmptyTableData(), fmt.Errorf("%v", err)
 	}
 
 	logger.Debugf("scontrol: completed in %dms: %s", execTime, fullCommand)

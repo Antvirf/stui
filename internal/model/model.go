@@ -13,6 +13,13 @@ type TableData struct {
 	Rows    [][]string
 }
 
+func EmptyTableData() *TableData {
+	return &TableData{
+		Headers: &[]config.ColumnConfig{},
+		Rows:    [][]string{},
+	}
+}
+
 // DeepCopy creates a deep copy of the TableData struct.
 func (t *TableData) DeepCopy() *TableData {
 	var copiedHeaders *[]config.ColumnConfig

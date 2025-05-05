@@ -32,17 +32,12 @@ func (p *SacctMgrProvider) Fetch() error {
 		&columns,
 	)
 
+	// Empty table data is returned in case of error, so this is always valid to do
+	p.updateData(rawData)
 	if err != nil {
-		emptyData := &TableData{
-			Headers: &[]config.ColumnConfig{},
-			Rows:    [][]string{},
-		}
-		p.updateData(emptyData)
 		p.updateError(err)
 		return err
 	}
-
-	p.updateData(rawData)
 	return nil
 }
 

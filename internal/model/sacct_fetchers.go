@@ -3,7 +3,6 @@ package model
 import (
 	"context"
 	"fmt"
-	"log"
 	"os/exec"
 	"path"
 	"strings"
@@ -38,8 +37,12 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	execTime := time.Since(startTime).Milliseconds()
 
 	if err != nil {
-		logger.Debugf("sacct: failed after %dms: %s (%v)", execTime, fullCommand, err)
-		log.Fatalf("sacct: timed out after %dms (its timeout setting is %d times the standard request timeout): %s", execTime, config.SacctTimeoutMultiplier, fullCommand)
+		if ctx.Err() == context.DeadlineExceeded {
+			logger.Debugf("sacct: timed out after %dms (its timeout setting is %d times the standard request timeout): %s", execTime, config.SacctTimeoutMultiplier, fullCommand)
+			return EmptyTableData(), fmt.Errorf("timeout after %v", timeout)
+		}
+		logger.Debugf("sacct: failed out after %dms: %s", execTime, fullCommand)
+		return EmptyTableData(), fmt.Errorf("%v", timeout)
 	}
 
 	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
@@ -48,10 +51,7 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig) (*TableData, error) {
 	entries := parseSacctOutput(output)
 	if len(entries) == 0 {
-		return &TableData{
-			Headers: &[]config.ColumnConfig{},
-			Rows:    [][]string{},
-		}, nil
+		return EmptyTableData(), nil
 	}
 
 	var rows [][]string

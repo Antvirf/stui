@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3383-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3387-blue)
 ![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -156,6 +156,7 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 - Feat: support selection of objects without a clear ID column, such as certain `sacctmgr` data like `Event`
 - Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`
 - Refactor: clean up where/how commands are defined, currently has some repetition
+- Refactor: keep track of 'connection state' to scheduler: right now if a connection is lost, switching between views becomes slow due to timeout + `FetchIfStaleAndRender`, which tries to query the scheduler on every refresh
 
 ## Alternatives and why this project exists
 

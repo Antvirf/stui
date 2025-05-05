@@ -64,10 +64,10 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			logger.Debugf("sacctmgr: timed out after %dms: %s", execTime, fullCommand)
-			return &TableData{}, fmt.Errorf("timeout after %v", timeout)
+			return EmptyTableData(), fmt.Errorf("timeout after %v", timeout)
 		}
 		logger.Debugf("sacctmgr: failed after %dms: %s (%v)", execTime, fullCommand, err)
-		return &TableData{}, fmt.Errorf("%v", out)
+		return EmptyTableData(), fmt.Errorf("%v", out)
 	}
 
 	logger.Debugf("sacctmgr: completed in %dms: %s", execTime, fullCommand)

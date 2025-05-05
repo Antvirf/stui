@@ -26,12 +26,14 @@ func (p *SacctProvider) Fetch() error {
 			config.SacctTimeoutMultiplier*config.RequestTimeout.Milliseconds(),
 		)*time.Millisecond,
 	)
+
+	// Empty table data is returned in case of error, so this is always valid to do
+	p.updateData(rawData)
+
 	if err != nil {
 		p.updateError(err)
 		return err
 	}
-
-	p.updateData(rawData)
 	return nil
 }
 
