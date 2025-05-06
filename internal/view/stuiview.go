@@ -38,8 +38,10 @@ func NewStuiView(
 		SetBorders(false). // Remove all borders
 		SetTitleAlign(tview.AlignLeft).
 		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-	view.Table.SetFixed(1, 0)             // Fixed header row
-	view.Table.SetSelectable(true, false) // Selectable rows but not columns
+	view.Table.
+		SetEvaluateAllRows(true).  // Evaluate all rows so column widths won't jump
+		SetFixed(1, 0).            // Fixed header row
+		SetSelectable(true, false) // Selectable rows but not columns
 	view.Table.SetSelectedStyle(tcell.StyleDefault.
 		Background(rowCursorColorBackground).
 		Foreground(rowCursorColorForeground))
