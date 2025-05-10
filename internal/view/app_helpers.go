@@ -219,8 +219,9 @@ func FormatNumberWithCommas(n int) string {
 }
 
 func PadSelectorTitle(title string) string {
-	if len(title) < 17 {
-		return fmt.Sprintf("%-17s", title)
+	titleWidth := 17
+	if len(title) < titleWidth {
+		return fmt.Sprintf("%-*s", titleWidth, title)
 	}
 	return title
 }
