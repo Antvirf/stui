@@ -65,12 +65,12 @@ func (a *App) applySortSelector(column int) func() {
 
 		// Reverse sort direction if the same column is selected again
 		switch view.sortDirection {
-		case 0:
-			view.sortDirection = 1
-		case 1:
-			view.sortDirection = -1
-		case -1:
-			view.sortDirection = 1
+		case SORT_NONE:
+			view.sortDirection = SORT_ASC
+		case SORT_ASC:
+			view.sortDirection = SORT_DESC
+		case SORT_DESC:
+			view.sortDirection = SORT_ASC
 		}
 
 		a.RenderCurrentView()

@@ -29,8 +29,8 @@ func NewStuiView(
 		filter:                        "",
 		searchEnabled:                 false,
 		searchPattern:                 searchStringPointer,
-		sortColumn:                    -1, // No column sorted by default
-		sortDirection:                 0,  // Default to no sort
+		sortColumn:                    -1,        // No column sorted by default
+		sortDirection:                 SORT_NONE, // Default to no sort
 		updateTitleFunction:           updateTitleFunc,
 		errorNotificationFunction:     errorNotifyFunc,
 		dataStateNotificationFunction: dataStateNotifyFunc,
