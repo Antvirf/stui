@@ -9,7 +9,7 @@ import (
 
 func (a *App) SetupSacctMgrEntitySelector() {
 	a.SacctMgrEntitySelector = tview.NewDropDown().
-		SetLabel("(e) Entity: ").
+		SetLabel(PadSelectorTitle("(e) Entity:")).
 		SetLabelStyle(tcell.StyleDefault.Foreground(dropdownForegroundColor)).
 		SetListStyles(
 			tcell.StyleDefault,

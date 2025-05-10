@@ -12,7 +12,7 @@ import (
 func (a *App) SetupPartitionSelector() {
 	// Partition selector
 	a.PartitionSelector = tview.NewDropDown().
-		SetLabel("(p) Partition: ").
+		SetLabel(PadSelectorTitle("(p) Partition:")).
 		SetLabelStyle(tcell.StyleDefault.Foreground(dropdownForegroundColor)).
 		SetListStyles(
 			tcell.StyleDefault,

@@ -10,6 +10,21 @@ import (
 	"github.com/rivo/tview"
 )
 
+func (a *App) GetCurrentStuiView() *StuiView {
+	switch a.CurrentTableView {
+	case a.NodesView.Table:
+		return a.NodesView
+	case a.JobsView.Table:
+		return a.JobsView
+	case a.SacctView.Table:
+		return a.SacctView
+	case a.SacctMgrView.Table:
+		return a.SacctMgrView
+	default:
+		return nil
+	}
+}
+
 func (a *App) GetCurrentPageName() string {
 	page, _ := a.Pages.GetFrontPage()
 	return page
@@ -195,4 +210,11 @@ func FormatNumberWithCommas(n int) string {
 	}
 
 	return sign + result
+}
+
+func PadSelectorTitle(title string) string {
+	if len(title) < 17 {
+		return fmt.Sprintf("%-17s", title)
+	}
+	return title
 }

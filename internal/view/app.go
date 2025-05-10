@@ -26,7 +26,7 @@ type App struct {
 	Pages               *tview.Pages
 	PagesContainer      *tview.Flex  // Container for pages with border title
 	startTime           time.Time    // Start time of the application
-	CurrentTableView    *tview.Table // Points to either NodesView or JobsView
+	CurrentTableView    *tview.Table // Points to current table view
 	FirstRenderComplete bool
 
 	// Base app components
@@ -52,6 +52,7 @@ type App struct {
 	SacctMgrEntitySelector *tview.DropDown
 	NodeStateSelector      *tview.DropDown
 	JobStateSelector       *tview.DropDown
+	SortSelector           *tview.DropDown
 
 	// Search state
 	SearchBox     *tview.InputField
@@ -124,10 +125,10 @@ func InitializeApplication() *App {
 
 func (a *App) SetupViews() {
 	a.SetupSearchBox()
+	a.SetupSortSelector()
 	a.SetupPartitionSelector()
 	a.SetupNodeStateSelector()
 	a.SetupJobStateSelector()
-
 	a.SetupSacctMgrEntitySelector()
 
 	{ // Header lines
@@ -278,7 +279,10 @@ func (a *App) SetupViews() {
 		a.SetHeaderGridInnerContents(
 			a.PartitionSelector,
 			a.NodeStateSelector,
+			a.SortSelector,
 		)
+		// Set up sort selector for first view
+		a.setupSortSelectorOptions(a.NodesProvider, a.NodesView.sortColumn)
 	}
 }
 

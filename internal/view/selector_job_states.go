@@ -9,7 +9,7 @@ import (
 
 func (a *App) SetupJobStateSelector() {
 	a.JobStateSelector = tview.NewDropDown().
-		SetLabel("(s) State: ").
+		SetLabel(PadSelectorTitle("(s) State:")).
 		SetLabelStyle(tcell.StyleDefault.Foreground(dropdownForegroundColor)).
 		SetListStyles(
 			tcell.StyleDefault,

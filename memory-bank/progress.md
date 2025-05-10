@@ -12,12 +12,6 @@
 - Table view configuration
 - Optimized scheduler load
 
-## In Progress
-
-- Sorting functionality (Ctrl+s)
-  - Sort modal implementation
-  - Sort selector components
-
 ## Roadmap Items
 
 - sacct view enhancements:

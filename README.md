@@ -1,13 +1,13 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3387-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3551-blue)
 ![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
 
 - List and view nodes and jobs, filter by partition and state
-- Quickly search across nodes/jobs list with regular expressions
+- Quickly search across nodes/jobs list with regular expressions, sort by any column
 - Select multiple nodes/jobs and run `scontrol` commands on them, run `scancel` on jobs, or copy rows to clipboard
 - View individual node details (`scontrol show node` equivalent)
 - View individual job details (`scontrol show job` equivalent)
@@ -108,6 +108,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     Arrows   Scroll up/down/left/right in table view
     ?        Show this help
     Ctrl+C   Exit
+    o        Sort table by column
     
     SHORTCUTS IN JOB/NODE VIEW
     /        Open search bar to filter rows by regex, 'esc' to close, 'enter' to go back to table
@@ -146,7 +147,6 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 ## To-do / roadmap
 
 - Feat: `sacct` view further features: ability to search for jobs beyond currently loaded data, and/or ability to change time range within the view itself
-- Feat: Sorting: Ctrl+s, open a pane to select one of the visible columns
 - Feat: `sstat` option for running jobs (returns tabular data, tbc how to do that nicely)
 - Feat: Summary stats in top middle pane: Node and job states
 - Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
