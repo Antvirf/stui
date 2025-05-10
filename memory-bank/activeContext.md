@@ -2,12 +2,7 @@
 
 ## Current Focus Areas
 
-1. **Sorting Functionality**:
-   - Implementing Ctrl+s shortcut for sorting
-   - Developing sort modal interface (sortmodal.go)
-   - Building sort selector components (selector_sort.go)
-
-2. **Command Modal Improvements**:
+1. **Command Modal Improvements**:
    - Enhancing command execution flow
    - Improving batch operation handling
    - Refactoring command definitions (commandmodal.go)
@@ -18,7 +13,7 @@
 
 ## Recent Changes
 
-- Added initial sorting modal components
+- Completed sorting functionality (Ctrl+s shortcut, modal interface, selector components)
 - Refactored command modal architecture
 - Improved view rendering performance
 
@@ -36,12 +31,7 @@
 
 ## Next Steps
 
-1. Complete sorting functionality:
-   - Implement sort application to views
-   - Add persistent sort preferences
-   - Document sort usage
-
-2. Refactor command system:
+1. Refactor command system:
    - Reduce duplication in command definitions
    - Improve command discovery
    - Add plugin support framework

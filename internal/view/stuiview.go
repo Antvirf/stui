@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -28,6 +29,8 @@ func NewStuiView(
 		filter:                        "",
 		searchEnabled:                 false,
 		searchPattern:                 searchStringPointer,
+		sortColumn:                    -1, // No column sorted by default
+		sortDirection:                 0,  // Default to no sort
 		updateTitleFunction:           updateTitleFunc,
 		errorNotificationFunction:     errorNotifyFunc,
 		dataStateNotificationFunction: dataStateNotifyFunc,
@@ -75,6 +78,10 @@ type StuiView struct {
 	titleHeader   string
 	searchEnabled bool
 	searchPattern *string // Pointer to a shared string
+
+	// Sorting state
+	sortColumn    int // Index of column being sorted (-1 for none)
+	sortDirection int // -1 for descending, 1 for ascending
 
 	// Callback functions
 	updateTitleFunction           func(string) *tview.Box
@@ -143,21 +150,47 @@ func (s *StuiView) Render() {
 		searchFilterTime = time.Since(searchFilterStartTime).Milliseconds()
 	}
 
-	for col, header := range *s.data.Headers {
+	// Sort rows if sort column is set
+	if s.sortColumn >= 0 && len(filteredRows) > 0 {
+		sort.Slice(filteredRows, func(i, j int) bool {
+			if s.sortDirection > 0 {
+				return filteredRows[i][s.sortColumn] < filteredRows[j][s.sortColumn]
+			}
+			return filteredRows[i][s.sortColumn] > filteredRows[j][s.sortColumn]
+		})
+	}
 
+	for col, header := range *s.data.Headers {
 		// If header is a divided type, clean it up
 		headerName := header.Name
 		if header.DividedByColumn {
 			headerName = strings.Replace(header.Name, "//", "/", -1)
 		}
 
+		// Add sort indicator if this is the sorted column
+		if col == s.sortColumn {
+			if s.sortDirection > 0 {
+				headerName += " ↑"
+			} else {
+				headerName += " ↓"
+			}
+		}
+
 		// Pad header with spaces to maintain width
-		s.Table.SetCell(0, col, tview.NewTableCell(headerName).
+		cell := tview.NewTableCell(headerName).
 			SetSelectable(false).
 			SetAlign(tview.AlignLeft).
-			SetBackgroundColor(generalBackgroundColor).
 			SetTextColor(generalTextColor).
-			SetAttributes(tcell.AttrBold))
+			SetAttributes(tcell.AttrBold)
+
+		// Highlight sorted column header
+		if col == s.sortColumn {
+			cell.SetBackgroundColor(selectionColor)
+		} else {
+			cell.SetBackgroundColor(generalBackgroundColor)
+		}
+
+		s.Table.SetCell(0, col, cell)
 	}
 
 	// Set rows with text wrapping

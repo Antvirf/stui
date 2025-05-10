@@ -16,7 +16,8 @@ func (a *App) SetupKeybinds() {
 	// Global keybinds (work anywhere except when typing in search)
 	a.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 
-		if event.Key() == tcell.KeyCtrlC {
+		switch event.Key() {
+		case tcell.KeyCtrlC:
 			a.App.Stop()
 			duration := time.Since(a.startTime)
 			rpm := float64(model.FetchCounter.Count) / duration.Seconds() * 60
@@ -48,6 +49,7 @@ func (a *App) SetupKeybinds() {
 			a.SetHeaderGridInnerContents(
 				a.PartitionSelector,
 				a.NodeStateSelector,
+				a.SortSelector,
 			)
 			if a.SearchPattern != "" {
 				a.ShowSearchBox(a.NodesView.Grid)
@@ -55,6 +57,7 @@ func (a *App) SetupKeybinds() {
 				a.HideSearchBox()
 			}
 			a.App.SetFocus(a.NodesView.Table)
+			a.setupSortSelectorOptions(a.NodesProvider, a.NodesView.sortColumn)
 			a.PagesContainer.SetTitle(a.NodesView.titleHeader)
 			go a.App.QueueUpdateDraw(func() {
 				a.NodesView.FetchIfStaleAndRender(config.RefreshInterval)
@@ -66,6 +69,7 @@ func (a *App) SetupKeybinds() {
 			a.SetHeaderGridInnerContents(
 				a.PartitionSelector,
 				a.JobStateSelector,
+				a.SortSelector,
 			)
 			if a.SearchPattern != "" {
 				a.ShowSearchBox(a.JobsView.Grid)
@@ -73,6 +77,7 @@ func (a *App) SetupKeybinds() {
 				a.HideSearchBox()
 			}
 			a.App.SetFocus(a.JobsView.Table)
+			a.setupSortSelectorOptions(a.JobsProvider, a.JobsView.sortColumn)
 			a.PagesContainer.SetTitle(a.JobsView.titleHeader)
 			go a.App.QueueUpdateDraw(func() {
 				a.JobsView.FetchIfStaleAndRender(config.RefreshInterval)
@@ -85,6 +90,7 @@ func (a *App) SetupKeybinds() {
 				a.SetHeaderGridInnerContents(
 					a.PartitionSelector,
 					a.JobStateSelector,
+					a.SortSelector,
 				)
 				if a.SearchPattern != "" {
 					a.ShowSearchBox(a.SacctView.Grid)
@@ -92,6 +98,7 @@ func (a *App) SetupKeybinds() {
 					a.HideSearchBox()
 				}
 				a.App.SetFocus(a.SacctView.Table)
+				a.setupSortSelectorOptions(a.SacctProvider, a.SacctView.sortColumn)
 				a.PagesContainer.SetTitle(a.SacctView.titleHeader)
 				go a.App.QueueUpdateDraw(func() {
 					a.SacctView.Render()
@@ -102,13 +109,17 @@ func (a *App) SetupKeybinds() {
 			if config.SacctEnabled {
 				a.SwitchToPage(SACCTMGR_PAGE)
 				a.CurrentTableView = a.SacctMgrView.Table
-				a.SetHeaderGridInnerContents(a.SacctMgrEntitySelector)
+				a.SetHeaderGridInnerContents(
+					a.SacctMgrEntitySelector,
+					a.SortSelector,
+				)
 				if a.SearchPattern != "" {
 					a.ShowSearchBox(a.SacctMgrView.Grid)
 				} else {
 					a.HideSearchBox()
 				}
 				a.App.SetFocus(a.SacctMgrView.Table)
+				a.setupSortSelectorOptions(a.SacctMgrProvider, a.SacctMgrView.sortColumn)
 				a.PagesContainer.SetTitle(a.SacctMgrView.titleHeader)
 				go a.App.QueueUpdateDraw(func() {
 					a.SacctMgrView.FetchIfStaleAndRender(config.RefreshInterval)
@@ -259,6 +270,14 @@ func tableViewInputCapture(
 			case SACCT_PAGE:
 				a.App.SetFocus(a.JobStateSelector)
 			}
+		case 'o':
+			if a.GetCurrentPageName() == NODES_PAGE ||
+				a.GetCurrentPageName() == JOBS_PAGE ||
+				a.GetCurrentPageName() == SACCT_PAGE ||
+				a.GetCurrentPageName() == SACCTMGR_PAGE {
+				a.App.SetFocus(a.SortSelector)
+			}
+			return nil
 		case 'c':
 			// This section is only active if there is a commandModalFilter specified.
 			if commandModalFilter != "" {

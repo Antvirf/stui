@@ -29,4 +29,8 @@ func (a *App) SetHeaderGridInnerContents(content ...tview.Primitive) {
 	for index, entry := range content {
 		a.HeaderGridInnerContents.AddItem(entry, index, FRST_COL, 1, 1, 1, 0, false)
 	}
+	// If total count was less than 5, add two empty tview.boxes for nicer formatting
+	for i := len(content); i < 5; i++ {
+		a.HeaderGridInnerContents.AddItem(tview.NewBox(), i, FRST_COL, 1, 1, 1, 0, false)
+	}
 }

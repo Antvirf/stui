@@ -65,6 +65,7 @@ h/l      Scroll left/right in table view
 Arrows   Scroll up/down/left/right in table view
 ?        Show this help
 Ctrl+C   Exit
+o        Sort table by column
 
 SHORTCUTS IN JOB/NODE VIEW
 /        Open search bar to filter rows by regex, 'esc' to close, 'enter' to go back to table
@@ -102,6 +103,7 @@ e        Focus on Entity type selector, 'esc' to close
 
 	// Misc
 	ALL_CATEGORIES_OPTION = "(all)"
+	NO_SORT_OPTION        = "(no sort)"
 )
 
 func Configure() {
