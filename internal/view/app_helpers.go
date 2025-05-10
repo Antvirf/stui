@@ -10,6 +10,12 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	SORT_NONE = 0
+	SORT_ASC  = 1
+	SORT_DESC = -1
+)
+
 func (a *App) GetCurrentStuiView() *StuiView {
 	switch a.CurrentTableView {
 	case a.NodesView.Table:
