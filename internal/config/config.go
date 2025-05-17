@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/user"
 	"time"
 )
 
@@ -21,6 +22,7 @@ var (
 	PartitionFilter        string        = ""
 	LogLevel               int           = 2
 	ShowAllColumns         bool          = false
+	ConfigFilePath         string        = DEFAULT_CONFIG_LOCATION
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
 	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES,Reason,Boards"
@@ -45,6 +47,7 @@ var (
 	SacctViewColumnsPartitionIndex int
 	SacctViewColumnsStateIndex     int
 	SacctTimeoutMultiplier         int64 = 5 // sacct can be slow, so we give it extra time
+	ConfigFile                     Config
 
 	// Cluster information
 	ClusterName           string = "unknown"
@@ -102,8 +105,9 @@ e        Focus on Entity type selector, 'esc' to close
 	LOG_LEVEL_DEBUG = 3
 
 	// Misc
-	ALL_CATEGORIES_OPTION = "(all)"
-	NO_SORT_OPTION        = "(no sort)"
+	ALL_CATEGORIES_OPTION   = "(all)"
+	NO_SORT_OPTION          = "(no sort)"
+	DEFAULT_CONFIG_LOCATION = "~/.config/stui.yaml"
 )
 
 func Configure() {
@@ -116,6 +120,7 @@ func Configure() {
 	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown.")
 	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
+	flag.StringVar(&ConfigFilePath, "config-file", ConfigFilePath, "path to config file for plugins, defaults to /home/$USER/.config/stui.yaml")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config")
 	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")
@@ -124,6 +129,20 @@ func Configure() {
 
 	// Config flags that have been deprecated from user config
 	// flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
+
+	// Load config file if it exists
+	if ConfigFilePath == DEFAULT_CONFIG_LOCATION {
+		user, _ := user.Current()
+		ConfigFilePath = fmt.Sprintf(
+			"%s/.config/stui.yaml",
+			user.HomeDir,
+		)
+	}
+	if _, err := os.Stat(ConfigFilePath); err != nil {
+		// No need to print a message as configuration file is NOT mandatory.
+	} else {
+		ConfigFile = LoadConfig(ConfigFilePath)
+	}
 
 	// One-shot-and-exit flags
 	versionFlag := flag.Bool("version", false, "print version information and exit")

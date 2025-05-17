@@ -1,0 +1,12 @@
+plugins:
+  - name: Sstat a job
+    # Available pages: `nodes`, `jobs`, `sacctmgr`, `sacct`
+    activePage: jobs
+    shortcut: "Ctrl-S"
+    # Any column of a particular view can be used in a command template
+    command: sstat {{.JobId}}
+
+  - name: Check node disk usage
+    activePage: nodes
+    shortcut: "Ctrl-S"
+    command: ssh {{.NodeName}} 'df -h /'

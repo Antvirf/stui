@@ -2,6 +2,7 @@ package view
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"strings"
 	"time"
@@ -10,12 +11,17 @@ import (
 	"github.com/rivo/tview"
 )
 
-func (a *App) ShowCommandModal(command string, selectedMap map[string]bool, pageName string) {
-	a.CommandModalOpen = true
+func (a *App) ShowStandardCommandModal(command string, selectedMap map[string]bool, pageName string) {
 	var selected []string
 	for entry := range selectedMap {
 		selected = append(selected, entry)
 	}
+	command = fmt.Sprintf("%s%s", command, strings.Join(selected, ","))
+	a.ShowCommandModal(command, pageName)
+}
+
+func (a *App) ShowCommandModal(command string, pageName string) {
+	a.CommandModalOpen = true
 
 	// Create input field with prefilled command
 	input := tview.NewInputField().
@@ -23,7 +29,7 @@ func (a *App) ShowCommandModal(command string, selectedMap map[string]bool, page
 		SetFieldStyle(
 			tcell.StyleDefault.Background(rowCursorColorBackground),
 		).
-		SetText(command + strings.Join(selected, ",") + " ").
+		SetText(command).
 		SetFieldWidth(0)
 
 	// Create output view

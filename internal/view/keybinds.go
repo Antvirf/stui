@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 	"time"
@@ -42,7 +43,14 @@ func (a *App) SetupKeybinds() {
 
 		switch event.Rune() {
 		case '?':
-			a.ShowModalPopup("Shortcuts", config.KEYBOARD_SHORTCUTS)
+			a.ShowModalPopup(
+				"Shortcuts",
+				fmt.Sprintf(
+					"%s\n%s",
+					config.KEYBOARD_SHORTCUTS,
+					GetKeyboardShortcutHelperForPage(a.GetCurrentPageName()),
+				),
+			)
 		case '1':
 			a.SwitchToPage(NODES_PAGE)
 			a.CurrentTableView = a.NodesView.Table
@@ -283,12 +291,12 @@ func tableViewInputCapture(
 			if commandModalFilter != "" {
 				// If user has a selection, use the selection
 				if len(*selection) > 0 {
-					a.ShowCommandModal(commandModalFilter, *selection, a.GetCurrentPageName())
+					a.ShowStandardCommandModal(commandModalFilter, *selection, a.GetCurrentPageName())
 				} else {
 					// Otherwise, try to use the current node under the cursor, if any
 					row, _ := view.GetSelection()
 					if row > 0 {
-						a.ShowCommandModal(commandModalFilter, map[string]bool{
+						a.ShowStandardCommandModal(commandModalFilter, map[string]bool{
 							view.GetCell(row, 0).Text: true,
 						},
 							a.GetCurrentPageName(),
@@ -333,12 +341,12 @@ func tableViewInputCapture(
 				SCANCEL_COMMAND := "scancel "
 				// If user has a selection, use the selection
 				if len(*selection) > 0 {
-					a.ShowCommandModal(SCANCEL_COMMAND, *selection, a.GetCurrentPageName())
+					a.ShowStandardCommandModal(SCANCEL_COMMAND, *selection, a.GetCurrentPageName())
 				} else {
 					// Otherwise, try to use the current node under the cursor, if any
 					row, _ := view.GetSelection()
 					if row > 0 {
-						a.ShowCommandModal(SCANCEL_COMMAND, map[string]bool{
+						a.ShowStandardCommandModal(SCANCEL_COMMAND, map[string]bool{
 							view.GetCell(row, 0).Text: true,
 						},
 							a.GetCurrentPageName(),
@@ -352,6 +360,14 @@ func tableViewInputCapture(
 				a.HideSearchBox()
 				a.RenderCurrentView()
 				return nil
+			}
+		default:
+			// In case nothing else matched, perhaps its defined in a plugin.
+			// Get the current row and pass it in.
+			row, _ := view.GetSelection()
+			if row > 0 {
+				rowId := view.GetCell(row, 0).Text
+				a.ExecutePluginForShortcut(event.Key(), a.GetCurrentPageName(), rowId)
 			}
 		}
 		return event
