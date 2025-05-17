@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3780-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3779-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -61,7 +61,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ```txt
     Usage of ./stui:
       -config-file string
-          path to config file for plugins, defaults to /home/$USER/.config/stui.yaml (default "~/.config/stui.yaml")
+          path to config file for plugins, defaults to /home/$USER/.config/stui.yaml (default "/home/$USER/.config/stui.yaml")
       -copied-lines-separator string
           string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
@@ -130,7 +130,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ```
     <!-- REPLACE_SHORTCUTS_END -->
 
-4. Configure custom plugins/shortcuts - configure `-config-file` argument or create a file in the default location `~/.config/stui.yaml`:
+4. Configure custom plugins/shortcuts - configure `-config-file` argument or create a file in the default location `/home/$USER/.config/stui.yaml`:
 
     - Full list of available keys are [here](https://github.com/gdamore/tcell/blob/781586687ddb57c9d44727dc9320340c4d049b11/key.go#L83-L202)
     - If several keybinds match, first plugin defined for that page takes priority.
