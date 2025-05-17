@@ -107,7 +107,7 @@ e        Focus on Entity type selector, 'esc' to close
 	// Misc
 	ALL_CATEGORIES_OPTION   = "(all)"
 	NO_SORT_OPTION          = "(no sort)"
-	DEFAULT_CONFIG_LOCATION = "~/.config/stui.yaml"
+	DEFAULT_CONFIG_LOCATION = "/home/$USER/.config/stui.yaml"
 )
 
 func Configure() {

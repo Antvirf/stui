@@ -21,10 +21,9 @@ func (a *App) ExecutePluginForShortcut(key tcell.Key, page string, rowId string)
 		parsedKey := asKey(plugin.Shortcut)
 		if parsedKey == NO_KEY_FOUND {
 			logger.Debugf("plugin command %s has invalid shortcut: '%s'", plugin.Name, plugin.Shortcut)
-			break // The key is invalid
+			continue // The key is invalid so we skip this plugin
 		}
 
-		// A key was matched! Let's execute the plugin and break the loop.
 		// First plugin takes precedence if there's many defined for the
 		// same shortcut.
 		if parsedKey == key {
