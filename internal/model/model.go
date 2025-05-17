@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"strings"
 	"sync"
 
@@ -104,4 +105,25 @@ rowLoop:
 		Headers: data.Headers,
 		Rows:    rows,
 	}
+}
+
+func (td *TableData) rowToMap(row []string) map[string]string {
+	data := make(map[string]string)
+	for i, header := range *td.Headers {
+		if i < len(row) {
+			// Convert header name to template-friendly format
+			key := strings.ReplaceAll(header.Name, " ", "_")
+			data[key] = row[i]
+		}
+	}
+	return data
+}
+
+func (td *TableData) GetRowAsMapById(idString string) (map[string]string, error) {
+	for _, row := range td.Rows {
+		if len(row) > 0 && row[0] == idString {
+			return td.rowToMap(row), nil
+		}
+	}
+	return nil, errors.New("not found")
 }

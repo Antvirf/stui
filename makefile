@@ -7,7 +7,10 @@ setup:
 	go mod download
 	sudo useradd johndoe -u 1337 -g 1337 -m -s /bin/bash
 
-lint:
+setup-config-if-missing:
+	stat ~/.config/stui.yaml > /dev/null || ln -s $$(pwd)/testing/example-stui-config.yaml $$HOME/.config/stui.yaml
+
+lint: setup-config-if-missing
 	find -name "*.go" | xargs -I{} go fmt {}
 	go mod tidy
 	go vet ./...
@@ -45,6 +48,16 @@ update-readme: build
 	@sed -i '/<!-- REPLACE_SHORTCUTS_START -->/,/<!-- REPLACE_SHORTCUTS_END -->/{//!d}' README.md
 	@sed -i '/<!-- REPLACE_SHORTCUTS_START -->/r .help.tmp' README.md
 	@rm -f .help.tmp
+
+
+	@echo "Updating README.md with a config example..."
+	@(echo "    config"; cat ./testing/example-stui-config.yaml 2>&1) | \
+		sed -e '1d' -e 's/^/    /' | \
+		awk 'BEGIN {print "    ```yaml"} {print} END {print "    ```"}' > .help.tmp
+	@sed -i '/<!-- REPLACE_CONFIG_EXAMPLE_START -->/,/<!-- REPLACE_CONFIG_EXAMPLE_END -->/{//!d}' README.md
+	@sed -i '/<!-- REPLACE_CONFIG_EXAMPLE_START -->/r .help.tmp' README.md
+	@rm -f .help.tmp
+
 
 	@echo "Updating README.md with lines of code badge..."
 	@LOC=$$(rg 'package' -l | grep ".go" | xargs wc -l | grep total | tr -s ' ' |cut -d' ' -f2) && \

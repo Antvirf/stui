@@ -1,8 +1,8 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3558-blue)
-![size](https://img.shields.io/badge/binary%20size-3%2E6M-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3780-blue)
+![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
 
@@ -60,6 +60,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
     <!-- REPLACE_START -->
     ```txt
     Usage of ./stui:
+      -config-file string
+          path to config file for plugins, defaults to /home/$USER/.config/stui.yaml (default "~/.config/stui.yaml")
       -copied-lines-separator string
           string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
@@ -128,6 +130,30 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ```
     <!-- REPLACE_SHORTCUTS_END -->
 
+4. Configure custom plugins/shortcuts - configure `-config-file` argument or create a file in the default location `~/.config/stui.yaml`:
+
+    - Full list of available keys are [here](https://github.com/gdamore/tcell/blob/781586687ddb57c9d44727dc9320340c4d049b11/key.go#L83-L202)
+    - If several keybinds match, first plugin defined for that page takes priority.
+    - Plugins are processed last, they cannot override existing keybinds.
+    - Any column in a given table view is available for use, following standard [Go template](https://pkg.go.dev/text/template) syntax
+
+    <!-- REPLACE_CONFIG_EXAMPLE_START -->
+    ```yaml
+    plugins:
+      - name: Sstat a job
+        # Available pages: `nodes`, `jobs`, `sacctmgr`, `sacct`
+        activePage: jobs
+        shortcut: "Ctrl-S"
+        # Any column of a particular view can be used in a command template
+        command: sstat {{.JobId}}
+    
+      - name: Check node disk usage
+        activePage: nodes
+        shortcut: "Ctrl-S"
+        command: ssh {{.NodeName}} 'df -h /'
+    ```
+    <!-- REPLACE_CONFIG_EXAMPLE_END -->
+
 ## Developing `stui`
 
 The below helpers configure a locally running cluster with `888` virtual nodes across several partitions to help work on `stui` with realistic data. This builds Slurm from scratch, so refer to [Slurm docs on build dependencies.](https://slurm.schedmd.com/quickstart_admin.html#manual_build)
@@ -146,10 +172,11 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 
 ## To-do / roadmap
 
+- Feat: Support configuration using the config file rather than only args
+  - Feat: Create a default config on first startup
 - Feat: `sacct` view further features: ability to search for jobs beyond currently loaded data, and/or ability to change time range within the view itself
 - Feat: `sstat` option for running jobs (returns tabular data, tbc how to do that nicely)
 - Feat: Summary stats in top middle pane: Node and job states
-- Feat: Basic support for plugins, similar to k9s - bash commands that can take in e.g. `$JOB_ID` or `$NODE_ID` provided by `stui`
 - Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: Config option for which view to start app in
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh

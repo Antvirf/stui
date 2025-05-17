@@ -31,6 +31,21 @@ func (a *App) GetCurrentStuiView() *StuiView {
 	}
 }
 
+func (a *App) GetProviderForPage(page string) model.DataProvider[*model.TableData] {
+	switch page {
+	case NODES_PAGE:
+		return a.NodesProvider
+	case JOBS_PAGE:
+		return a.JobsProvider
+	case SACCT_PAGE:
+		return a.SacctProvider
+	case SACCTMGR_PAGE:
+		return a.SacctMgrProvider
+	default:
+		return nil
+	}
+}
+
 func (a *App) GetCurrentPageName() string {
 	page, _ := a.Pages.GetFrontPage()
 	return page
