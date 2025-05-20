@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3779-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3780-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -179,6 +179,7 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 - Feat: Summary stats in top middle pane: Node and job states
 - Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: Config option for which view to start app in
+- Fix: `sacctmgr` views shared 1 sort column setting internally between views
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
 - Feat: support selection of objects without a clear ID column, such as certain `sacctmgr` data like `Event`
 - Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`

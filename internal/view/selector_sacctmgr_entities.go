@@ -44,6 +44,7 @@ func (a *App) applySacctMgrEntitySelector(entity string) func() {
 		a.SacctMgrProvider.Fetch()
 		if a.FirstRenderComplete {
 			a.SacctMgrView.SetTitleHeader(entity)
+			a.setupSortSelectorOptions(a.SacctMgrProvider, a.SacctMgrView.sortColumn)
 			a.SacctMgrView.Render()
 			_, frontPage := a.Pages.GetFrontPage()
 			a.App.SetFocus(frontPage)
