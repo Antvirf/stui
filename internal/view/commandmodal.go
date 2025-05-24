@@ -7,9 +7,34 @@ import (
 	"strings"
 	"time"
 
+	"github.com/antvirf/stui/internal/config"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
+
+func (a *App) executeCommand(input *tview.InputField, output *tview.TextView, cmdText string, pageName string) {
+	output.SetText("Executing: " + cmdText + "\n\n")
+
+	// Execute command
+	ctx, cancel := context.WithTimeout(context.Background(), config.RequestTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "bash", "-c", cmdText)
+	cmdOut, err := cmd.CombinedOutput()
+	if err != nil {
+		output.SetText(output.GetText(true) + "Error: " + err.Error() + "\n")
+		output.SetText(output.GetText(true) + string(cmdOut))
+	} else {
+		commandOutput := string(cmdOut)
+		if commandOutput == "" {
+			output.SetText(output.GetText(true) + "Command executed successfully (no output)")
+		} else {
+			output.SetText(output.GetText(true) + commandOutput)
+		}
+		// Trigger table refresh in the background after a successful command
+		a.RefreshAndRenderPage(pageName)
+	}
+}
 
 func (a *App) ShowStandardCommandModal(command string, selectedMap map[string]bool, pageName string) {
 	var selected []string
@@ -17,10 +42,10 @@ func (a *App) ShowStandardCommandModal(command string, selectedMap map[string]bo
 		selected = append(selected, entry)
 	}
 	command = fmt.Sprintf("%s%s", command, strings.Join(selected, ","))
-	a.ShowCommandModal(command, pageName)
+	a.ShowCommandModal(command, pageName, false, false)
 }
 
-func (a *App) ShowCommandModal(command string, pageName string) {
+func (a *App) ShowCommandModal(command string, pageName string, executeImmediately bool, closeAfterExecute bool) {
 	a.CommandModalOpen = true
 
 	// Create input field with prefilled command
@@ -71,43 +96,47 @@ func (a *App) ShowCommandModal(command string, pageName string) {
 	a.Pages.AddPage(COMMAND_PAGE, centered, true, true)
 	a.App.SetFocus(input)
 
+	if executeImmediately {
+		a.executeCommand(input, output, input.GetText(), pageName)
+		a.App.SetFocus(output)
+		if closeAfterExecute {
+			a.CloseCommandModal(COMMAND_PAGE, pageName, previousFocus)
+			a.ShowNotification(
+				fmt.Sprintf("[green]Executed command '%s'[white]", command),
+				3*time.Second,
+			)
+			return
+		}
+	}
+
 	// Set up input capture
 	input.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEnter:
-			cmdText := input.GetText()
-			output.SetText("Executing: " + cmdText + "\n\n")
-
-			// Execute command
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-
-			cmd := exec.CommandContext(ctx, "bash", "-c", cmdText)
-			cmdOut, err := cmd.CombinedOutput()
-			if err != nil {
-				output.SetText(output.GetText(true) + "Error: " + err.Error() + "\n")
-				output.SetText(output.GetText(true) + string(cmdOut))
-			} else {
-				commandOutput := string(cmdOut)
-				if commandOutput == "" {
-					output.SetText(output.GetText(true) + "Command executed successfully (no output)")
-
-				} else {
-					output.SetText(output.GetText(true) + commandOutput)
-				}
-				// Trigger table refresh in the background after a successful command
-				a.RefreshAndRenderPage(pageName)
-			}
-
+			a.executeCommand(input, output, input.GetText(), pageName)
 			return nil
 
 		case tcell.KeyEsc:
-			a.CommandModalOpen = false
-			a.Pages.RemovePage(COMMAND_PAGE)
-			a.Pages.SwitchToPage(pageName)
-			a.App.SetFocus(previousFocus)
+			a.CloseCommandModal(COMMAND_PAGE, pageName, previousFocus)
 			return nil
 		}
 		return event
 	})
+
+	// Set up output's input capture, so user can still escape out
+	output.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyEsc:
+			a.CloseCommandModal(COMMAND_PAGE, pageName, previousFocus)
+			return nil
+		}
+		return event
+	})
+}
+
+func (a *App) CloseCommandModal(commandPageName string, targetPage string, previousFocus tview.Primitive) {
+	a.CommandModalOpen = false
+	a.Pages.RemovePage(commandPageName)
+	a.Pages.SwitchToPage(targetPage)
+	a.App.SetFocus(previousFocus)
 }

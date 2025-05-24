@@ -24,8 +24,6 @@ func (a *App) ExecutePluginForShortcut(key tcell.Key, page string, rowId string)
 			continue // The key is invalid so we skip this plugin
 		}
 
-		// First plugin takes precedence if there's many defined for the
-		// same shortcut.
 		if parsedKey == key {
 			provider := a.GetProviderForPage(page)
 			if provider == nil {
@@ -41,7 +39,9 @@ func (a *App) ExecutePluginForShortcut(key tcell.Key, page string, rowId string)
 
 			parsedCommand := a.ParsePluginCommand(plugin.Command, rowData, page)
 
-			a.ShowCommandModal(parsedCommand, page)
+			a.ShowCommandModal(parsedCommand, page, plugin.ExecuteImmediately, plugin.ClosePromptAfterExecute)
+
+			// Stop processing further plugins - first one takes precedence.
 			break
 		}
 	}
