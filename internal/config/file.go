@@ -27,7 +27,7 @@ func LoadConfigsFromDir(path string) Config {
 		log.Fatalf("failed to read config dir '%s': %v", path, err)
 	}
 
-	var merged Config
+	merged := NewConfig()
 	for _, file := range files {
 		if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
 			continue
@@ -45,7 +45,7 @@ func loadConfig(path string) Config {
 		log.Fatalf("failed to read config file '%s': %v", path, err)
 	}
 
-	config := Config{}
+	config := NewConfig()
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
 		log.Fatalf("failed to parse YAML from config file '%s': %v", path, err)
@@ -62,4 +62,10 @@ func mergeConfigs(base Config, nextLayer Config) Config {
 		Plugins: append(base.Plugins, nextLayer.Plugins...),
 	}
 	return merged
+}
+
+func NewConfig() Config {
+	return Config{
+		Plugins: []PluginConfig{},
+	}
 }
