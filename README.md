@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3815-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3845-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -60,8 +60,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
     <!-- REPLACE_START -->
     ```txt
     Usage of ./stui:
-      -config-file string
-          path to config file for plugins, defaults to /home/$USER/.config/stui.yaml (default "/home/$USER/.config/stui.yaml")
+      -config-dir string
+          path to a directory with config files, defaults to /home/$USER/.config/stui.d/ (default "/home/$USER/.config/stui.d/")
       -copied-lines-separator string
           string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
@@ -131,12 +131,12 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ```
     <!-- REPLACE_SHORTCUTS_END -->
 
-4. Configure custom plugins/shortcuts - configure `-config-file` argument or create a file in the default location `/home/$USER/.config/stui.yaml`:
+4. Configure custom plugins/shortcuts - configure `-config-dir` argument or create a `.yaml`/`.yml` file in the default location `/home/$USER/.config/stui.d./`. Files are processed in alphabetical order. Please note that plugin configs are **concatenated**, not merged.
 
-    - Full list of available keys are [here](https://github.com/gdamore/tcell/blob/781586687ddb57c9d44727dc9320340c4d049b11/key.go#L83-L202)
+    - Full list of available keybinds can be found [here](https://github.com/gdamore/tcell/blob/781586687ddb57c9d44727dc9320340c4d049b11/key.go#L83-L202).
     - If several keybinds match, first plugin defined for that page takes priority.
-    - Plugins are processed last, they cannot override existing keybinds.
-    - Any column in a given table view is available for use, following standard [Go template](https://pkg.go.dev/text/template) syntax
+    - Plugins are processed after existing keybinds, and cannot override the defaults.
+    - Any column in a given table view is available for use, following standard [Go template](https://pkg.go.dev/text/template) syntax.
 
     <!-- REPLACE_CONFIG_EXAMPLE_START -->
     ```yaml
@@ -146,7 +146,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
         activePage: jobs
         shortcut: "Ctrl-S"
         # Any column of a particular view can be used in a command template
-        command: sstat {{.JobId}} && ls -lah /dev
+        command: sstat {{.JobId}}
         # Whether to execute command immediately rather than open a prompt. Default is false.
         executeImmediately: true
         # Closes prompt immediately once command is executed. Default is false.

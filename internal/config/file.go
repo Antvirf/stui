@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/stretchr/testify/assert/yaml"
 )
@@ -20,7 +21,25 @@ type Config struct {
 	Plugins []PluginConfig `yaml:"plugins"`
 }
 
-func LoadConfig(path string) Config {
+func LoadConfigsFromDir(path string) Config {
+	files, err := os.ReadDir(path)
+	if err != nil {
+		log.Fatalf("failed to read config dir '%s': %v", path, err)
+	}
+
+	var merged Config
+	for _, file := range files {
+		if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
+			continue
+		}
+
+		cfg := loadConfig(filepath.Join(path, file.Name()))
+		merged = mergeConfigs(merged, cfg)
+	}
+	return merged
+}
+
+func loadConfig(path string) Config {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatalf("failed to read config file '%s': %v", path, err)
@@ -33,4 +52,14 @@ func LoadConfig(path string) Config {
 	}
 
 	return config
+}
+
+// Merges two configs, with the nextLayer config taking precedence on specific keys. Arrays
+// are concatenated, and maps are merged.
+// This is a custom implementation and needs updating as the config structure changes.
+func mergeConfigs(base Config, nextLayer Config) Config {
+	merged := Config{
+		Plugins: append(base.Plugins, nextLayer.Plugins...),
+	}
+	return merged
 }

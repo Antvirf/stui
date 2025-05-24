@@ -8,7 +8,8 @@ setup:
 	sudo useradd johndoe -u 1337 -g 1337 -m -s /bin/bash
 
 setup-config-if-missing:
-	stat /home/$$USER/.config/stui.yaml > /dev/null || ln -s $$(pwd)/testing/example-stui-config.yaml $$HOME/.config/stui.yaml
+	mkdir -p /home/$$USER/.config/stui.d/
+	stat /home/$$USER/.config/stui.d/example.yaml > /dev/null || ln -s $$(pwd)/testing/example-stui-config.yaml /home/$$USER/.config/stui.d/example.yaml
 
 lint: setup-config-if-missing
 	find -name "*.go" | xargs -I{} go fmt {}
