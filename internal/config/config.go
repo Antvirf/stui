@@ -14,7 +14,7 @@ var (
 	SearchDebounceInterval time.Duration = 500 * time.Millisecond
 	RefreshInterval        time.Duration = 60 * time.Second
 	RequestTimeout         time.Duration = 5 * time.Second
-	LoadSacctDataFrom      time.Duration = 1 * time.Hour
+	LoadSacctDataFrom      time.Duration = 30 * time.Minute
 	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = ""
 	CopyFirstColumnOnly    bool          = true
@@ -126,7 +126,7 @@ func Configure() {
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config")
 	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
-	flag.DurationVar(&LoadSacctDataFrom, CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM, LoadSacctDataFrom, "load sacct data starting from this long ago, specify as a duration, e.g. '12h', '7d'")
+	flag.DurationVar(&LoadSacctDataFrom, CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM, LoadSacctDataFrom, "load sacct data starting from this long ago, specify as a duration, e.g. '1h', '2h'. This can be very slow on busy clusters, so use with caution. Set to 0 to not load any data from sacct.")
 
 	// Config flags that have been deprecated from user config
 	// flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")

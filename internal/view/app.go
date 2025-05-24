@@ -338,7 +338,7 @@ func (a *App) StartRefresh() {
 					case SACCTMGR_PAGE:
 						a.SacctMgrView.FetchAndRender()
 					case SACCT_PAGE:
-						// No periodic refresh/render for SACCT.
+						a.SacctView.FetchAndRender()
 					case SDIAG_PAGE:
 						a.SdiagProvider.Fetch()
 						a.SchedView.SetText(a.SdiagProvider.Data().Data)
