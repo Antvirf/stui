@@ -1,10 +1,22 @@
 plugins:
   - name: Sstat a job
-    # Available pages: `nodes`, `jobs`, `sacctmgr`, `sacct`
+    # Available pages: `nodes`, `jobs`, `sacct`, `sacctmgr`
     activePage: jobs
     shortcut: "Ctrl-S"
     # Any column of a particular view can be used in a command template
     command: sstat {{.JobId}}
+    # Whether to execute command immediately rather than open a prompt. Default is false.
+    executeImmediately: true
+    # Closes prompt immediately once command is executed. Default is false.
+    # Only applies if `executeImmediately` is true.
+    closePromptAfterExecute: false
+
+  - name: Open logs from a remote HTTP server
+    activePage: jobs
+    shortcut: "Ctrl-U"
+    command: firefox "https://localhost:8080/{{.JobId}}" > /dev/null &
+    executeImmediately: true
+    closePromptAfterExecute: true
 
   - name: Check node disk usage
     activePage: nodes

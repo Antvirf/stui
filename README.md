@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3780-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3810-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -141,11 +141,23 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ```yaml
     plugins:
       - name: Sstat a job
-        # Available pages: `nodes`, `jobs`, `sacctmgr`, `sacct`
+        # Available pages: `nodes`, `jobs`, `sacct`, `sacctmgr`
         activePage: jobs
         shortcut: "Ctrl-S"
         # Any column of a particular view can be used in a command template
-        command: sstat {{.JobId}}
+        command: sstat {{.JobId}} && ls -lah /dev
+        # Whether to execute command immediately rather than open a prompt. Default is false.
+        executeImmediately: true
+        # Closes prompt immediately once command is executed. Default is false.
+        # Only applies if `executeImmediately` is true.
+        closePromptAfterExecute: false
+    
+      - name: Open logs from a remote HTTP server
+        activePage: jobs
+        shortcut: "Ctrl-U"
+        command: firefox "https://localhost:8080/{{.JobId}}" > /dev/null &
+        executeImmediately: true
+        closePromptAfterExecute: true
     
       - name: Check node disk usage
         activePage: nodes

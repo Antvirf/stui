@@ -8,10 +8,12 @@ import (
 )
 
 type PluginConfig struct {
-	Name       string `yaml:"name"`
-	ActivePage string `yaml:"activePage"`
-	Shortcut   string `yaml:"shortcut"`
-	Command    string `yaml:"command"`
+	Name                    string `yaml:"name"`
+	ActivePage              string `yaml:"activePage"`
+	Shortcut                string `yaml:"shortcut"`
+	Command                 string `yaml:"command"`
+	ExecuteImmediately      bool   `yaml:"executeImmediately"`
+	ClosePromptAfterExecute bool   `yaml:"closePromptAfterExecute"`
 }
 
 type Config struct {
