@@ -185,12 +185,12 @@ GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 
 ## To-do / roadmap
 
+- Feat: `sacct` view should auto-refresh by appending to existing data
 - Feat: Support configuration using the config file rather than only args
   - Feat: Create a default config on first startup
 - Feat: `sacct` view further features: ability to search for jobs beyond currently loaded data, and/or ability to change time range within the view itself
 - Feat: `sstat` option for running jobs (returns tabular data, tbc how to do that nicely)
 - Feat: Summary stats in top middle pane: Node and job states
-- Feat: Ability to use `slurmrestd` / REST API instead of Slurm binaries
 - Feat: Config option for which view to start app in
 - Fix: `sacctmgr` views shared 1 sort column setting internally between views
 - Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
