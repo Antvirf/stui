@@ -67,6 +67,7 @@ k/j      Move selection up/down in table view
 h/l      Scroll left/right in table view
 Arrows   Scroll up/down/left/right in table view
 ?        Show this help
+Ctrl+R   Refresh currently visible data
 Ctrl+C   Exit
 o        Sort table by column
 

@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-3810-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-3815-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -109,6 +109,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     h/l      Scroll left/right in table view
     Arrows   Scroll up/down/left/right in table view
     ?        Show this help
+    Ctrl+R   Refresh currently visible data
     Ctrl+C   Exit
     o        Sort table by column
     
