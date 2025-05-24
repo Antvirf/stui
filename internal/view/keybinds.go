@@ -335,6 +335,10 @@ func tableViewInputCapture(
 				detailsFunction(entryName)
 				return nil
 			}
+		case tcell.KeyCtrlR:
+			// Manual refresh of currently visible view
+			a.optionalRefreshAndRenderCurrentView(true)
+			a.ShowNotification("[green]Ctrl+R: Manual data refresh[white]", 1*time.Second)
 		case tcell.KeyCtrlD:
 			// The below is an ugly way to check that we're in the jobs view
 			if strings.Contains(commandModalFilter, "JobId") {
