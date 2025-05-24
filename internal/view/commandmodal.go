@@ -13,7 +13,7 @@ import (
 )
 
 func (a *App) executeCommand(input *tview.InputField, output *tview.TextView, cmdText string, pageName string) {
-	output.SetText("Executing: " + cmdText + "\n\n")
+	output.SetText("\n\n")
 
 	// Execute command
 	ctx, cancel := context.WithTimeout(context.Background(), config.RequestTimeout)
@@ -57,6 +57,10 @@ func (a *App) ShowCommandModal(command string, pageName string, executeImmediate
 		SetText(command).
 		SetFieldWidth(0)
 
+	if executeImmediately {
+		input.SetDisabled(true)
+	}
+
 	// Create output view
 	output := tview.NewTextView().
 		SetDynamicColors(true).
@@ -81,12 +85,12 @@ func (a *App) ShowCommandModal(command string, pageName string, executeImmediate
 		SetBorderColor(modalBorderColor).
 		SetBackgroundColor(generalBackgroundColor)
 
-	// Center the modal
+	// Create centered container with fixed size (80% width, 90% height)
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(modal, 25, 1, true),
-			0, 60, false).
+			AddItem(modal, 0, 10, true),
+			0, 16, false).
 		AddItem(nil, 0, 1, false)
 
 	// Store current page before showing modal
