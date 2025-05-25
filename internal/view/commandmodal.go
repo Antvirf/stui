@@ -12,7 +12,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func (a *App) executeCommand(input *tview.InputField, output *tview.TextView, cmdText string, pageName string) {
+func (a *App) executeCommand(output *tview.TextView, cmdText string, pageName string) {
 	output.SetText("\n\n")
 
 	// Execute command
@@ -41,7 +41,7 @@ func (a *App) ShowStandardCommandModal(command string, selectedMap map[string]bo
 	for entry := range selectedMap {
 		selected = append(selected, entry)
 	}
-	command = fmt.Sprintf("%s%s", command, strings.Join(selected, ","))
+	command = fmt.Sprintf("%s%s ", command, strings.Join(selected, ","))
 	a.ShowCommandModal(command, pageName, false, false)
 }
 
@@ -101,7 +101,7 @@ func (a *App) ShowCommandModal(command string, pageName string, executeImmediate
 	a.App.SetFocus(input)
 
 	if executeImmediately {
-		a.executeCommand(input, output, input.GetText(), pageName)
+		a.executeCommand(output, input.GetText(), pageName)
 		a.App.SetFocus(output)
 		if closeAfterExecute {
 			a.CloseCommandModal(COMMAND_PAGE, pageName, previousFocus)
@@ -117,7 +117,7 @@ func (a *App) ShowCommandModal(command string, pageName string, executeImmediate
 	input.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEnter:
-			a.executeCommand(input, output, input.GetText(), pageName)
+			a.executeCommand(output, input.GetText(), pageName)
 			return nil
 
 		case tcell.KeyEsc:

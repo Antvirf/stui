@@ -121,7 +121,7 @@ func Configure() {
 	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown.")
 	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
-	flag.StringVar(&ConfigDirPath, "config-dir", ConfigDirPath, "path to a directory with config files, defaults to /home/$USER/.config/stui.d/")
+	flag.StringVar(&ConfigDirPath, "config-dir", ConfigDirPath, "path to a directory with config files")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config")
 	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")

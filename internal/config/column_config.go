@@ -19,7 +19,7 @@ func GetColumnNames(columnConfigs *[]ColumnConfig) (columns []string) {
 }
 
 // Get column fields returns the full expanded list of field names that
-// can be used in the --format argument sacct
+// can be used in the --format argument of sacct
 func GetColumnFields(columnConfigs *[]ColumnConfig) (columns []string) {
 	for _, col := range *columnConfigs {
 		if col.DividedByColumn {
@@ -43,7 +43,7 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 		col := ColumnConfig{DividedByColumn: false}
 		col.Name = strings.TrimSpace(part)
 
-		// Check if column contains '/', in which case it is a DividedByColumn
+		// Check if column contains '//', in which case it is a DividedByColumn
 		if strings.Contains(part, "//") {
 			col.DividedByColumn = true
 		}

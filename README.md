@@ -61,7 +61,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ```txt
     Usage of ./stui:
       -config-dir string
-          path to a directory with config files, defaults to /home/$USER/.config/stui.d/ (default "/home/$USER/.config/stui.d/")
+          path to a directory with config files (default "/home/$USER/.config/stui.d/")
       -copied-lines-separator string
           string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only

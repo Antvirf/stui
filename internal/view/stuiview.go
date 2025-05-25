@@ -215,7 +215,7 @@ func (s *StuiView) Render() {
 
 	// If no rows, set empty cells with spaces to maintain a nice looking column structure
 	if len(filteredRows) == 0 {
-		for col, _ := range *s.data.Headers {
+		for col := range *s.data.Headers {
 			spaces := strings.Repeat(" ", 1)
 			s.Table.SetCell(1, col, tview.NewTableCell(spaces).
 				SetAlign(tview.AlignLeft).

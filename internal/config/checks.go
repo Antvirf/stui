@@ -28,7 +28,7 @@ func checkIfSacctMgrIsAvailable() {
 	}
 }
 
-// Check whether the cluster is reacheable with 'scontrol ping'
+// Check whether the cluster is reachable with 'scontrol ping'
 func checkIfClusterIsReachable() error {
 	ctx, cancel := context.WithTimeout(context.Background(), RequestTimeout)
 	defer cancel()
