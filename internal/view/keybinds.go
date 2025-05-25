@@ -66,7 +66,7 @@ func (a *App) SetupKeybinds() {
 			}
 			a.App.SetFocus(a.NodesView.Table)
 			a.setupSortSelectorOptions(a.NodesProvider, a.NodesView.sortColumn)
-			a.PagesContainer.SetTitle(a.NodesView.titleHeader)
+			a.PagesContainer.SetTitle(a.NodesView.completeTitle)
 			go a.App.QueueUpdateDraw(func() {
 				a.NodesView.FetchIfStaleAndRender(config.RefreshInterval)
 			})
@@ -86,7 +86,7 @@ func (a *App) SetupKeybinds() {
 			}
 			a.App.SetFocus(a.JobsView.Table)
 			a.setupSortSelectorOptions(a.JobsProvider, a.JobsView.sortColumn)
-			a.PagesContainer.SetTitle(a.JobsView.titleHeader)
+			a.PagesContainer.SetTitle(a.JobsView.completeTitle)
 			go a.App.QueueUpdateDraw(func() {
 				a.JobsView.FetchIfStaleAndRender(config.RefreshInterval)
 			})
@@ -107,7 +107,7 @@ func (a *App) SetupKeybinds() {
 				}
 				a.App.SetFocus(a.SacctView.Table)
 				a.setupSortSelectorOptions(a.SacctProvider, a.SacctView.sortColumn)
-				a.PagesContainer.SetTitle(a.SacctView.titleHeader)
+				a.PagesContainer.SetTitle(a.SacctView.completeTitle)
 				go a.App.QueueUpdateDraw(func() {
 					a.SacctView.Render()
 				})
@@ -128,7 +128,7 @@ func (a *App) SetupKeybinds() {
 				}
 				a.App.SetFocus(a.SacctMgrView.Table)
 				a.setupSortSelectorOptions(a.SacctMgrProvider, a.SacctMgrView.sortColumn)
-				a.PagesContainer.SetTitle(a.SacctMgrView.titleHeader)
+				a.PagesContainer.SetTitle(a.SacctMgrView.completeTitle)
 				go a.App.QueueUpdateDraw(func() {
 					a.SacctMgrView.FetchIfStaleAndRender(config.RefreshInterval)
 				})

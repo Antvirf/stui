@@ -76,6 +76,7 @@ type StuiView struct {
 	Grid          *tview.Grid
 	Selection     map[string]bool
 	titleHeader   string
+	completeTitle string
 	searchEnabled bool
 	searchPattern *string // Pointer to a shared string
 
@@ -224,9 +225,13 @@ func (s *StuiView) Render() {
 	}
 
 	// Callbacks
-	s.updateTitleFunction(fmt.Sprintf(
-		" %s (%s / %s) ", s.titleHeader, FormatNumberWithCommas(filteredCount), FormatNumberWithCommas(totalCount),
-	))
+	s.completeTitle = fmt.Sprintf(
+		" %s ( %s/%s ) ",
+		s.titleHeader,
+		FormatNumberWithCommas(filteredCount),
+		FormatNumberWithCommas(totalCount),
+	)
+	s.updateTitleFunction(s.completeTitle)
 
 	lastUpdated := s.provider.LastUpdated()
 	timeSince := int(time.Since(lastUpdated).Seconds())
