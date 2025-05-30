@@ -340,6 +340,10 @@ func tableViewInputCapture(
 			a.optionalRefreshAndRenderCurrentView(true)
 			a.ShowNotification("[green]Ctrl+R: Manual data refresh[white]", 1*time.Second)
 		case tcell.KeyCtrlD:
+			row, _ := view.GetSelection()
+			if row == 0 { // Skip if user is on header row / there is on data
+				return nil
+			}
 			// The below is an ugly way to check that we're in the jobs view
 			if strings.Contains(commandModalFilter, "JobId") {
 				SCANCEL_COMMAND := "scancel "
@@ -348,7 +352,6 @@ func tableViewInputCapture(
 					a.ShowStandardCommandModal(SCANCEL_COMMAND, *selection, a.GetCurrentPageName())
 				} else {
 					// Otherwise, try to use the current node under the cursor, if any
-					row, _ := view.GetSelection()
 					if row > 0 {
 						a.ShowStandardCommandModal(SCANCEL_COMMAND, map[string]bool{
 							view.GetCell(row, 0).Text: true,
