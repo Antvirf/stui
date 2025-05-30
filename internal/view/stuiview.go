@@ -125,7 +125,7 @@ func (s *StuiView) Render() {
 		searchFilterStartTime := time.Now()
 		filteredRows = [][]string{}
 
-		pattern, err := regexp.Compile("(?i)" + regexp.QuoteMeta(*s.searchPattern))
+		pattern, err := regexp.Compile("(?i)" + *s.searchPattern)
 		if err != nil {
 			s.errorNotificationFunction(fmt.Sprintf("[red]Invalid search pattern: %v[white]", err))
 		} else {
