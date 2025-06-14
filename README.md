@@ -183,22 +183,6 @@ make setup                      # install pre-commit and download Go deps
 GIT_TAG=0.0.8 make gh-release   # create release commit for given tag
 ```
 
-## To-do / roadmap
-
-- Feat: `sacct` view should auto-refresh by appending to existing data
-- Feat: Support configuration using the config file rather than only args
-  - Feat: Create a default config on first startup
-- Feat: `sacct` view further features: ability to search for jobs beyond currently loaded data, and/or ability to change time range within the view itself
-- Feat: `sstat` option for running jobs (returns tabular data, tbc how to do that nicely)
-- Feat: Summary stats in top middle pane: Node and job states
-- Feat: Config option for which view to start app in
-- Fix: `sacctmgr` views shared 1 sort column setting internally between views
-- Fix: highlight of currently selected row, if the cursor is on it, resets on data refresh
-- Feat: support selection of objects without a clear ID column, such as certain `sacctmgr` data like `Event`
-- Feat: `TextView` or something similar to `sdiag`, so we can support `sacctmgr` text entities: `Configuration`, `Stats`
-- Refactor: clean up where/how commands are defined, currently has some repetition
-- Refactor: keep track of 'connection state' to scheduler: right now if a connection is lost, switching between views becomes slow due to timeout + `FetchIfStaleAndRender`, which tries to query the scheduler on every refresh
-
 ## Alternatives and why this project exists
 
 `stui`...
