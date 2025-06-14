@@ -31,6 +31,13 @@ func (a *App) GetCurrentStuiView() *StuiView {
 	}
 }
 
+func (a *App) ClearSelectionFromCurrentView() {
+	view := a.GetCurrentStuiView()
+	if view != nil {
+		view.Selection = map[string]bool{}
+	}
+}
+
 func (a *App) GetProviderForPage(page string) model.DataProvider[*model.TableData] {
 	switch page {
 	case NODES_PAGE:

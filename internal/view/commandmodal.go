@@ -31,8 +31,14 @@ func (a *App) executeCommand(output *tview.TextView, cmdText string, pageName st
 		} else {
 			output.SetText(output.GetText(true) + commandOutput)
 		}
-		// Trigger table refresh in the background after a successful command
+
+		// After a successful command...
+		// ... clear the user's selection within the current view
+		a.ClearSelectionFromCurrentView()
+
+		// ... and trigger a table view refresh in the background
 		a.RefreshAndRenderPage(pageName)
+
 	}
 }
 
