@@ -133,7 +133,10 @@ func Configure() {
 
 	// Load config file if it exists
 	if ConfigDirPath == DEFAULT_CONFIG_LOCATION {
-		user, _ := user.Current()
+		user, err := user.Current()
+		if err != nil {
+			log.Fatalf("Could not determine current user: %v", err)
+		}
 		ConfigDirPath = fmt.Sprintf(
 			"%s/.config/stui.d/",
 			user.HomeDir,
