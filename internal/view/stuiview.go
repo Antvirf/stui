@@ -133,7 +133,7 @@ func (s *StuiView) Render() {
 			filteredRows = make([][]string, 0, len(s.data.Rows)/2)
 
 			for _, row := range s.data.Rows {
-				// Check each column individually to avoid string concatenation when possible
+				// Check each column individually. We do NOT support entire-row search for performance reasons.
 				matched := false
 				for _, cell := range row {
 					if pattern.MatchString(cell) {
