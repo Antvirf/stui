@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/antvirf/stui/internal/config"
 	"github.com/antvirf/stui/internal/logger"
 	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
@@ -194,19 +195,34 @@ func (s *StuiView) Render() {
 		s.Table.SetCell(0, col, cell)
 	}
 
-	// Set rows with text wrapping
+	// Row and cell-level processing: Text wrapping, colorization, etc.
 	for row, rowData := range filteredRows {
+		var shouldColorizeRow bool
+
+		// Check whether we should give this row a special color based on its state field
+		colorizedColor, shouldColorizeRow := GetStateColorMapping(rowData[config.NodeViewColumnsStateIndex])
+
 		for col, cell := range rowData {
+			// Op 1: Text wrapping
 			cellView := tview.NewTableCell(cell).
 				SetAlign(tview.AlignLeft).
 				SetMaxWidth(0).
 				SetExpansion(1)
 
-			// Highlight selected rows
+			// Highlight selected rows, or set color based on status
 			if s.Selection[rowData[0]] {
 				cellView.SetBackgroundColor(selectionColor)
+				cellView.SetTextColor(selectionTextColor)
+				cellView.SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
 			} else {
+				// Colorize text based on status
+				if shouldColorizeRow {
+					cellView.SetTextColor(colorizedColor)
+				}
+
+				// Other defaults
 				cellView.SetBackgroundColor(generalBackgroundColor) // Explicitly set default when not selected
+				cellView.SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
 			}
 
 			s.Table.SetCell(row+1, col, cellView)
@@ -270,4 +286,20 @@ func (s *StuiView) FetchIfStaleAndRender(since time.Duration) {
 func (s *StuiView) FetchAndRender() {
 	s.provider.Fetch()
 	s.Render()
+}
+
+func GetStateColorMapping(text string) (tcell.Color, bool) {
+	hasMapping := false
+	color := tcell.ColorWhite
+	for state, mapped_color := range STATE_COLORS_MAP {
+		// We check using contains, as some states won't be an exact text match.
+		// E.g. `CANCELLED` is sometimes `CANCELLED BY $UID`
+		// E.g. `IDLE+DRAIN` is a valid node state, and should be interpreted as `DRAIN` for coloring.
+		if strings.Contains(text, state) {
+			color = mapped_color
+			hasMapping = true
+			break
+		}
+	}
+	return color, hasMapping
 }

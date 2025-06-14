@@ -238,25 +238,28 @@ func tableViewInputCapture(
 
 				if (*selection)[entryName] {
 					delete(*selection, entryName)
-					// Set all cells in row to default background
+
+					// Check whether we should give this row a special color based on its state field
+					stateText := view.GetCell(row, config.NodeViewColumnsStateIndex).Text
+					colorizedColor, shouldColorizeRow := GetStateColorMapping(stateText)
+
 					for col := 0; col < view.GetColumnCount(); col++ {
-						view.GetCell(row, col).
-							SetBackgroundColor(generalBackgroundColor).
-							SetSelectedStyle(
-								tcell.StyleDefault.
-									Background(rowCursorColorBackground),
-							)
+						cell := view.GetCell(row, col)
+						cell.SetBackgroundColor(generalBackgroundColor).
+							SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
+						if shouldColorizeRow {
+							cell.SetTextColor(colorizedColor)
+						} else {
+							cell.SetTextColor(generalTextColor)
+						}
 					}
 				} else {
 					(*selection)[entryName] = true
-					// Set all cells in row to orange background
 					for col := 0; col < view.GetColumnCount(); col++ {
 						view.GetCell(row, col).
 							SetBackgroundColor(selectionColor).
-							SetSelectedStyle(
-								tcell.StyleDefault.
-									Background(selectionHighlightColor),
-							)
+							SetTextColor(selectionTextColor).
+							SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
 					}
 				}
 			}
