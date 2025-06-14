@@ -5,7 +5,7 @@ import "github.com/gdamore/tcell/v2"
 var (
 	BAD_STATE_COLOR     = tcell.ColorRed
 	MID_STATE_COLOR     = tcell.ColorOrange
-	SUCCESS_STATE_COLOR = tcell.ColorDarkOliveGreen
+	SUCCESS_STATE_COLOR = tcell.ColorLightGreen
 
 	STATE_COLORS_MAP = map[string]tcell.Color{
 		// Job states: https://slurm.schedmd.com/job_state_codes.html
