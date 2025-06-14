@@ -19,18 +19,19 @@ const (
 	FFTH_COL = 4
 
 	// Color configs for the app
-	generalBackgroundColor     = tcell.ColorBlack // TODO: Using other values here is not consistently applied
+	generalBackgroundColor     = tcell.ColorBlack
 	generalTextColor           = tcell.Color255
 	pagesBorderColor           = tcell.Color240 // Medium gray
 	rowCursorColorBackground   = tcell.Color240
 	rowCursorColorForeground   = tcell.ColorWhite
-	selectionColor             = tcell.Color28 // Darker green
-	selectionHighlightColor    = tcell.Color70 // Light green
-	paneSelectorHighlightColor = tcell.Color172
-	modalBorderColor           = tcell.Color172
+	selectionTextColor         = tcell.ColorWhite
+	selectionColor             = tcell.ColorCadetBlue
+	selectionHighlightColor    = tcell.ColorDeepSkyBlue
+	paneSelectorHighlightColor = tcell.Color172 // Orange
+	modalBorderColor           = tcell.Color172 // Orange
 	dropdownBackgroundColor    = tcell.Color240 // Medium gray
 	dropdownForegroundColor    = tcell.Color255 // White
-	searchboxLabelColor        = tcell.Color172 // Orange
+	searchboxLabelColor        = tcell.ColorOrange
 )
 
 func init() {

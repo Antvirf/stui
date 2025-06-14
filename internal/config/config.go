@@ -243,6 +243,12 @@ func ComputeConfigurations() {
 	SacctViewColumnsPartitionIndex = GetColumnIndexFromColumnConfig(SacctViewColumns, "Partition")
 	SacctViewColumnsStateIndex = GetColumnIndexFromColumnConfig(SacctViewColumns, "State")
 
+	// It is easier for us to manage rendering and coloring if `State` is always in the same place.
+	// These values are effectively hardcoded, so checking this condition here is safe.
+	if (SacctViewColumnsStateIndex != JobsViewColumnsStateIndex) || (JobsViewColumnsStateIndex != NodeViewColumnsStateIndex) {
+		log.Fatal("Invalid configuration: state column indexes are not aligned between tables.")
+	}
+
 	// Standardise partition filter
 	if PartitionFilter == "" {
 		PartitionFilter = ALL_CATEGORIES_OPTION
