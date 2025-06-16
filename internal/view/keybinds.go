@@ -153,8 +153,8 @@ func (a *App) SetupKeybinds() {
 				a,
 				a.SacctView.Table,
 				&a.SacctView.Selection,
-				"",              // Used for command modal
-				func(string) {}, // Null func for detail view
+				"", // Used for command modal, ignored if blank
+				a.ShowSacctJobDetails,
 			),
 		)
 		a.SacctMgrView.Table.SetInputCapture(

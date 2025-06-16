@@ -215,7 +215,15 @@ func (a *App) ShowJobDetails(jobID string) {
 	if err != nil {
 		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
 	}
-	a.ShowModalPopup(fmt.Sprintf("Job Details: %s", jobID), details)
+	a.ShowModalPopup(fmt.Sprintf("Job Details [scontrol]: %s", jobID), details)
+}
+
+func (a *App) ShowSacctJobDetails(jobID string) {
+	details, err := model.GetSacctJobDetailsWithTimeout(jobID, config.RequestTimeout)
+	if err != nil {
+		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
+	}
+	a.ShowModalPopup(fmt.Sprintf("Job Details [sacct]: %s", jobID), details)
 }
 
 // FormatNumberWithCommas adds thousand separators to an integer
