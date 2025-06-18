@@ -48,6 +48,7 @@ var (
 	SacctViewColumnsStateIndex     int
 	SacctTimeoutMultiplier         int64 = 5 // sacct can be slow, so we give it extra time
 	ConfigFile                     Config
+	AllSacctViewColumns            string // Used in sacct detail view
 
 	// Cluster information
 	ClusterName           string = "unknown"
@@ -230,8 +231,11 @@ func ComputeConfigurations() {
 	// JobID must be first column, as it is unique and used for selections
 	// Partition and State are used as filters and must be included.
 	// If all columns are requested, override list here.
+
+	// Since we need all the columns anyway for use in sacct detail view, set it here
+	AllSacctViewColumns = fmt.Sprintf("JobIDRaw,Partition,State,%s", ALL_OTHER_SACCT_COLUMNS)
 	if ShowAllColumns {
-		rawSacctViewColumns = fmt.Sprintf("JobIDRaw,Partition,State,%s", ALL_OTHER_SACCT_COLUMNS)
+		rawSacctViewColumns = AllSacctViewColumns
 	} else {
 		rawSacctViewColumns = fmt.Sprintf("JobIDRaw,Partition,State,%s", rawSacctViewColumns)
 	}

@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/antvirf/stui/internal/config"
 	"github.com/antvirf/stui/internal/model"
@@ -122,8 +123,11 @@ func (a *App) optionalRefreshAndRenderPage(pageName string, refresh bool) {
 	go a.App.QueueUpdateDraw(func() {})
 }
 
-func (a *App) ShowModalPopup(title, details string) {
-	// Create new modal components each time (don't reuse)
+func (a *App) ShowModalPopupTable(title string, table *tview.Table) {
+	a.showModalPopup(title, table)
+}
+
+func (a *App) ShowModalPopupString(title, details string) {
 	detailView := tview.NewTextView().
 		SetDynamicColors(true).
 		SetScrollable(true).
@@ -131,6 +135,10 @@ func (a *App) ShowModalPopup(title, details string) {
 		SetTextAlign(tview.AlignLeft)
 	detailView.SetText(details)
 
+	a.showModalPopup(title, detailView)
+}
+
+func (a *App) showModalPopup(title string, primitive tview.Primitive) {
 	modal := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(tview.NewTextView().
@@ -138,7 +146,7 @@ func (a *App) ShowModalPopup(title, details string) {
 			SetText(fmt.Sprintf(" %s (ESC to close) ", title)).
 			SetTextColor(generalTextColor),
 			2, 0, false).
-		AddItem(detailView, 0, 1, true)
+		AddItem(primitive, 0, 1, true)
 
 	modal.SetBorder(true).
 		SetBorderColor(modalBorderColor).
@@ -159,24 +167,37 @@ func (a *App) ShowModalPopup(title, details string) {
 	// Add as overlay without switching pages
 	pageName := "detailView"
 	a.Pages.AddPage(pageName, centered, true, true)
-	a.App.SetFocus(detailView)
+	a.App.SetFocus(primitive)
 
 	// Set up handler to return to correct view when closed
-	detailView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyEsc:
-			a.Pages.RemovePage(pageName)
-			a.Pages.SwitchToPage(previousPageName)
-			a.App.SetFocus(previousFocus)
-			return nil
-		}
-		switch event.Rune() {
-		case 'y':
-			a.copyToClipBoard(details)
-			return nil
-		}
-		return event
-	})
+	// Sadly we need to cast the primitive to an acceptable shape
+	// in order to define input capture.
+	table, is_table := primitive.(*tview.Table)
+	textv, is_textv := primitive.(*tview.Table)
+	if is_textv {
+		textv.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			switch event.Key() {
+			case tcell.KeyEsc:
+				a.Pages.RemovePage(pageName)
+				a.Pages.SwitchToPage(previousPageName)
+				a.App.SetFocus(previousFocus)
+				return nil
+			}
+			return event
+		})
+	}
+	if is_table {
+		table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			switch event.Key() {
+			case tcell.KeyEsc:
+				a.Pages.RemovePage(pageName)
+				a.Pages.SwitchToPage(previousPageName)
+				a.App.SetFocus(previousFocus)
+				return nil
+			}
+			return event
+		})
+	}
 }
 
 func (a *App) setActiveTab(active string) {
@@ -207,7 +228,7 @@ func (a *App) ShowNodeDetails(nodeName string) {
 	if err != nil {
 		details = fmt.Sprintf("Error fetching node details:\n%s", err.Error())
 	}
-	a.ShowModalPopup(fmt.Sprintf("Node Details: %s", nodeName), details)
+	a.ShowModalPopupString(fmt.Sprintf("Node Details: %s", nodeName), details)
 }
 
 func (a *App) ShowJobDetails(jobID string) {
@@ -215,7 +236,7 @@ func (a *App) ShowJobDetails(jobID string) {
 	if err != nil {
 		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
 	}
-	a.ShowModalPopup(fmt.Sprintf("Job Details [scontrol]: %s", jobID), details)
+	a.ShowModalPopupString(fmt.Sprintf("Job Details [scontrol]: %s", jobID), details)
 }
 
 func (a *App) ShowSacctJobDetails(jobID string) {
@@ -223,7 +244,30 @@ func (a *App) ShowSacctJobDetails(jobID string) {
 	if err != nil {
 		details = fmt.Sprintf("Error fetching job details:\n%s", err.Error())
 	}
-	a.ShowModalPopup(fmt.Sprintf("Job Details [sacct]: %s", jobID), details)
+
+	// Process the parsable input (pipe-separated) into a nice table
+	table := tview.NewTable()
+	table.SetEvaluateAllRows(true)
+	table.SetFixed(1, 1)
+	table.SetBorderPadding(0, 0, 1, 1)
+
+	for i, line := range strings.Split(details, "\n") {
+		for j, cell := range strings.Split(line, "|") {
+			tc := tview.NewTableCell(cell)
+			if i == 0 {
+				tc.SetAlign(2) // Align the title column to the right
+				tc.SetAttributes(tcell.AttrBold)
+				tc.SetTextColor(selectionColor)
+			}
+			if j == 0 {
+				tc.SetAttributes(tcell.AttrBold)
+				tc.SetTextColor(selectionColor)
+			}
+			table.SetCell(j, i, tc)
+		}
+	}
+
+	a.ShowModalPopupTable(fmt.Sprintf("Job Details [sacct]: %s", jobID), table)
 }
 
 // FormatNumberWithCommas adds thousand separators to an integer

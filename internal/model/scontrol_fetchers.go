@@ -116,7 +116,12 @@ func GetSacctJobDetailsWithTimeout(jobID string, timeout time.Duration) (string,
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	fullCommand := fmt.Sprintf("%s -j %s", path.Join(config.SlurmBinariesPath, "sacct"), jobID)
+	fullCommand := fmt.Sprintf(
+		"%s -j %s --format %s --parsable",
+		path.Join(config.SlurmBinariesPath, "sacct"),
+		jobID,
+		config.AllSacctViewColumns,
+	)
 	cmd := execStringCommand(ctx, fullCommand)
 	out, err := cmd.Output()
 	execTime := time.Since(startTime).Milliseconds()

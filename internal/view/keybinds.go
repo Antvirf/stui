@@ -43,7 +43,7 @@ func (a *App) SetupKeybinds() {
 
 		switch event.Rune() {
 		case '?':
-			a.ShowModalPopup(
+			a.ShowModalPopupString(
 				"Shortcuts",
 				fmt.Sprintf(
 					"%s\n%s",
