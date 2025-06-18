@@ -288,18 +288,29 @@ func (s *StuiView) FetchAndRender() {
 	s.Render()
 }
 
-func GetStateColorMapping(text string) (tcell.Color, bool) {
-	hasMapping := false
-	color := tcell.ColorWhite
-	for state, mapped_color := range STATE_COLORS_MAP {
+func GetStateColorMapping(text string) (color tcell.Color, hasMapping bool) {
+	hasMapping = false
+	color = tcell.ColorWhite
+
+	// Process high priority mapping first
+	for state, mapped_color := range STATE_COLORS_MAP_HIGH_PRIORITY {
 		// We check using contains, as some states won't be an exact text match.
 		// E.g. `CANCELLED` is sometimes `CANCELLED BY $UID`
 		// E.g. `IDLE+DRAIN` is a valid node state, and should be interpreted as `DRAIN` for coloring.
 		if strings.Contains(text, state) {
 			color = mapped_color
 			hasMapping = true
-			break
+			return
 		}
 	}
-	return color, hasMapping
+
+	// Lower priority second
+	for state, mapped_color := range STATE_COLORS_MAP {
+		if strings.Contains(text, state) {
+			color = mapped_color
+			hasMapping = true
+			return
+		}
+	}
+	return
 }

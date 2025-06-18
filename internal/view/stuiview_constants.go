@@ -7,9 +7,9 @@ var (
 	MID_STATE_COLOR     = tcell.ColorOrange
 	SUCCESS_STATE_COLOR = tcell.ColorLightGreen
 
-	STATE_COLORS_MAP = map[string]tcell.Color{
-		// Job states: https://slurm.schedmd.com/job_state_codes.html
-		// Bad / red
+	// This map will get processed first, and takes priority
+	STATE_COLORS_MAP_HIGH_PRIORITY = map[string]tcell.Color{
+		// Job States
 		"BOOT_FAIL":     BAD_STATE_COLOR,
 		"CANCELLED":     BAD_STATE_COLOR,
 		"DEADLINE":      BAD_STATE_COLOR,
@@ -19,15 +19,7 @@ var (
 		"PREEMPTED":     BAD_STATE_COLOR,
 		"TIMEOUT":       BAD_STATE_COLOR,
 
-		// Yellows
-		"PENDING":   MID_STATE_COLOR,
-		"SUSPENDED": MID_STATE_COLOR,
-
-		// Successes
-		"COMPLETED": SUCCESS_STATE_COLOR,
-
-		// Node states: https://slurm.schedmd.com/sinfo.html
-		// Bad states
+		// Node states
 		"DOWN":         BAD_STATE_COLOR,
 		"POWER_DOWN":   BAD_STATE_COLOR,
 		"POWERED_DOWN": BAD_STATE_COLOR,
@@ -38,7 +30,16 @@ var (
 		"BLOCKED":      BAD_STATE_COLOR,
 		"FAIL":         BAD_STATE_COLOR,
 
-		// Yellow states
+		// Shared states
+		"COMPLETED": SUCCESS_STATE_COLOR,
+	}
+
+	STATE_COLORS_MAP = map[string]tcell.Color{
+		// Job states
+		"PENDING":   MID_STATE_COLOR,
+		"SUSPENDED": MID_STATE_COLOR,
+
+		// Node states
 		"DRAINING":      MID_STATE_COLOR,
 		"POWERING_DOWN": MID_STATE_COLOR,
 		"DRAIN":         MID_STATE_COLOR,
