@@ -173,7 +173,7 @@ func (a *App) showModalPopup(title string, primitive tview.Primitive) {
 	// Sadly we need to cast the primitive to an acceptable shape
 	// in order to define input capture.
 	table, is_table := primitive.(*tview.Table)
-	textv, is_textv := primitive.(*tview.Table)
+	textv, is_textv := primitive.(*tview.TextView)
 	if is_textv {
 		textv.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			switch event.Key() {
