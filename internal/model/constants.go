@@ -64,7 +64,6 @@ var (
 		"QOS",
 		"Resource",
 		"Reservation",
-		"RunAwayJobs", // Requires operator perms
 		"Transaction",
 		"TRES",
 		"User",
@@ -73,6 +72,7 @@ var (
 	SACCTMGR_TEXT_ENTITIES = []string{
 		"Configuration",
 		// "Stats", // Requires admin
+		// "RunAwayJobs", // Requires operator perms, and is a special case - the command becomes interactive if it returns anything
 	}
 
 	// https://slurm.schedmd.com/sacctmgr.html
