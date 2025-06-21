@@ -19,11 +19,7 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 	defer cancel()
 
 	fullCommand := path.Join(config.SlurmBinariesPath, "scontrol") + " " + command
-
-	cmd := exec.CommandContext(ctx,
-		path.Join(config.SlurmBinariesPath, "scontrol"),
-		strings.Split(command, " ")...,
-	)
+	cmd := execStringCommand(ctx, fullCommand)
 	rawOut, err := cmd.CombinedOutput()
 	out := string(rawOut)
 	execTime := time.Since(startTime).Milliseconds()
@@ -73,11 +69,7 @@ func GetNodeDetailsWithTimeout(nodeName string, timeout time.Duration) (string, 
 	defer cancel()
 
 	fullCommand := fmt.Sprintf("%s show node %s", path.Join(config.SlurmBinariesPath, "scontrol"), nodeName)
-
-	cmd := exec.CommandContext(ctx,
-		path.Join(config.SlurmBinariesPath, "scontrol"),
-		"show", "node", nodeName,
-	)
+	cmd := execStringCommand(ctx, fullCommand)
 	out, err := cmd.Output()
 	execTime := time.Since(startTime).Milliseconds()
 
@@ -101,11 +93,7 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 	defer cancel()
 
 	fullCommand := fmt.Sprintf("%s show job %s", path.Join(config.SlurmBinariesPath, "scontrol"), jobID)
-
-	cmd := exec.CommandContext(ctx,
-		path.Join(config.SlurmBinariesPath, "scontrol"),
-		"show", "job", jobID,
-	)
+	cmd := execStringCommand(ctx, fullCommand)
 	out, err := cmd.Output()
 	execTime := time.Since(startTime).Milliseconds()
 
@@ -122,6 +110,35 @@ func GetJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, erro
 	return string(out), nil
 }
 
+func GetSacctJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, error) {
+	startTime := time.Now()
+	FetchCounter.increment()
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	fullCommand := fmt.Sprintf(
+		"%s -j %s --format %s --parsable",
+		path.Join(config.SlurmBinariesPath, "sacct"),
+		jobID,
+		config.AllSacctViewColumns,
+	)
+	cmd := execStringCommand(ctx, fullCommand)
+	out, err := cmd.Output()
+	execTime := time.Since(startTime).Milliseconds()
+
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			logger.Debugf("sacct: timed out after %dms: %s", execTime, fullCommand)
+			return "", fmt.Errorf("timeout after %v", timeout)
+		}
+		logger.Debugf("sacct: failed after %dms: %s (%v)", execTime, fullCommand, err)
+		return "", fmt.Errorf("sacct failed: %v", err)
+	}
+
+	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
+	return string(out), nil
+}
+
 func getSdiagWithTimeout(timeout time.Duration) (string, error) {
 	startTime := time.Now()
 	FetchCounter.increment()
@@ -129,10 +146,7 @@ func getSdiagWithTimeout(timeout time.Duration) (string, error) {
 	defer cancel()
 
 	fullCommand := path.Join(config.SlurmBinariesPath, "sdiag")
-
-	cmd := exec.CommandContext(ctx,
-		path.Join(config.SlurmBinariesPath, "sdiag"),
-	)
+	cmd := execStringCommand(ctx, fullCommand)
 	out, err := cmd.Output()
 	execTime := time.Since(startTime).Milliseconds()
 
@@ -147,4 +161,8 @@ func getSdiagWithTimeout(timeout time.Duration) (string, error) {
 
 	logger.Debugf("sdiag: completed in %dms: %s", execTime, fullCommand)
 	return string(out), nil
+}
+
+func execStringCommand(ctx context.Context, cmd string) *exec.Cmd {
+	return exec.CommandContext(ctx, strings.Split(cmd, " ")[0], strings.Split(cmd, " ")[1:]...)
 }
