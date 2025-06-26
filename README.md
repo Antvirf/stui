@@ -12,7 +12,7 @@
 - View individual node details (`scontrol show node` equivalent)
 - View individual job details (`scontrol show job` equivalent)
 - Show `sdiag` output for scheduler diagnostics
-- (if Slurm accounting is enabled) Explore historical job accounting from `sacct` tables, search across rows with regular expressions, filtering by partition and state. This view is not refreshed automatically.
+- (if Slurm accounting is enabled) Explore historical job accounting from `sacct` tables, search across rows with regular expressions, filtering by partition and state. View individual job details (`sacct -j` equivalent, with all available columns)
 - (if Slurm accounting is enabled) Explore `sacctmgr` tables, search across rows with regular expressions
 - Configure table views with specific columns/content of your choice
 - Optimized to minimize load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute after initial startup.
