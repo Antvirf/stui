@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"strings"
 	"time"
 )
 
@@ -54,6 +55,8 @@ var (
 	ClusterName           string = "unknown"
 	SchedulerHostName     string = "unknown"
 	SchedulerSlurmVersion string = "unknown"
+
+	ALL_OTHER_SACCT_COLUMNS string // This has to be dynamic as we change it by version
 )
 
 const (
@@ -95,7 +98,8 @@ e        Focus on Entity type selector, 'esc' to close
 
 	// Full list can be exported with from `sacct --helpformat | tr -s ' \n' ','`
 	// The column below is a subset that excludes the fields that are always shown.
-	ALL_OTHER_SACCT_COLUMNS = "AdminComment,AllocNodes,AssocID,AveCPU,AveCPUFreq,AveDiskRead,AveDiskWrite,AvePages,AveRSS,AveVMSize,BlockID,CPUTime,CPUTimeRAW,Cluster,Constraints,ConsumedEnergy,ConsumedEnergyRaw,Container,DBIndex,DerivedExitCode,ElapsedRaw,Eligible,End,Extra,FailedNode,Flags,GID,Group,JobID,Layout,Licenses,MaxDiskRead,MaxDiskReadNode,MaxDiskReadTask,MaxDiskWrite,MaxDiskWriteNode,MaxDiskWriteTask,MaxPages,MaxPagesNode,MaxPagesTask,MaxRSS,MaxRSSNode,MaxRSSTask,MaxVMSize,MaxVMSizeNode,MaxVMSizeTask,McsLabel,MinCPU,MinCPUNode,MinCPUTask,NCPUS,NNodes,NTasks,Planned,PlannedCPU,PlannedCPURAW,Priority,QOSRAW,QOSREQ,Reason,ReqCPUFreq,ReqCPUFreqGov,ReqCPUFreqMax,ReqCPUFreqMin,ReqNodes,Reservation,ReservationId,Restarts,SLUID,Start,StdErr,StdIn,StdOut,Submit,Suspended,SystemCPU,SystemComment,TRESUsageInAve,TRESUsageInMax,TRESUsageInMaxNode,TRESUsageInMaxTask,TRESUsageInMin,TRESUsageInMinNode,TRESUsageInMinTask,TRESUsageInTot,TRESUsageOutAve,TRESUsageOutMax,TRESUsageOutMaxNode,TRESUsageOutMaxTask,TRESUsageOutMin,TRESUsageOutMinNode,TRESUsageOutMinTask,TRESUsageOutTot,Timelimit,TimelimitRaw,TotalCPU,UID,UserCPU,WCKey,WCKeyID,WorkDir"
+	ALL_OTHER_SACCT_COLUMNS_24 = "AdminComment,AllocNodes,AssocID,AveCPU,AveCPUFreq,AveDiskRead,AveDiskWrite,AvePages,AveRSS,AveVMSize,BlockID,CPUTime,CPUTimeRAW,Cluster,Constraints,ConsumedEnergy,ConsumedEnergyRaw,Container,DBIndex,DerivedExitCode,ElapsedRaw,Eligible,End,Extra,FailedNode,Flags,GID,Group,JobID,Layout,Licenses,MaxDiskRead,MaxDiskReadNode,MaxDiskReadTask,MaxDiskWrite,MaxDiskWriteNode,MaxDiskWriteTask,MaxPages,MaxPagesNode,MaxPagesTask,MaxRSS,MaxRSSNode,MaxRSSTask,MaxVMSize,MaxVMSizeNode,MaxVMSizeTask,McsLabel,MinCPU,MinCPUNode,MinCPUTask,NCPUS,NNodes,NTasks,Planned,PlannedCPU,PlannedCPURAW,Priority,QOSRAW,Reason,ReqCPUFreq,ReqCPUFreqGov,ReqCPUFreqMax,ReqCPUFreqMin,ReqNodes,Reservation,ReservationId,Start,Submit,Suspended,SystemCPU,SystemComment,TRESUsageInAve,TRESUsageInMax,TRESUsageInMaxNode,TRESUsageInMaxTask,TRESUsageInMin,TRESUsageInMinNode,TRESUsageInMinTask,TRESUsageInTot,TRESUsageOutAve,TRESUsageOutMax,TRESUsageOutMaxNode,TRESUsageOutMaxTask,TRESUsageOutMin,TRESUsageOutMinNode,TRESUsageOutMinTask,TRESUsageOutTot,Timelimit,TimelimitRaw,TotalCPU,UID,UserCPU,WCKey,WCKeyID,WorkDir"
+	ALL_OTHER_SACCT_COLUMNS_25 = "AdminComment,AllocNodes,AssocID,AveCPU,AveCPUFreq,AveDiskRead,AveDiskWrite,AvePages,AveRSS,AveVMSize,BlockID,CPUTime,CPUTimeRAW,Cluster,Constraints,ConsumedEnergy,ConsumedEnergyRaw,Container,DBIndex,DerivedExitCode,ElapsedRaw,Eligible,End,Extra,FailedNode,Flags,GID,Group,JobID,Layout,Licenses,MaxDiskRead,MaxDiskReadNode,MaxDiskReadTask,MaxDiskWrite,MaxDiskWriteNode,MaxDiskWriteTask,MaxPages,MaxPagesNode,MaxPagesTask,MaxRSS,MaxRSSNode,MaxRSSTask,MaxVMSize,MaxVMSizeNode,MaxVMSizeTask,McsLabel,MinCPU,MinCPUNode,MinCPUTask,NCPUS,NNodes,NTasks,Planned,PlannedCPU,PlannedCPURAW,Priority,QOSRAW,QOSREQ,Reason,ReqCPUFreq,ReqCPUFreqGov,ReqCPUFreqMax,ReqCPUFreqMin,ReqNodes,Reservation,ReservationId,Restarts,SLUID,Start,StdErr,StdIn,StdOut,Submit,Suspended,SystemCPU,SystemComment,TRESUsageInAve,TRESUsageInMax,TRESUsageInMaxNode,TRESUsageInMaxTask,TRESUsageInMin,TRESUsageInMinNode,TRESUsageInMinTask,TRESUsageInTot,TRESUsageOutAve,TRESUsageOutMax,TRESUsageOutMaxNode,TRESUsageOutMaxTask,TRESUsageOutMin,TRESUsageOutMinNode,TRESUsageOutMinTask,TRESUsageOutTot,Timelimit,TimelimitRaw,TotalCPU,UID,UserCPU,WCKey,WCKeyID,WorkDir"
 
 	// Certain config option names are specified as vars since they are used in other places
 	CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM = "load-sacct-data-from"
@@ -181,8 +185,6 @@ func Configure() {
 		log.Fatalf("Invalid arguments: request timeout of '%d' is longer than refresh interval of '%d'", RequestTimeout, RefreshInterval)
 	}
 
-	ComputeConfigurations()
-
 	if err := checkIfClusterIsReachable(); err != nil {
 		log.Fatalf("Failed to connect to Slurm: %v", err)
 	}
@@ -190,7 +192,15 @@ func Configure() {
 	// Get scheduler info
 	SchedulerHostName, ClusterName, SchedulerSlurmVersion = getSchedulerInfoWithTimeout(RequestTimeout)
 
+	if strings.Contains(SchedulerSlurmVersion, "25") {
+		ALL_OTHER_SACCT_COLUMNS = ALL_OTHER_SACCT_COLUMNS_25
+	} else {
+		ALL_OTHER_SACCT_COLUMNS = ALL_OTHER_SACCT_COLUMNS_24
+	}
+
 	checkIfSacctMgrIsAvailable()
+
+	ComputeConfigurations()
 }
 
 func ComputeConfigurations() {
