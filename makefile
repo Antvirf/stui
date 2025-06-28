@@ -174,3 +174,15 @@ convert-demo-to-gif:
 	ffmpeg -i $$(ls demo* | tail -n1) \
     	-vf "fps=7,scale=800:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \
     	-loop 0 assets/demo.gif
+
+add-delay:
+	sudo tc qdisc add dev lo root handle 1: prio
+	sudo tc qdisc add dev lo parent 1:1 handle 10: netem delay 100ms 20ms
+	sudo tc filter add dev lo parent 1:0 protocol ip u32 match ip dport 22 0xffff flowid 1:1
+	sudo tc filter add dev lo parent 1:0 protocol ip u32 match ip sport 22 0xffff flowid 1:1
+	sudo tc filter add dev lo parent 1:0 protocol ip u32 match ip dport 6817 0xffff flowid 1:1
+	sudo tc filter add dev lo parent 1:0 protocol ip u32 match ip sport 6817 0xffff flowid 1:1
+
+remove-delay:
+	sudo tc qdisc del dev lo root
+
