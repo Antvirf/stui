@@ -234,7 +234,7 @@ func ComputeConfigurations() {
 	// If all columns are requested, override list here.
 
 	// Since we need all the columns anyway for use in sacct detail view, set it here
-	AllSacctViewColumns = fmt.Sprintf("JobIDRaw,Partition,State,%s", ALL_OTHER_SACCT_COLUMNS)
+	AllSacctViewColumns = fmt.Sprintf("JobIDRaw,Partition,State,%s,%s", rawSacctViewColumns, ALL_OTHER_SACCT_COLUMNS)
 	if ShowAllColumns {
 		rawSacctViewColumns = AllSacctViewColumns
 	} else {

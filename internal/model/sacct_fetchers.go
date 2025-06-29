@@ -93,3 +93,36 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, 
 		Rows:    rows,
 	}, nil
 }
+
+func GetSacctJobDetailsWithTimeout(jobID string, timeout time.Duration) (string, error) {
+	startTime := time.Now()
+	FetchCounter.increment()
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	// Clean up the columns list
+	columnStrings := strings.ReplaceAll(config.AllSacctViewColumns, "++", "")
+	columnStrings = strings.ReplaceAll(columnStrings, "//", ",")
+
+	fullCommand := fmt.Sprintf(
+		"%s -j %s --format %s --parsable",
+		path.Join(config.SlurmBinariesPath, "sacct"),
+		jobID,
+		columnStrings,
+	)
+	cmd := execStringCommand(ctx, fullCommand)
+	out, err := cmd.Output()
+	execTime := time.Since(startTime).Milliseconds()
+
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			logger.Debugf("sacct: timed out after %dms: %s", execTime, fullCommand)
+			return "", fmt.Errorf("timeout after %v", timeout)
+		}
+		logger.Debugf("sacct: failed after %dms: %s (%v)", execTime, fullCommand, err)
+		return "", fmt.Errorf("sacct failed: %v", err)
+	}
+
+	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
+	return string(out), nil
+}
