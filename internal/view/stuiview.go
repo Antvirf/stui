@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -135,13 +136,7 @@ func (s *StuiView) Render() {
 
 			for _, row := range s.data.Rows {
 				// Check each column individually. We do NOT support entire-row search for performance reasons.
-				matched := false
-				for _, cell := range row {
-					if pattern.MatchString(cell) {
-						matched = true
-						break
-					}
-				}
+				matched := slices.ContainsFunc(row, func(cell string) bool { return pattern.MatchString(cell) })
 
 				if matched {
 					filteredRows = append(filteredRows, row)
@@ -166,7 +161,7 @@ func (s *StuiView) Render() {
 		// If header is a divided type, clean it up
 		headerName := header.Name
 		if header.DividedByColumn {
-			headerName = strings.Replace(header.Name, "//", "/", -1)
+			headerName = strings.ReplaceAll(header.Name, "//", "/")
 		}
 
 		// Add sort indicator if this is the sorted column
@@ -297,21 +292,21 @@ func GetStateColorMapping(text string) (color tcell.Color, hasMapping bool) {
 	color = tcell.ColorWhite
 
 	// Process high priority mapping first
-	for state, mapped_color := range STATE_COLORS_MAP_HIGH_PRIORITY {
+	for state, mappedColor := range STATE_COLORS_MAP_HIGH_PRIORITY {
 		// We check using contains, as some states won't be an exact text match.
 		// E.g. `CANCELLED` is sometimes `CANCELLED BY $UID`
 		// E.g. `IDLE+DRAIN` is a valid node state, and should be interpreted as `DRAIN` for coloring.
 		if strings.Contains(text, state) {
-			color = mapped_color
+			color = mappedColor
 			hasMapping = true
 			return
 		}
 	}
 
 	// Lower priority second
-	for state, mapped_color := range STATE_COLORS_MAP {
+	for state, mappedColor := range STATE_COLORS_MAP {
 		if strings.Contains(text, state) {
-			color = mapped_color
+			color = mappedColor
 			hasMapping = true
 			return
 		}
