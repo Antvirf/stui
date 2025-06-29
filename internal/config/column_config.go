@@ -8,8 +8,9 @@ import (
 
 type ColumnConfig struct {
 	Name            string
-	DividedByColumn bool
 	Width           int
+	DividedByColumn bool
+	FullWidthColumn bool
 }
 
 func GetColumnNames(columnConfigs *[]ColumnConfig) (columns []string) {
@@ -23,6 +24,10 @@ func GetColumnNames(columnConfigs *[]ColumnConfig) (columns []string) {
 // can be used in the --format argument of sacct
 func GetColumnFields(columnConfigs *[]ColumnConfig) (columns []string) {
 	for _, col := range *columnConfigs {
+		// Clean up configuration characters
+		col.Name = strings.ReplaceAll(col.Name, "++", "")
+
+		// Split apart divided columns
 		if col.DividedByColumn {
 			columns = append(columns, strings.Split(col.Name, "//")...)
 		} else {
@@ -41,13 +46,17 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 	var configs []ColumnConfig
 
 	for _, part := range parts {
-		col := ColumnConfig{DividedByColumn: false}
+		col := ColumnConfig{DividedByColumn: false, FullWidthColumn: false}
 		col.Name = strings.TrimSpace(part)
 
-		// Check if column contains '//', in which case it is a DividedByColumn
 		if strings.Contains(part, "//") {
 			col.DividedByColumn = true
 		}
+
+		if strings.Contains(part, "++") {
+			col.FullWidthColumn = true
+		}
+
 		configs = append(configs, col)
 	}
 
