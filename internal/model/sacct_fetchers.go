@@ -48,7 +48,7 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
 	return parseSacctOutputToTableData(out, columns, computeColumnWidths)
 }
-func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, computeColumnWidth bool) (*TableData, error) {
+func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, computeColumnWidths bool) (*TableData, error) {
 	rawRows := parseSacctOutput(output)
 	if len(rawRows) == 0 {
 		return EmptyTableData(), nil
@@ -61,7 +61,7 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, 
 			// Access elements by index so we modify the original
 			col := &(*columns)[j]
 
-			if computeColumnWidth {
+			if computeColumnWidths {
 				col.Width = min(
 					max( // Increase col width if current cell is bigger than current max
 						len(safeGetFromMap(rawRow, col.Name)),
@@ -80,8 +80,9 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, 
 				}
 				row[j] = strings.Join(values, " / ")
 			} else {
-				// Normal cell
-				row[j] = safeGetFromMap(rawRow, col.Name)
+				// Normal cell - clean up other config characters as needed
+				colName := strings.ReplaceAll(col.Name, "++", "")
+				row[j] = safeGetFromMap(rawRow, colName)
 			}
 		}
 		rows = append(rows, row)

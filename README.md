@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4114-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-4130-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -67,13 +67,13 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -copy-first-column-only
           if true, only copy the first column of the table to clipboard when copying (default true)
       -job-columns-config string
-          comma-separated list of scontrol fields to show in job view, use '//' to combine columns. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName,RunTime,NodeList,QOS,NumCPUs,Mem")
+          comma-separated list of scontrol fields to show in job view, use '//' to combine column or '++' to extend columns to full width. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName++,RunTime,NodeList,QOS,NumCPUs,Mem")
       -load-sacct-data-from duration
           load sacct data starting from this long ago, specify as a duration, e.g. '1h', '2h'. This can be very slow on busy clusters, so use with caution. Set to 0 to not load any data from sacct. (default 30m0s)
       -log-level int
           log level, 0=none, 1=error, 2=info, 3=debug (default 2)
       -node-columns-config string
-          comma-separated list of scontrol fields to show in node view, use '//' to combine columns. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES,Reason,Boards")
+          comma-separated list of scontrol fields to show in node view, use '//' to combine column or '++' to extend columns to full width. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,Reason")
       -partition string
           limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
@@ -81,7 +81,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -request-timeout duration
           timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 5s)
       -sacct-columns-config string
-          comma-separated list of sacct fields to show in job view, use '//' to combine columns. 'JobIDRaw', 'Partitions' and 'State' are always shown. (default "QOS,Account,User,JobName,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES,Comment,SubmitLine")
+          comma-separated list of sacct fields to show in job view, use '//' to combine columns or '++' to extend columns to full width. 'JobIDRaw', 'Partitions' and 'State' are always shown. (default "QOS,Account,User,JobName++,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES++,Comment++,SubmitLine++")
       -show-all-columns
           if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config
       -show-keyboard-shortcuts

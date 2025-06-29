@@ -163,6 +163,7 @@ func (s *StuiView) Render() {
 		if header.DividedByColumn {
 			headerName = strings.ReplaceAll(header.Name, "//", "/")
 		}
+		headerName = strings.ReplaceAll(headerName, "++", "") // Clean up other config characters
 
 		// Add sort indicator if this is the sorted column
 		if col == s.sortColumn {
@@ -201,12 +202,17 @@ func (s *StuiView) Render() {
 		for col, cell := range rowData {
 			//logger.Debugf(fmt.Sprintf("'%-*s'", (*s.data.Headers)[col].Width, cell))
 			// Op 1: Text wrapping
-			colWidth := (*s.data.Headers)[col].Width
+			colObject := (*s.data.Headers)[col]
 			// We need to *pad* the text here, as tview does not support a 'minimum width' parameter for tables.
-			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colWidth, cell)).
+			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colObject.Width, cell)).
 				SetAlign(tview.AlignLeft).
-				SetExpansion(1).
-				SetMaxWidth(colWidth)
+				SetExpansion(1)
+
+			if colObject.FullWidthColumn {
+				cellView.SetMaxWidth(0)
+			} else {
+				cellView.SetMaxWidth(colObject.Width)
+			}
 
 			// Highlight selected rows, or set color based on status
 			if s.Selection[rowData[0]] {
