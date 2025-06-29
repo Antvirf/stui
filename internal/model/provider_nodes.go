@@ -17,10 +17,16 @@ func NewNodesProvider() *NodesProvider {
 }
 
 func (p *NodesProvider) Fetch() error {
+	// Compute column widths on first fetch only
+	computeColumnWidths := false
+	if p.lastUpdated.IsZero() {
+		computeColumnWidths = true
+	}
 	rawData, err := getScontrolDataWithTimeout(
 		"show node --detail --all --oneliner",
 		config.NodeViewColumns,
 		config.RequestTimeout,
+		computeColumnWidths,
 	)
 	if err != nil {
 		p.updateError(err)

@@ -49,6 +49,7 @@ var (
 	SacctTimeoutMultiplier         int64 = 5 // sacct can be slow, so we give it extra time
 	ConfigFile                     Config
 	AllSacctViewColumns            string // Used in sacct detail view
+	MaximumColumnWidth             int    = 30
 
 	// Cluster information
 	ClusterName           string = "unknown"

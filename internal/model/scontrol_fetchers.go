@@ -12,7 +12,7 @@ import (
 	"github.com/antvirf/stui/internal/logger"
 )
 
-func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, timeout time.Duration) (*TableData, error) {
+func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, timeout time.Duration, computeColumnWidths bool) (*TableData, error) {
 	startTime := time.Now()
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -40,7 +40,20 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 	var rows [][]string
 	for _, rawRow := range rawRows {
 		row := make([]string, len(*columns))
-		for j, col := range *columns {
+		for j := range *columns {
+			// Access elements by index so we modify the original
+			col := &(*columns)[j]
+
+			if computeColumnWidths {
+				col.Width = min(
+					max( // Increase col width if current cell is bigger than current max
+						len(safeGetFromMap(rawRow, col.Name)),
+						col.Width,
+					),
+					config.MaximumColumnWidth, // .. but don't go above this value.
+				)
+			}
+
 			if col.DividedByColumn {
 				components := strings.Split(col.Name, "//")
 				var values []string

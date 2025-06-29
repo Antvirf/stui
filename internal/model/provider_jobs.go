@@ -17,10 +17,16 @@ func NewJobsProvider() *JobsProvider {
 }
 
 func (p *JobsProvider) Fetch() error {
+	// Compute column widths on first fetch only
+	computeColumnWidths := false
+	if p.lastUpdated.IsZero() {
+		computeColumnWidths = true
+	}
 	rawData, err := getScontrolDataWithTimeout(
 		"show job --detail --all --oneliner",
 		config.JobViewColumns,
 		config.RequestTimeout,
+		computeColumnWidths,
 	)
 	if err != nil {
 		p.updateError(err)

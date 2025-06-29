@@ -30,6 +30,7 @@ func (p *SacctMgrProvider) Fetch() error {
 		fmt.Sprintf("show %s --parsable2", config.SacctMgrCurrentEntity),
 		config.RequestTimeout,
 		&columns,
+		false, // For sacctmgr we don't compute column widths for now.
 	)
 
 	// Empty table data is returned in case of error, so this is always valid to do

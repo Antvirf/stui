@@ -43,7 +43,7 @@ func NewStuiView(
 		SetTitleAlign(tview.AlignLeft).
 		SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
 	view.Table.
-		SetEvaluateAllRows(true).  // Evaluate all rows so column widths won't jump
+		SetEvaluateAllRows(false). // Do not evalute all rows when rendering.
 		SetFixed(1, 0).            // Fixed header row
 		SetSelectable(true, false) // Selectable rows but not columns
 	view.Table.SetSelectedStyle(tcell.StyleDefault.
@@ -183,7 +183,8 @@ func (s *StuiView) Render() {
 			SetSelectable(false).
 			SetAlign(tview.AlignLeft).
 			SetTextColor(generalTextColor).
-			SetAttributes(tcell.AttrBold)
+			SetAttributes(tcell.AttrBold).
+			SetMaxWidth(len(header.Name))
 
 		// Highlight sorted column header
 		if col == s.sortColumn {
@@ -203,11 +204,14 @@ func (s *StuiView) Render() {
 		colorizedColor, shouldColorizeRow := GetStateColorMapping(rowData[config.NodeViewColumnsStateIndex])
 
 		for col, cell := range rowData {
+			//logger.Debugf(fmt.Sprintf("'%-*s'", (*s.data.Headers)[col].Width, cell))
 			// Op 1: Text wrapping
-			cellView := tview.NewTableCell(cell).
+			colWidth := (*s.data.Headers)[col].Width
+			// We need to *pad* the text here, as tview does not support a 'minimum width' parameter for tables.
+			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colWidth, cell)).
 				SetAlign(tview.AlignLeft).
-				SetMaxWidth(0).
-				SetExpansion(1)
+				SetExpansion(1).
+				SetMaxWidth(colWidth)
 
 			// Highlight selected rows, or set color based on status
 			if s.Selection[rowData[0]] {

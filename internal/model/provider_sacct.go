@@ -19,12 +19,18 @@ func NewSacctProvider() *SacctProvider {
 }
 
 func (p *SacctProvider) Fetch() error {
+	// Compute column widths on first fetch only
+	computeColumnWidths := false
+	if p.lastUpdated.IsZero() {
+		computeColumnWidths = true
+	}
 	rawData, err := getSacctDataSinceWithTimeout(
 		config.LoadSacctDataFrom,
 		config.SacctViewColumns,
 		time.Duration(
 			config.SacctTimeoutMultiplier*config.RequestTimeout.Milliseconds(),
 		)*time.Millisecond,
+		computeColumnWidths,
 	)
 
 	// Empty table data is returned in case of error, so this is always valid to do
