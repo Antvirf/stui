@@ -12,7 +12,7 @@ import (
 	"github.com/antvirf/stui/internal/logger"
 )
 
-func GetSacctMgrEntityWithTimeout(entity string, timeout time.Duration) (*TableData, error) {
+func GetSacctMgrEntityWithTimeout(entity string, timeout time.Duration, computeColumnWidths bool) (*TableData, error) {
 	startTime := time.Now()
 	// TODO: In the future we may want to make this column config also configurable.
 	// However, since there are so many different sacct entities, we probably
@@ -33,6 +33,7 @@ func GetSacctMgrEntityWithTimeout(entity string, timeout time.Duration) (*TableD
 		fullCommand,
 		config.RequestTimeout,
 		&columns,
+		computeColumnWidths,
 	)
 
 	execTime := time.Since(startTime).Milliseconds()
@@ -45,7 +46,7 @@ func GetSacctMgrEntityWithTimeout(entity string, timeout time.Duration) (*TableD
 	return data, err
 }
 
-func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *[]config.ColumnConfig) (*TableData, error) {
+func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *[]config.ColumnConfig, computeColumnWidths bool) (*TableData, error) {
 	startTime := time.Now()
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -78,7 +79,20 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 	for _, rawRow := range rawRows {
 		// Each row will have all of its fields, no filtering
 		row := make([]string, len(*columns))
-		for j, col := range *columns {
+		for j := range *columns {
+			// Access elements by index so we modify the original
+			col := &(*columns)[j]
+
+			if computeColumnWidths {
+				col.Width = min(
+					max( // Increase col width if current cell is bigger than current max
+						len(safeGetFromMap(rawRow, col.Name)),
+						col.Width,
+					),
+					config.MaximumColumnWidth, // .. but don't go above this value.
+				)
+			}
+
 			row[j] = safeGetFromMap(rawRow, col.Name)
 		}
 		rows = append(rows, row)

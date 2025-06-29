@@ -12,7 +12,7 @@ import (
 	"github.com/antvirf/stui/internal/logger"
 )
 
-func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnConfig, timeout time.Duration) (*TableData, error) {
+func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnConfig, timeout time.Duration, computeColumnWidths bool) (*TableData, error) {
 	startTime := time.Now()
 	FetchCounter.increment()
 
@@ -46,31 +46,42 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	}
 
 	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
-	return parseSacctOutputToTableData(out, columns)
+	return parseSacctOutputToTableData(out, columns, computeColumnWidths)
 }
-func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig) (*TableData, error) {
-	entries := parseSacctOutput(output)
-	if len(entries) == 0 {
+func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, computeColumnWidth bool) (*TableData, error) {
+	rawRows := parseSacctOutput(output)
+	if len(rawRows) == 0 {
 		return EmptyTableData(), nil
 	}
 
 	var rows [][]string
-	for _, entry := range entries {
+	for _, rawRow := range rawRows {
 		row := make([]string, len(*columns))
-		for i, col := range *columns {
+		for j := range *columns {
+			// Access elements by index so we modify the original
+			col := &(*columns)[j]
+
+			if computeColumnWidth {
+				col.Width = min(
+					max( // Increase col width if current cell is bigger than current max
+						len(safeGetFromMap(rawRow, col.Name)),
+						col.Width,
+					),
+					config.MaximumColumnWidth, // .. but don't go above this value.
+				)
+			}
+
 			// Check if it's a combined column
-			if strings.Contains(col.Name, "//") {
-				parts := strings.Split(col.Name, "//")
-				combinedValue := ""
-				for j, part := range parts {
-					if j > 0 {
-						combinedValue += " / "
-					}
-					combinedValue += safeGetFromMap(entry, part)
+			if col.DividedByColumn {
+				components := strings.Split(col.Name, "//")
+				var values []string
+				for _, component := range components {
+					values = append(values, safeGetFromMap(rawRow, component))
 				}
-				row[i] = combinedValue
+				row[j] = strings.Join(values, " / ")
 			} else {
-				row[i] = safeGetFromMap(entry, col.Name)
+				// Normal cell
+				row[j] = safeGetFromMap(rawRow, col.Name)
 			}
 		}
 		rows = append(rows, row)

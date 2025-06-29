@@ -21,6 +21,7 @@ func (p *PartitionsProvider) Fetch() error {
 		"show partitions --detail --all --oneliner",
 		&[]config.ColumnConfig{{Name: "PartitionName"}},
 		config.RequestTimeout,
+		false, // Don't compute column widths, doesn't matter here.
 	)
 
 	if err != nil {

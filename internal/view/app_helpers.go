@@ -247,7 +247,7 @@ func (a *App) ShowSacctJobDetails(jobID string) {
 
 	// Process the parsable input (pipe-separated) into a nice table
 	table := tview.NewTable()
-	table.SetEvaluateAllRows(true)
+	table.SetEvaluateAllRows(true) // Enable this so rows do not jump. Expensive but fine for a small table.
 	table.SetFixed(1, 1)
 	table.SetBorderPadding(0, 0, 1, 1)
 

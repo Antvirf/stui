@@ -9,6 +9,7 @@ import (
 type ColumnConfig struct {
 	Name            string
 	DividedByColumn bool
+	Width           int
 }
 
 func GetColumnNames(columnConfigs *[]ColumnConfig) (columns []string) {
