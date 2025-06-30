@@ -19,7 +19,7 @@ func NewPartitionsProvider() *PartitionsProvider {
 func (p *PartitionsProvider) Fetch() error {
 	rawData, err := getScontrolDataWithTimeout(
 		"show partitions --detail --all --oneliner",
-		&[]config.ColumnConfig{{Name: "PartitionName"}},
+		&[]config.ColumnConfig{{RawName: "PartitionName", DisplayName: "PartitionName"}},
 		config.RequestTimeout,
 		false, // Don't compute column widths, doesn't matter here.
 	)

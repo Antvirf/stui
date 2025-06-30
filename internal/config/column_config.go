@@ -7,17 +7,11 @@ import (
 )
 
 type ColumnConfig struct {
-	Name            string
+	RawName         string
+	DisplayName     string
 	Width           int
 	DividedByColumn bool
 	FullWidthColumn bool
-}
-
-func GetColumnNames(columnConfigs *[]ColumnConfig) (columns []string) {
-	for _, col := range *columnConfigs {
-		columns = append(columns, col.Name)
-	}
-	return
 }
 
 // Get column fields returns the full expanded list of field names that
@@ -25,13 +19,13 @@ func GetColumnNames(columnConfigs *[]ColumnConfig) (columns []string) {
 func GetColumnFields(columnConfigs *[]ColumnConfig) (columns []string) {
 	for _, col := range *columnConfigs {
 		// Clean up configuration characters
-		col.Name = strings.ReplaceAll(col.Name, "++", "")
+		col.RawName = strings.ReplaceAll(col.RawName, "++", "")
 
 		// Split apart divided columns
 		if col.DividedByColumn {
-			columns = append(columns, strings.Split(col.Name, "//")...)
+			columns = append(columns, strings.Split(col.RawName, "//")...)
 		} else {
-			columns = append(columns, col.Name)
+			columns = append(columns, col.RawName)
 		}
 	}
 	return
@@ -47,13 +41,16 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 
 	for _, part := range parts {
 		col := ColumnConfig{DividedByColumn: false, FullWidthColumn: false}
-		col.Name = strings.TrimSpace(part)
+		col.RawName = strings.TrimSpace(part)
+		col.DisplayName = strings.TrimSpace(part)
 
 		if strings.Contains(part, "//") {
+			col.DisplayName = strings.ReplaceAll(col.DisplayName, "//", "/")
 			col.DividedByColumn = true
 		}
 
 		if strings.Contains(part, "++") {
+			col.DisplayName = strings.ReplaceAll(col.DisplayName, "++", "")
 			col.FullWidthColumn = true
 		}
 
@@ -66,7 +63,7 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 // GetColumnIndex returns the index of the column for a column config object. Panics if not found.
 func GetColumnIndexFromColumnConfig(columnConfigs *[]ColumnConfig, name string) int {
 	for i, col := range *columnConfigs {
-		if col.Name == name {
+		if col.RawName == name {
 			return i
 		}
 	}

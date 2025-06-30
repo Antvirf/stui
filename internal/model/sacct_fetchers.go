@@ -64,7 +64,7 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, 
 			if computeColumnWidths {
 				col.Width = min(
 					max( // Increase col width if current cell is bigger than current max
-						len(safeGetFromMap(rawRow, col.Name)),
+						len(safeGetFromMap(rawRow, col.DisplayName)),
 						col.Width,
 					),
 					config.MaximumColumnWidth, // .. but don't go above this value.
@@ -73,16 +73,14 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, 
 
 			// Check if it's a combined column
 			if col.DividedByColumn {
-				components := strings.Split(col.Name, "//")
+				components := strings.Split(col.RawName, "//")
 				var values []string
 				for _, component := range components {
 					values = append(values, safeGetFromMap(rawRow, component))
 				}
 				row[j] = strings.Join(values, " / ")
 			} else {
-				// Normal cell - clean up other config characters as needed
-				colName := strings.ReplaceAll(col.Name, "++", "")
-				row[j] = safeGetFromMap(rawRow, colName)
+				row[j] = safeGetFromMap(rawRow, col.DisplayName)
 			}
 		}
 		rows = append(rows, row)

@@ -111,8 +111,8 @@ func (td *TableData) rowToMap(row []string) map[string]string {
 	data := make(map[string]string)
 	for i, header := range *td.Headers {
 		if i < len(row) {
-			// Convert header name to template-friendly format
-			key := strings.ReplaceAll(header.Name, " ", "_")
+			// Convert header name to Go-template-friendly format
+			key := strings.ReplaceAll(header.RawName, " ", "_")
 			data[key] = row[i]
 		}
 	}

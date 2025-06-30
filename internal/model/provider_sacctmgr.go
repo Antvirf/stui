@@ -23,7 +23,7 @@ func (p *SacctMgrProvider) Fetch() error {
 	var columns []config.ColumnConfig
 	columnConfig := strings.Split(SACCTMGR_ENTITY_COLUMN_CONFIGS[config.SacctMgrCurrentEntity], ",")
 	for _, key := range columnConfig {
-		columns = append(columns, config.ColumnConfig{Name: key})
+		columns = append(columns, config.ColumnConfig{RawName: key, DisplayName: key})
 	}
 
 	rawData, err := getSacctMgrDataWithTimeout(

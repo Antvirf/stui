@@ -159,11 +159,7 @@ func (s *StuiView) Render() {
 
 	for col, header := range *s.data.Headers {
 		// If header is a divided type, clean it up
-		headerName := header.Name
-		if header.DividedByColumn {
-			headerName = strings.ReplaceAll(header.Name, "//", "/")
-		}
-		headerName = strings.ReplaceAll(headerName, "++", "") // Clean up other config characters
+		headerName := header.DisplayName
 
 		// Add sort indicator if this is the sorted column
 		if col == s.sortColumn {
@@ -180,7 +176,7 @@ func (s *StuiView) Render() {
 			SetAlign(tview.AlignLeft).
 			SetTextColor(generalTextColor).
 			SetAttributes(tcell.AttrBold).
-			SetMaxWidth(len(header.Name))
+			SetMaxWidth(len(header.DisplayName))
 
 		// Highlight sorted column header
 		if col == s.sortColumn {

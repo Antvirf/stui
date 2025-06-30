@@ -42,7 +42,7 @@ func (a *App) setupSortSelectorOptions(provider model.DataProvider[*model.TableD
 			)
 		}
 		a.SortSelector.AddOption(
-			column.Name,
+			column.DisplayName,
 			a.applySortSelector(index),
 		)
 	}

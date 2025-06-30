@@ -22,7 +22,7 @@ func GetSacctMgrEntityWithTimeout(entity string, timeout time.Duration, computeC
 	var columns []config.ColumnConfig
 	columnConfig := strings.Split(SACCTMGR_ENTITY_COLUMN_CONFIGS[entity], ",")
 	for _, key := range columnConfig {
-		columns = append(columns, config.ColumnConfig{Name: key})
+		columns = append(columns, config.ColumnConfig{RawName: key, DisplayName: key})
 	}
 
 	fullCommand := fmt.Sprintf("%s show %s --parsable2",
@@ -86,14 +86,14 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 			if computeColumnWidths {
 				col.Width = min(
 					max( // Increase col width if current cell is bigger than current max
-						len(safeGetFromMap(rawRow, col.Name)),
+						len(safeGetFromMap(rawRow, col.DisplayName)),
 						col.Width,
 					),
 					config.MaximumColumnWidth, // .. but don't go above this value.
 				)
 			}
 
-			row[j] = safeGetFromMap(rawRow, col.Name)
+			row[j] = safeGetFromMap(rawRow, col.DisplayName)
 		}
 		rows = append(rows, row)
 	}
