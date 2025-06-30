@@ -62,8 +62,9 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 				}
 				row[j] = strings.Join(values, " / ")
 			} else {
-				// Normal cell
-				row[j] = safeGetFromMap(rawRow, col.Name)
+				// Normal cell - clean up other config characters as needed
+				colName := strings.ReplaceAll(col.Name, "++", "")
+				row[j] = safeGetFromMap(rawRow, colName)
 			}
 		}
 		rows = append(rows, row)
