@@ -109,7 +109,7 @@ func (a *App) SetupKeybinds() {
 				a.setupSortSelectorOptions(a.SacctProvider, a.SacctView.sortColumn)
 				a.PagesContainer.SetTitle(a.SacctView.completeTitle)
 				go a.App.QueueUpdateDraw(func() {
-					a.SacctView.Render()
+					a.SacctView.FetchIfStaleAndRender(config.RefreshInterval)
 				})
 			}
 			return nil
