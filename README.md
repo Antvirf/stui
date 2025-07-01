@@ -1,13 +1,13 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4122-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-4133-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
 
 - List and view nodes and jobs, filter by partition and state
-- Quickly search across nodes/jobs list with regular expressions, sort by any column
+- Quickly search nodes/jobs lists with regular expressions across columns, sort by any column
 - Select multiple nodes/jobs and run `scontrol` commands on them, run `scancel` on jobs, or copy rows to clipboard
 - View individual node details (`scontrol show node` equivalent)
 - View individual job details (`scontrol show job` equivalent)

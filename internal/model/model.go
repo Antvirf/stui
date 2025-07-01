@@ -10,15 +10,25 @@ import (
 
 // TableData represents the data returned by the model package, ready for display.
 type TableData struct {
-	Headers *[]config.ColumnConfig
-	Rows    [][]string
+	Headers             *[]config.ColumnConfig
+	Rows                [][]string // List of lists
+	RowsAsSingleStrings []string   // List of strings - used for searching
 }
 
 func EmptyTableData() *TableData {
 	return &TableData{
-		Headers: &[]config.ColumnConfig{},
-		Rows:    [][]string{},
+		Headers:             &[]config.ColumnConfig{},
+		Rows:                [][]string{},
+		RowsAsSingleStrings: []string{},
 	}
+}
+
+func convertRowsToRowsAsSingleStrings(rows [][]string) []string {
+	rowsAsStrings := []string{}
+	for _, row := range rows {
+		rowsAsStrings = append(rowsAsStrings, strings.Join(row, ""))
+	}
+	return rowsAsStrings
 }
 
 // DeepCopy creates a deep copy of the TableData struct.
@@ -38,8 +48,9 @@ func (t *TableData) DeepCopy() *TableData {
 	}
 
 	return &TableData{
-		Headers: copiedHeaders,
-		Rows:    rowsCopy,
+		Headers:             copiedHeaders,
+		Rows:                rowsCopy,
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rowsCopy),
 	}
 }
 
@@ -102,8 +113,9 @@ rowLoop:
 	}
 
 	return &TableData{
-		Headers: data.Headers,
-		Rows:    rows,
+		Headers:             data.Headers,
+		Rows:                rows,
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
 	}
 }
 

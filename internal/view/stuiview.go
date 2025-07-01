@@ -3,7 +3,6 @@ package view
 import (
 	"fmt"
 	"regexp"
-	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -134,9 +133,9 @@ func (s *StuiView) Render() {
 			// Preallocate slice with reasonable capacity
 			filteredRows = make([][]string, 0, len(s.data.Rows)/2)
 
-			for _, row := range s.data.Rows {
-				// Check each column individually. We do NOT support entire-row search for performance reasons.
-				matched := slices.ContainsFunc(row, func(cell string) bool { return pattern.MatchString(cell) })
+			for i, row := range s.data.Rows {
+				// Check the row as a single string - this allows for regex across columns
+				matched := pattern.MatchString(s.data.RowsAsSingleStrings[i])
 
 				if matched {
 					filteredRows = append(filteredRows, row)
