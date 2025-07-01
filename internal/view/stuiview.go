@@ -251,12 +251,10 @@ func (s *StuiView) Render() {
 	s.updateTitleFunction(s.completeTitle)
 
 	lastUpdated := s.provider.LastUpdated()
-	timeSince := int(time.Since(lastUpdated).Seconds())
 	s.dataStateNotificationFunction(fmt.Sprintf(
-		"%s data as of %s (since %d seconds ago)",
+		"%s data as of %s",
 		s.titleHeader,
 		lastUpdated.Local().Format("15:04:05"),
-		timeSince,
 	))
 
 	if s.provider.LastError() != nil {
