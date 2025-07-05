@@ -201,10 +201,15 @@ func (s *StuiView) Render() {
 
 	// Row and cell-level processing: Text wrapping, colorization, etc.
 	for row, rowData := range filteredRows {
+		var colorizedColor tcell.Color
 		var shouldColorizeRow bool
 
 		// Check whether we should give this row a special color based on its state field
-		colorizedColor, shouldColorizeRow := GetStateColorMapping(rowData[config.NodeViewColumnsStateIndex])
+		if len(rowData) > config.NodeViewColumnsStateIndex {
+			colorizedColor, shouldColorizeRow = GetStateColorMapping(rowData[config.NodeViewColumnsStateIndex])
+		} else {
+			colorizedColor, shouldColorizeRow = generalBackgroundColor, false
+		}
 
 		for col, cell := range rowData {
 			//logger.Debugf(fmt.Sprintf("'%-*s'", (*s.data.Headers)[col].Width, cell))
