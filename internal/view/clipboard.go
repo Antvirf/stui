@@ -1,10 +1,15 @@
 package view
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/tiagomelo/go-clipboard/clipboard"
 )
+
+func (a *App) copyCellToClipBoard(text string) {
+	a.copyToClipBoard(text, fmt.Sprintf("[green]Copied cell text: %s[white]", text))
+}
 
 func (a *App) copyToClipBoard(text string, success string) {
 	c := clipboard.New()

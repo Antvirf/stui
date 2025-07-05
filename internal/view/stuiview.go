@@ -20,7 +20,7 @@ func NewStuiView(
 	updateTitleFunc func(string) *tview.Box,
 	errorNotifyFunc func(string),
 	dataStateNotifyFunc func(string),
-	cellClickFunction func(string, string),
+	cellClickFunction func(string),
 	headerClickFunction func(int) *tview.DropDown,
 	searchStringPointer *string,
 ) *StuiView {
@@ -93,7 +93,7 @@ type StuiView struct {
 	updateTitleFunction           func(string) *tview.Box
 	errorNotificationFunction     func(string)
 	dataStateNotificationFunction func(string)
-	cellClickFunction             func(string, string)
+	cellClickFunction             func(string)
 	headerClickFunction           func(int) *tview.DropDown
 
 	// Data components
@@ -216,7 +216,7 @@ func (s *StuiView) Render() {
 				SetExpansion(1)
 
 			cellView.SetClickedFunc(func() bool {
-				s.cellClickFunction(cell, fmt.Sprintf("[green]Copied cell text: %s[white]", cell))
+				s.cellClickFunction(cell)
 				return true
 			})
 

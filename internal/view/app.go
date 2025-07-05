@@ -220,7 +220,7 @@ func (a *App) SetupViews() {
 			a.PagesContainer.SetTitle,
 			a.UpdateHeaderLineTwo,           // errors
 			a.UpdateHeaderLineOne,           // data updates notify
-			a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.copyCellToClipBoard,           // func to run when a data cell is clicked
 			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
 			&a.SearchPattern,                // pointer to search string
 		)
@@ -234,7 +234,7 @@ func (a *App) SetupViews() {
 			a.PagesContainer.SetTitle,
 			a.UpdateHeaderLineTwo,           // errors
 			a.UpdateHeaderLineOne,           // data updates notify
-			a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.copyCellToClipBoard,           // func to run when a data cell is clicked
 			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
 			&a.SearchPattern,                // pointer to search string
 		)
@@ -249,9 +249,10 @@ func (a *App) SetupViews() {
 			model.SACCTMGR_TABLE_ENTITIES[0], // First type of entity to start with
 			a.SacctMgrProvider,
 			a.PagesContainer.SetTitle,
-			a.UpdateHeaderLineTwo,           // errors
-			a.UpdateHeaderLineOne,           // data updates notify
-			a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.UpdateHeaderLineTwo, // errors
+			a.UpdateHeaderLineOne, // data updates notify
+			//a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.ShowModalPopupMinimal,
 			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
 			&a.SearchPattern,                // pointer to search string
 		)
@@ -263,7 +264,7 @@ func (a *App) SetupViews() {
 			a.PagesContainer.SetTitle,
 			a.UpdateHeaderLineTwo,           // errors
 			a.UpdateHeaderLineOne,           // data updates notify
-			a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.copyCellToClipBoard,           // func to run when a data cell is clicked
 			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
 			&a.SearchPattern,                // pointer to search string
 		)
