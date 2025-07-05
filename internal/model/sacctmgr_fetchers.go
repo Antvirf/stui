@@ -99,7 +99,8 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 	}
 
 	return &TableData{
-		Headers: columns,
-		Rows:    rows,
+		Headers:             columns,
+		Rows:                rows,
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
 	}, nil
 }
