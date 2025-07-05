@@ -21,6 +21,7 @@ func NewStuiView(
 	errorNotifyFunc func(string),
 	dataStateNotifyFunc func(string),
 	cellClickFunction func(string, string),
+	headerClickFunction func(int) *tview.DropDown,
 	searchStringPointer *string,
 ) *StuiView {
 
@@ -37,6 +38,7 @@ func NewStuiView(
 		errorNotificationFunction:     errorNotifyFunc,
 		dataStateNotificationFunction: dataStateNotifyFunc,
 		cellClickFunction:             cellClickFunction,
+		headerClickFunction:           headerClickFunction,
 	}
 
 	view.Table = tview.NewTable()
@@ -92,6 +94,7 @@ type StuiView struct {
 	errorNotificationFunction     func(string)
 	dataStateNotificationFunction func(string)
 	cellClickFunction             func(string, string)
+	headerClickFunction           func(int) *tview.DropDown
 
 	// Data components
 	provider model.DataProvider[*model.TableData]
@@ -179,6 +182,12 @@ func (s *StuiView) Render() {
 			SetTextColor(generalTextColor).
 			SetAttributes(tcell.AttrBold).
 			SetMaxWidth(len(header.DisplayName))
+
+		// Sort on click
+		cell.SetClickedFunc(func() bool {
+			s.headerClickFunction(col + 1)
+			return true
+		})
 
 		// Highlight sorted column header
 		if col == s.sortColumn {

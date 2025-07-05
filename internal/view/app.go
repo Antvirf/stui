@@ -218,10 +218,11 @@ func (a *App) SetupViews() {
 			"Nodes",
 			a.NodesProvider,
 			a.PagesContainer.SetTitle,
-			a.UpdateHeaderLineTwo, // errors
-			a.UpdateHeaderLineOne, // data updates notify
-			a.copyToClipBoard,     // func to run when a data cell is clicked
-			&a.SearchPattern,      // pointer to search string
+			a.UpdateHeaderLineTwo,           // errors
+			a.UpdateHeaderLineOne,           // data updates notify
+			a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
+			&a.SearchPattern,                // pointer to search string
 		)
 		a.Pages.AddPage(NODES_PAGE, a.NodesView.Grid, true, true)
 	}
@@ -231,10 +232,11 @@ func (a *App) SetupViews() {
 			"Jobs",
 			a.JobsProvider,
 			a.PagesContainer.SetTitle,
-			a.UpdateHeaderLineTwo, // errors
-			a.UpdateHeaderLineOne, // data updates notify
-			a.copyToClipBoard,     // func to run when a data cell is clicked
-			&a.SearchPattern,      // pointer to search string
+			a.UpdateHeaderLineTwo,           // errors
+			a.UpdateHeaderLineOne,           // data updates notify
+			a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
+			&a.SearchPattern,                // pointer to search string
 		)
 		a.Pages.AddPage(JOBS_PAGE, a.JobsView.Grid, true, false)
 	}
@@ -247,10 +249,11 @@ func (a *App) SetupViews() {
 			model.SACCTMGR_TABLE_ENTITIES[0], // First type of entity to start with
 			a.SacctMgrProvider,
 			a.PagesContainer.SetTitle,
-			a.UpdateHeaderLineTwo, // errors
-			a.UpdateHeaderLineOne, // data updates notify
-			a.copyToClipBoard,     // func to run when a data cell is clicked
-			&a.SearchPattern,      // pointer to search string
+			a.UpdateHeaderLineTwo,           // errors
+			a.UpdateHeaderLineOne,           // data updates notify
+			a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
+			&a.SearchPattern,                // pointer to search string
 		)
 		a.Pages.AddPage(SACCTMGR_PAGE, a.SacctMgrView.Grid, true, false)
 
@@ -258,10 +261,11 @@ func (a *App) SetupViews() {
 			"Jobs Accounting",
 			a.SacctProvider,
 			a.PagesContainer.SetTitle,
-			a.UpdateHeaderLineTwo, // errors
-			a.UpdateHeaderLineOne, // data updates notify
-			a.copyToClipBoard,     // func to run when a data cell is clicked
-			&a.SearchPattern,      // pointer to search string
+			a.UpdateHeaderLineTwo,           // errors
+			a.UpdateHeaderLineOne,           // data updates notify
+			a.copyToClipBoard,               // func to run when a data cell is clicked
+			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
+			&a.SearchPattern,                // pointer to search string
 		)
 
 		a.Pages.AddPage(SACCT_PAGE, a.SacctView.Grid, true, false)
