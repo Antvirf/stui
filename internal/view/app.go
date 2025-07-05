@@ -317,17 +317,11 @@ func (a *App) StartRefresh() {
 	// 3. On switching panes, if the data is older than refresh interval, we trigger a background refresh
 	//    this happens in the key binds file.
 	go func() {
-		renderTicker := time.NewTicker(3 * time.Second) // Render every 3 seconds, regardless of data refresh frequency
 		fetchTicker := time.NewTicker(config.RefreshInterval)
-		defer renderTicker.Stop()
 		defer fetchTicker.Stop()
 
 		for {
 			select {
-			case <-renderTicker.C:
-				a.App.QueueUpdateDraw(func() {
-					a.RenderCurrentView()
-				})
 			case <-fetchTicker.C:
 				a.App.QueueUpdateDraw(func() {
 					switch a.GetCurrentPageName() {
