@@ -325,7 +325,7 @@ func tableViewInputCapture(
 						}
 					}
 				}
-				a.copyToClipBoard(sb.String())
+				a.copyToClipBoard(sb.String(), "[green]Copied row details clipboard[white]")
 				return nil
 			}
 		}

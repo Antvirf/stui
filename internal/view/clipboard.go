@@ -6,7 +6,7 @@ import (
 	"github.com/tiagomelo/go-clipboard/clipboard"
 )
 
-func (a *App) copyToClipBoard(text string) {
+func (a *App) copyToClipBoard(text string, success string) {
 	c := clipboard.New()
 	if err := c.CopyText(text); err != nil {
 		a.ShowNotification(
@@ -14,11 +14,7 @@ func (a *App) copyToClipBoard(text string) {
 			2*time.Second,
 		)
 	} else {
-		a.ShowNotification(
-			"[green]Copied row details clipboard[white]",
-			2*time.Second,
-		)
-
+		a.ShowNotification(success, 2*time.Second)
 	}
 
 }

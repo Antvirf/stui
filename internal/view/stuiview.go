@@ -20,6 +20,7 @@ func NewStuiView(
 	updateTitleFunc func(string) *tview.Box,
 	errorNotifyFunc func(string),
 	dataStateNotifyFunc func(string),
+	cellClickFunction func(string, string),
 	searchStringPointer *string,
 ) *StuiView {
 
@@ -35,6 +36,7 @@ func NewStuiView(
 		updateTitleFunction:           updateTitleFunc,
 		errorNotificationFunction:     errorNotifyFunc,
 		dataStateNotificationFunction: dataStateNotifyFunc,
+		cellClickFunction:             cellClickFunction,
 	}
 
 	view.Table = tview.NewTable()
@@ -89,6 +91,7 @@ type StuiView struct {
 	updateTitleFunction           func(string) *tview.Box
 	errorNotificationFunction     func(string)
 	dataStateNotificationFunction func(string)
+	cellClickFunction             func(string, string)
 
 	// Data components
 	provider model.DataProvider[*model.TableData]
@@ -202,6 +205,11 @@ func (s *StuiView) Render() {
 			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colObject.Width, cell)).
 				SetAlign(tview.AlignLeft).
 				SetExpansion(1)
+
+			cellView.SetClickedFunc(func() bool {
+				s.cellClickFunction(cell, fmt.Sprintf("[green]Copied cell text: %s[white]", cell))
+				return true
+			})
 
 			if colObject.FullWidthColumn {
 				cellView.SetMaxWidth(0)

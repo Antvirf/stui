@@ -20,7 +20,7 @@ func main() {
 
 	err := app.App.
 		SetRoot(app.MainFlex, true).
-		EnableMouse(false).
+		EnableMouse(true).
 		Run()
 
 	logger.LogFlush()
