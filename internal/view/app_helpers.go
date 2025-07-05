@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/antvirf/stui/internal/config"
 	"github.com/antvirf/stui/internal/model"
@@ -124,7 +125,7 @@ func (a *App) optionalRefreshAndRenderPage(pageName string, refresh bool) {
 }
 
 func (a *App) ShowModalPopupTable(title string, table *tview.Table) {
-	a.showModalPopup(title, table)
+	a.showModalPopup(title, table, 16, 10, 0)
 }
 
 func (a *App) ShowModalPopupString(title, details string) {
@@ -135,10 +136,20 @@ func (a *App) ShowModalPopupString(title, details string) {
 		SetTextAlign(tview.AlignLeft)
 	detailView.SetText(details)
 
-	a.showModalPopup(title, detailView)
+	a.showModalPopup(title, detailView, 16, 10, 0)
+}
+func (a *App) ShowModalPopupMinimal(details string) {
+	detailView := tview.NewTextView().
+		SetDynamicColors(true).
+		SetScrollable(true).
+		SetWrap(true). // Enable text wrapping
+		SetTextAlign(tview.AlignLeft)
+	detailView.SetText(details)
+
+	a.showModalPopup("Full cell contents", detailView, 5, 10, 1)
 }
 
-func (a *App) showModalPopup(title string, primitive tview.Primitive) {
+func (a *App) showModalPopup(title string, primitive tview.Primitive, width int, height int, verticalPadding int) {
 	modal := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(tview.NewTextView().
@@ -156,16 +167,18 @@ func (a *App) showModalPopup(title string, primitive tview.Primitive) {
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
 		AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
-			AddItem(modal, 0, 10, true), // Increased height
-			0, 16, false). // Increased width
+			AddItem(modal, 0, verticalPadding, true).
+			AddItem(modal, 0, height, true). // Increased height
+			AddItem(nil, 0, verticalPadding, true),
+			0, width, false). // Increased width
 		AddItem(nil, 0, 1, false)
 
 	// Store current page before showing modal
-	previousPageName, _ := a.Pages.GetFrontPage()
 	previousFocus := a.App.GetFocus()
 
 	// Add as overlay without switching pages
-	pageName := "detailView"
+	time := time.Now().Unix()
+	pageName := fmt.Sprintf("detailView-%d", time)
 	a.Pages.AddPage(pageName, centered, true, true)
 	a.App.SetFocus(primitive)
 
@@ -179,7 +192,6 @@ func (a *App) showModalPopup(title string, primitive tview.Primitive) {
 			switch event.Key() {
 			case tcell.KeyEsc:
 				a.Pages.RemovePage(pageName)
-				a.Pages.SwitchToPage(previousPageName)
 				a.App.SetFocus(previousFocus)
 				return nil
 			}
@@ -191,7 +203,6 @@ func (a *App) showModalPopup(title string, primitive tview.Primitive) {
 			switch event.Key() {
 			case tcell.KeyEsc:
 				a.Pages.RemovePage(pageName)
-				a.Pages.SwitchToPage(previousPageName)
 				a.App.SetFocus(previousFocus)
 				return nil
 			}
@@ -263,6 +274,13 @@ func (a *App) ShowSacctJobDetails(jobID string) {
 				tc.SetAttributes(tcell.AttrBold)
 				tc.SetTextColor(selectionColor)
 			}
+			if i != 0 && j != 0 {
+				tc.SetClickedFunc(func() bool {
+					a.ShowModalPopupMinimal(cell)
+					return true
+				})
+			}
+
 			table.SetCell(j, i, tc)
 		}
 	}
