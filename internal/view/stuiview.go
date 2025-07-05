@@ -169,9 +169,9 @@ func (s *StuiView) Render() {
 		// Add sort indicator if this is the sorted column
 		if col == s.sortColumn {
 			if s.sortDirection > 0 {
-				headerName += " ↑"
+				headerName = "↑ " + headerName
 			} else {
-				headerName += " ↓"
+				headerName = "↓ " + headerName
 			}
 		}
 
