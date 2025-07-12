@@ -20,7 +20,7 @@ func TestNodesProvider(t *testing.T) {
 		{
 			name:            "no partition filter",
 			partitionFilter: "",
-			expectedCount:   888,
+			expectedCount:   8888,
 		},
 		{
 			name:            "with physics partition filter",

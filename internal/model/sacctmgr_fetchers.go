@@ -12,40 +12,6 @@ import (
 	"github.com/antvirf/stui/internal/logger"
 )
 
-func GetSacctMgrEntityWithTimeout(entity string, timeout time.Duration, computeColumnWidths bool) (*TableData, error) {
-	startTime := time.Now()
-	// TODO: In the future we may want to make this column config also configurable.
-	// However, since there are so many different sacct entities, we probably
-	// need to support configuration files to make this usable.
-	// For now, we hardcode the column maps to useful defaults.
-
-	var columns []config.ColumnConfig
-	columnConfig := strings.Split(SACCTMGR_ENTITY_COLUMN_CONFIGS[entity], ",")
-	for _, key := range columnConfig {
-		columns = append(columns, config.ColumnConfig{RawName: key, DisplayName: key})
-	}
-
-	fullCommand := fmt.Sprintf("%s show %s --parsable2",
-		path.Join(config.SlurmBinariesPath, "sacctmgr"),
-		entity)
-
-	data, err := getSacctMgrDataWithTimeout(
-		fullCommand,
-		config.RequestTimeout,
-		&columns,
-		computeColumnWidths,
-	)
-
-	execTime := time.Since(startTime).Milliseconds()
-	if err != nil {
-		logger.Debugf("sacctmgr: failed after %dms: %s (%v)", execTime, fullCommand, err)
-	} else {
-		logger.Debugf("sacctmgr: completed in %dms: %s", execTime, fullCommand)
-	}
-
-	return data, err
-}
-
 func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *[]config.ColumnConfig, computeColumnWidths bool) (*TableData, error) {
 	startTime := time.Now()
 	FetchCounter.increment()

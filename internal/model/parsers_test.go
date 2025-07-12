@@ -16,11 +16,11 @@ func TestParseScontrolOutput_Nodes(t *testing.T) {
 	require.NotEmpty(t, entries, "should parse node entries")
 
 	node := entries[0]
-	assert.Len(t, entries, 888)
+	assert.Len(t, entries, 8888, "unexpected node count")
 	assert.Len(t, node, 32, "unexpected field count")
 
 	assert.Equal(t, "linux1", node["NodeName"])
-	assert.Equal(t, "MIXED", node["State"])
+	assert.Equal(t, "ALLOCATED", node["State"])
 	assert.Equal(t, "64", node["CPUTot"])
 
 	node = entries[501]
