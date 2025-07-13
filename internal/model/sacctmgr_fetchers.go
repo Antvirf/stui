@@ -25,7 +25,7 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 		strings.Split(fullCommand, " ")[1:]...,
 	)
 
-	if config.SacctMgrCurrentEntity == "RunAwayJobs" {
+	if config.SacctMgrCurrentEntity == SACCT_RUNAWAYJOBS_ENTITY {
 		// For RunAwayJobs, we need to input an "N" as the command is interactive
 		// and the interactivity cannot be disabled.
 		stdIn, _ := cmd.StdinPipe()
@@ -38,7 +38,7 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 	execTime := time.Since(startTime).Milliseconds()
 
 	// Runawayjobs always prints something to stderr, so we need to check if the output is an actual error
-	if config.SacctMgrCurrentEntity != "RunAwayJobs" {
+	if config.SacctMgrCurrentEntity != SACCT_RUNAWAYJOBS_ENTITY {
 		if strings.HasPrefix(out, "NOTE: ") { // This signifies it's OK, in that case we nil the error.
 			err = nil
 		}
@@ -57,7 +57,7 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 	logger.Debugf("sacctmgr: completed in %dms: %s", execTime, fullCommand)
 
 	rawRows := []map[string]string{}
-	if config.SacctMgrCurrentEntity == "RunAwayJobs" {
+	if config.SacctMgrCurrentEntity == SACCT_RUNAWAYJOBS_ENTITY {
 		rawRows = parseSacctMgrRunawayJobsOutput(out)
 	} else {
 		rawRows = parseSacctOutput(out)
