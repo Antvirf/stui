@@ -119,8 +119,8 @@ func parseSacctOutput(output string) (entries []map[string]string) {
 
 // parseSacctMgrRunawayJobsOutput parses the sacctmgr runaway jobs format into a slice of maps
 func parseSacctMgrRunawayJobsOutput(output string) (entries []map[string]string) {
-	if os.Getenv("TESTING") != "" {
-		logger.Debugf("TESTING env var set, using hardcoded runaway jobs data...")
+	if os.Getenv("STUI_TESTING") != "" {
+		logger.Debugf("STUI_TESTING env var set, using hardcoded runaway jobs data...")
 		rawOut, _ := os.ReadFile("./internal/model/testdata/runaway_jobs.txt")
 		output = string(rawOut)
 	}
