@@ -113,6 +113,20 @@ setup-sacct:
 launch-jobs:
 	sudo bash testing/test-job-launcher.sh
 
+create-runaway-jobs: launch-jobs
+	@sleep 3
+	@echo "Killing slurmdbd.."
+	-@sudo kill -9 $$(ps aux | grep '[s]lurmdbd' | awk '{print $$2}') > /dev/null 2>&1
+	@echo "Waiting 40 seconds for sleep jobs to finish in actuality..."
+	@sleep 40
+	@echo "Killing scheduler and slurmd after jobs have finished..."
+	-@sudo kill -9 $$(ps aux | grep '[s]lurmctld' | awk '{print $$2}') > /dev/null 2>&1
+	-@sudo kill -9 $$(ps aux | grep '[s]lurmd' | awk '{print $$2}') > /dev/null 2>&1
+	@echo "Removing scheduler and daemon state files..."
+	@sudo rm -rf /var/spool/slurmctld/*
+	@sudo rm -rf /var/spool/slurmd.localhost/*
+	@echo "Done, you should now have runaway jobs. Check with 'sacctmgr show runaway'. Starting 'slurmd' back up may restore the jobs."
+
 stop-cluster:
 	sudo kill -9 $$(ps aux | grep '[s]lurm' | awk '{print $$2}')
 
