@@ -65,6 +65,7 @@ var (
 		"QOS",
 		"Resource",
 		"Reservation",
+		"RunAwayJobs", // Requires operator perms, and is a special case - the command becomes interactive if it returns anything
 		"Transaction",
 		"TRES",
 		"User",
@@ -73,7 +74,6 @@ var (
 	SACCTMGR_TEXT_ENTITIES = []string{
 		"Configuration",
 		// "Stats", // Requires admin
-		// "RunAwayJobs", // Requires operator perms, and is a special case - the command becomes interactive if it returns anything
 	}
 
 	// https://slurm.schedmd.com/sacctmgr.html
@@ -88,7 +88,7 @@ var (
 		"QOS":              "Name,Priority,GraceTime,Preempt,PreemptExemptTime,PreemptMode,Flags,UsageThres,UsageFactor,GrpTRES,GrpTRESMins,GrpTRESRunMins,GrpJobs,GrpSubmit,GrpWall,MaxTRES,MaxTRESPerNode,MaxTRESMins,MaxWall,MaxTRESPU,MaxJobsPU,MaxSubmitPU,MaxTRESPA,MaxTRESRunMinsPA,MaxTRESRunMinsPU,MaxJobsPA,MaxSubmitPA,MinTRES",
 		"Resource":         "Name,Server,Type,Count,LastConsumed,Allocated,ServerType,Flags",
 		"Reservation":      "Name,Cluster,TRES,TimeStart,TimeEnd,UnusedWall",
-		"RunAwayJobs":      "ID,Name, State,Partition,Cluster,TimeEnd,TimeStart",
+		"RunAwayJobs":      "ID,Name,State,Partition,Cluster,TimeEnd,TimeStart",
 		"Transaction":      "Time,Action,Actor,Where,Info",
 		"TRES":             "ID,Type,Name",
 		"User":             "User,Def Acct,Def WCKey,Admin",

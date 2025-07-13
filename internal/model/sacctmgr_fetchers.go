@@ -24,22 +24,43 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 		strings.Split(fullCommand, " ")[0],
 		strings.Split(fullCommand, " ")[1:]...,
 	)
+
+	if config.SacctMgrCurrentEntity == "RunAwayJobs" {
+		// For RunAwayJobs, we need to input an "N" as the command is interactive
+		// and the interactivity cannot be disabled.
+		stdIn, _ := cmd.StdinPipe()
+		stdIn.Write([]byte("no"))
+	}
+
 	rawOut, err := cmd.CombinedOutput()
 	out := string(rawOut)
 	execTime := time.Since(startTime).Milliseconds()
+
+	// Runawayjobs always prints something to stderr, so we need to check if the output is an actual error
+	if config.SacctMgrCurrentEntity != "RunAwayJobs" {
+		if strings.HasPrefix(out, "NOTE: ") { // This signifies it's OK, in that case we nil the error.
+			err = nil
+		}
+	}
 
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			logger.Debugf("sacctmgr: timed out after %dms: %s", execTime, fullCommand)
 			return EmptyTableData(), fmt.Errorf("timeout after %v", timeout)
 		}
+
 		logger.Debugf("sacctmgr: failed after %dms: %s (%v)", execTime, fullCommand, err)
 		return EmptyTableData(), fmt.Errorf("%v", out)
 	}
 
 	logger.Debugf("sacctmgr: completed in %dms: %s", execTime, fullCommand)
 
-	rawRows := parseSacctOutput(out)
+	rawRows := []map[string]string{}
+	if config.SacctMgrCurrentEntity == "RunAwayJobs" {
+		rawRows = parseSacctMgrRunawayJobsOutput(out)
+	} else {
+		rawRows = parseSacctOutput(out)
+	}
 
 	var rows [][]string
 	for _, rawRow := range rawRows {
