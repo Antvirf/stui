@@ -124,7 +124,6 @@ func parseSacctMgrRunawayJobsOutput(output string) (entries []map[string]string)
 		rawOut, _ := os.ReadFile("./internal/model/testdata/runaway_jobs.txt")
 		output = string(rawOut)
 	}
-	logger.Debugf(output)
 
 	lines := strings.Split(output, "\n")
 	headers := []string{}
@@ -140,20 +139,17 @@ func parseSacctMgrRunawayJobsOutput(output string) (entries []map[string]string)
 		// If headers length is zero, we haven't set it yet, so let's do so now
 		if len(headers) == 0 {
 			headers = strings.Split(line, "|")
-			logger.Debugf("headers found, continuing")
 			continue // Don't process further on this particular run, no data to add
 		}
 
 		// Once we reach the start of the dialog lines, stop parsing.
 		if strings.HasPrefix(line, "Would you like to fix") {
-			logger.Debugf("done with parsing!")
 			break
 		}
 
 		// Split the line into fields
 		fields := strings.Split(line, "|")
 		if len(fields) != len(headers) {
-			logger.Debugf("skipping fields due to garbo values")
 			continue // Skip rows that don't match the header length, if we get some random garbage
 		}
 
@@ -165,9 +161,5 @@ func parseSacctMgrRunawayJobsOutput(output string) (entries []map[string]string)
 
 		entries = append(entries, currentEntry)
 	}
-
-	logger.Debugf("entries: %d", len(entries))
-	logger.Debugf("headers: %d", len(headers))
-
 	return entries
 }
