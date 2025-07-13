@@ -30,6 +30,7 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 		// and the interactivity cannot be disabled.
 		stdIn, _ := cmd.StdinPipe()
 		stdIn.Write([]byte("no"))
+		defer stdIn.Close()
 	}
 
 	rawOut, err := cmd.CombinedOutput()

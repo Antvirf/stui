@@ -129,10 +129,8 @@ func parseSacctMgrRunawayJobsOutput(output string) (entries []map[string]string)
 	headers := []string{}
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		// Ignore rows starting with certain symbols - the note line and the header separator, as
-		// well as empty lines.
-		if strings.HasPrefix(line, "NOTE:") ||
-			line == "" {
+		// Ignore the note starting line and all empty lines
+		if strings.HasPrefix(line, "NOTE:") || line == "" {
 			continue
 		}
 
