@@ -22,6 +22,7 @@ func (p *PartitionsProvider) Fetch() error {
 		&[]config.ColumnConfig{{RawName: "PartitionName", DisplayName: "PartitionName"}},
 		config.RequestTimeout,
 		false, // Don't compute column widths, doesn't matter here.
+		parseScontrolOutput,
 	)
 
 	if err != nil {

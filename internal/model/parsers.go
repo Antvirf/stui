@@ -77,6 +77,89 @@ func parseScontrolOutput(output string) (entries []map[string]string) {
 	return entries
 }
 
+// parseScontrolJobsOutput parses the scontrol show job output into a slice of maps
+func parseScontrolJobsOutput(output string) (jobs []map[string]string) {
+	for _, job := range strings.Split(output, "\n\n") {
+		currentJob := make(map[string]string)
+
+		// Trim surrounding whitespace and ignore empty lines
+		job = strings.TrimSpace(job)
+		if job == "" {
+			continue
+		}
+
+		// At this point, we have a multiline block of data for a particular job
+		// We split them by newline, which gives us a slice of strings that are
+		// of two types:
+		// Multiple fields in the string, e.g.: RunTime=00:00:30 TimeLimit=UNLIMITED TimeMin=N/A
+		// Single field in the string, e.g.: Comment=this is a multi word comment of job-general-5
+		//
+		// Single field lines are special cases; multiple field lines are the general case.
+
+		for _, line := range strings.Split(job, "\n") {
+			// Trim surrounding whitespace and ignore empty lines
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
+			}
+
+			// Which type of line is this - check for special cases
+			isSingleFieldLine := false
+			for _, prefix := range SCONTROL_JOB_SINGLE_LINE_COLUMNS {
+				if strings.HasPrefix(line, prefix) {
+					isSingleFieldLine = true
+					break
+				}
+			}
+
+			// Special case handling
+			if isSingleFieldLine {
+				// Split by the first =
+				if idx := strings.Index(line, "="); idx > 0 {
+					key := line[:idx]
+					value := line[idx+1:]
+					currentJob[key] = strings.TrimSpace(value)
+					continue
+				}
+			}
+
+			// Otherwise, deal with as normal
+			// Parse key=value pairs into current entry
+			pairs := strings.Fields(line)
+			for i, pair := range pairs {
+				if idx := strings.Index(pair, "="); idx > 0 {
+					key := pair[:idx]
+					value := pair[idx+1:]
+					// Special handling for "Reason" key
+					// ... as long as it's the last pair on this line
+					// ... which we confirm by ensuring there are no more '='
+					if key == "Reason" && !strings.Contains(
+						strings.Join(pairs[i+1:], " ")[idx+1:],
+						"=",
+					) {
+						// Capture everything after "Reason=" since it's the last key
+						// and can contain arbitrary whitespaces and other characters.
+						value = strings.Join(pairs[i:], " ")[idx+1:]
+					}
+
+					// Format memory-related fields
+					if strings.HasSuffix(key, "Mem") ||
+						strings.HasSuffix(key, "Memory") {
+						value = formatMemoryValue(value)
+					}
+					currentJob[key] = value
+				}
+			}
+		}
+		// Only add entries that contain at least 1 key=value pair
+		if len(currentJob) != 0 {
+			jobs = append(jobs, currentJob)
+		}
+	}
+
+	return jobs
+}
+
 // parseSacctOutput parses the sacct/sacctmgr output into a slice of maps
 func parseSacctOutput(output string) (entries []map[string]string) {
 	lines := strings.Split(output, "\n")

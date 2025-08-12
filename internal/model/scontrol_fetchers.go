@@ -12,7 +12,7 @@ import (
 	"github.com/antvirf/stui/internal/logger"
 )
 
-func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, timeout time.Duration, computeColumnWidths bool) (*TableData, error) {
+func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, timeout time.Duration, computeColumnWidths bool, parserFunction func(string) []map[string]string) (*TableData, error) {
 	startTime := time.Now()
 	FetchCounter.increment()
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -35,7 +35,7 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 
 	logger.Debugf("scontrol: completed in %dms: %s", execTime, fullCommand)
 
-	rawRows := parseScontrolOutput(out)
+	rawRows := parserFunction(out)
 
 	var rows [][]string
 	for _, rawRow := range rawRows {
