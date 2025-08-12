@@ -126,21 +126,10 @@ func parseScontrolJobsOutput(output string) (jobs []map[string]string) {
 			// Otherwise, deal with as normal
 			// Parse key=value pairs into current entry
 			pairs := strings.Fields(line)
-			for i, pair := range pairs {
+			for _, pair := range pairs {
 				if idx := strings.Index(pair, "="); idx > 0 {
 					key := pair[:idx]
 					value := pair[idx+1:]
-					// Special handling for "Reason" key
-					// ... as long as it's the last pair on this line
-					// ... which we confirm by ensuring there are no more '='
-					if key == "Reason" && !strings.Contains(
-						strings.Join(pairs[i+1:], " ")[idx+1:],
-						"=",
-					) {
-						// Capture everything after "Reason=" since it's the last key
-						// and can contain arbitrary whitespaces and other characters.
-						value = strings.Join(pairs[i:], " ")[idx+1:]
-					}
 
 					// Format memory-related fields
 					if strings.HasSuffix(key, "Mem") ||
