@@ -26,7 +26,7 @@ var (
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
 	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,Reason"
-	rawJobViewColumns   string = "UserId,JobName++,RunTime,NodeList,QOS,NumCPUs,Mem"
+	rawJobViewColumns   string = "UserId,JobName++,Comment,RunTime,NodeList,QOS,NumCPUs,Mem"
 	rawSacctViewColumns string = "QOS,Account,User,JobName++,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES++,Comment++,SubmitLine++"
 
 	NodeViewColumns  *[]ColumnConfig

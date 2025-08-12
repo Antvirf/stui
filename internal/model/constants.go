@@ -54,6 +54,8 @@ var (
 		"TIMEOUT",
 	}
 
+	SCONTROL_JOB_SINGLE_LINE_COLUMNS = []string{"Comment", "StdErr", "StdIn", "StdOut", "WorkDir", "Command", "JOB_GRES"}
+
 	SACCT_RUNAWAYJOBS_ENTITY = "RunAwayJobs" // Standardise across codebase to avoid typos
 
 	SACCTMGR_TABLE_ENTITIES = []string{

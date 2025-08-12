@@ -23,10 +23,11 @@ func (p *JobsProvider) Fetch() error {
 		computeColumnWidths = true
 	}
 	rawData, err := getScontrolDataWithTimeout(
-		"show job --detail --all --oneliner",
+		"show job --detail --all",
 		config.JobViewColumns,
 		config.RequestTimeout,
 		computeColumnWidths,
+		parseScontrolJobsOutput,
 	)
 	if err != nil {
 		p.updateError(err)

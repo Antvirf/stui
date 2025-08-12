@@ -27,6 +27,7 @@ func (p *NodesProvider) Fetch() error {
 		config.NodeViewColumns,
 		config.RequestTimeout,
 		computeColumnWidths,
+		parseScontrolOutput,
 	)
 	if err != nil {
 		p.updateError(err)
