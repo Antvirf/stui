@@ -5,7 +5,7 @@ go 1.22.1
 require (
 	github.com/gdamore/tcell/v2 v2.8.1
 	github.com/rivo/tview v0.0.0-20250325173046-7b72abf45814
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/tiagomelo/go-clipboard v0.1.2
 )
 
