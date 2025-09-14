@@ -421,7 +421,6 @@ func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bo
 	entryName := strings.TrimSpace(view.GetCell(rowIndex, 0).Text)
 
 	if (*selection)[entryName] && !additionalSelectOnly {
-		//delete(*selection, entryName)
 		(*selection)[entryName] = false
 
 		// Check whether we should give this row a special color based on its state field
