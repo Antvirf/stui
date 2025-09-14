@@ -25,7 +25,7 @@ var (
 	ConfigDirPath          string        = DEFAULT_CONFIG_LOCATION
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
-	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,Reason"
+	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason"
 	rawJobViewColumns   string = "UserId,JobName++,Comment,RunTime,NodeList,QOS,NumCPUs,Mem"
 	rawSacctViewColumns string = "QOS,Account,User,JobName++,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES++,Comment++,SubmitLine++"
 

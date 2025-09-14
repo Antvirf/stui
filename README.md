@@ -73,7 +73,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -log-level int
           log level, 0=none, 1=error, 2=info, 3=debug (default 2)
       -node-columns-config string
-          comma-separated list of scontrol fields to show in node view, use '//' to combine column or '++' to extend columns to full width. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,Reason")
+          comma-separated list of scontrol fields to show in node view, use '//' to combine column or '++' to extend columns to full width. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason")
       -partition string
           limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration
