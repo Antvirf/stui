@@ -216,6 +216,7 @@ func (s *StuiView) Render() {
 			// Op 1: Text wrapping
 			colObject := (*s.data.Headers)[col]
 			// We need to *pad* the text here, as tview does not support a 'minimum width' parameter for tables.
+			// That is why we need to then trim the spaces later during selecting/deselecting rows.
 			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colObject.Width, cell)).
 				SetAlign(tview.AlignLeft).
 				SetExpansion(1)
@@ -269,6 +270,10 @@ func (s *StuiView) Render() {
 		FormatNumberWithCommas(filteredCount),
 		FormatNumberWithCommas(totalCount),
 	)
+	selectionCount := getSelectionCount(&s.Selection)
+	if selectionCount > 0 {
+		s.completeTitle += fmt.Sprintf("| %s selected", FormatNumberWithCommas(selectionCount))
+	}
 	s.updateTitleFunction(s.completeTitle)
 
 	lastUpdated := s.provider.LastUpdated()

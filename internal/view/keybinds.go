@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -224,45 +225,11 @@ func tableViewInputCapture(
 			return nil
 		case ' ':
 			row, _ := view.GetSelection()
-			// Certain tables in Sacctmgr have no clear ID, and the current selection implementation relies
-			// on the first column of a row to be an identifier column.
-			if view == a.SacctMgrView.Table &&
-				slices.Contains(
-					model.SACCTMGR_ENTITY_TABLES_WITH_NO_CLEAR_ID,
-					config.SacctMgrCurrentEntity,
-				) {
-				return nil
-			}
-			if row > 0 { // Skip header row
-				entryName := view.GetCell(row, 0).Text
-
-				if (*selection)[entryName] {
-					delete(*selection, entryName)
-
-					// Check whether we should give this row a special color based on its state field
-					stateText := view.GetCell(row, config.NodeViewColumnsStateIndex).Text
-					colorizedColor, shouldColorizeRow := GetStateColorMapping(stateText)
-
-					for col := 0; col < view.GetColumnCount(); col++ {
-						cell := view.GetCell(row, col)
-						cell.SetBackgroundColor(generalBackgroundColor).
-							SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
-						if shouldColorizeRow {
-							cell.SetTextColor(colorizedColor)
-						} else {
-							cell.SetTextColor(generalTextColor)
-						}
-					}
-				} else {
-					(*selection)[entryName] = true
-					for col := 0; col < view.GetColumnCount(); col++ {
-						view.GetCell(row, col).
-							SetBackgroundColor(selectionColor).
-							SetTextColor(selectionTextColor).
-							SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
-					}
-				}
-			}
+			selectRow(a, view, row, selection, data.Length(), false)
+			// Hacky way to update selection counter immediately
+			a.PagesContainer.SetTitle(
+				hackyUpdateTitleWithSelectionCount(a.PagesContainer.GetTitle(), selection),
+			)
 			return nil
 		case 'p':
 			if a.GetCurrentPageName() == JOBS_PAGE || a.GetCurrentPageName() == NODES_PAGE || a.GetCurrentPageName() == SACCT_PAGE {
@@ -331,6 +298,29 @@ func tableViewInputCapture(
 		}
 
 		switch event.Key() {
+		case tcell.KeyCtrlA:
+			rows := view.GetRowCount()
+			for rowIndex := 1; rowIndex < rows; rowIndex++ {
+				selectRow(a, view, rowIndex, selection, data.Length(), true)
+			}
+			a.ShowNotification("[green]Ctrl+A: Select all visible rows[white]", 2*time.Second)
+
+			// Hacky way to update selection counter immediately
+			a.PagesContainer.SetTitle(
+				hackyUpdateTitleWithSelectionCount(a.PagesContainer.GetTitle(), selection),
+			)
+
+			return nil
+		case tcell.KeyCtrlI:
+			rows := view.GetRowCount()
+			for rowIndex := 1; rowIndex < rows; rowIndex++ {
+				selectRow(a, view, rowIndex, selection, data.Length(), false)
+			}
+			// Hacky way to update selection counter immediately
+			a.PagesContainer.SetTitle(
+				hackyUpdateTitleWithSelectionCount(a.PagesContainer.GetTitle(), selection),
+			)
+			a.ShowNotification("[green]Ctrl+I: Invert selection[white]", 2*time.Second)
 		case tcell.KeyEnter:
 			row, _ := view.GetSelection()
 			if row > 0 { // Skip header row
@@ -341,7 +331,7 @@ func tableViewInputCapture(
 		case tcell.KeyCtrlR:
 			// Manual refresh of currently visible view
 			a.optionalRefreshAndRenderCurrentView(true)
-			a.ShowNotification("[green]Ctrl+R: Manual data refresh[white]", 1*time.Second)
+			a.ShowNotification("[green]Ctrl+R: Manual data refresh[white]", 2*time.Second)
 		case tcell.KeyCtrlD:
 			row, _ := view.GetSelection()
 			if row == 0 { // Skip if user is on header row / there is on data
@@ -381,5 +371,79 @@ func tableViewInputCapture(
 			}
 		}
 		return event
+	}
+}
+
+// This is a mega ugly way to do it. Some longer term refactoring needed here
+// to async share messages between components.
+func hackyUpdateTitleWithSelectionCount(title string, selection *map[string]bool) string {
+	selectionCount := getSelectionCount(selection)
+
+	// If it already contains '| %d selected', remove it
+	re := regexp.MustCompile(`\|\s.*`)
+	title = re.ReplaceAllString(title, "")
+
+	if selectionCount == 0 {
+		return title
+	}
+	return fmt.Sprintf("%s| %s selected", title, FormatNumberWithCommas(selectionCount))
+}
+
+func getSelectionCount(selection *map[string]bool) (count int) {
+	for key, _ := range *selection {
+		if (*selection)[key] {
+			count += 1
+		}
+	}
+	return
+}
+
+func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bool, dataLength int, additionalSelectOnly bool) {
+	// Certain tables in Sacctmgr have no clear ID, and the current selection implementation relies
+	// on the first column of a row to be an identifier column.
+	if view == a.SacctMgrView.Table &&
+		slices.Contains(
+			model.SACCTMGR_ENTITY_TABLES_WITH_NO_CLEAR_ID,
+			config.SacctMgrCurrentEntity,
+		) {
+		return
+	}
+
+	if rowIndex <= 0 { // Skip header and -ve rows
+		return
+	}
+
+	if dataLength <= 1 { // header row does not count
+		return
+	}
+
+	// Cells can be padded for width/alignment reasons, hence we have to trim.
+	entryName := strings.TrimSpace(view.GetCell(rowIndex, 0).Text)
+
+	if (*selection)[entryName] && !additionalSelectOnly {
+		(*selection)[entryName] = false
+
+		// Check whether we should give this row a special color based on its state field
+		stateText := view.GetCell(rowIndex, config.NodeViewColumnsStateIndex).Text
+		colorizedColor, shouldColorizeRow := GetStateColorMapping(stateText)
+
+		for col := 0; col < view.GetColumnCount(); col++ {
+			cell := view.GetCell(rowIndex, col)
+			cell.SetBackgroundColor(generalBackgroundColor).
+				SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
+			if shouldColorizeRow {
+				cell.SetTextColor(colorizedColor)
+			} else {
+				cell.SetTextColor(generalTextColor)
+			}
+		}
+	} else {
+		(*selection)[entryName] = true
+		for col := 0; col < view.GetColumnCount(); col++ {
+			view.GetCell(rowIndex, col).
+				SetBackgroundColor(selectionColor).
+				SetTextColor(selectionTextColor).
+				SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
+		}
 	}
 }
