@@ -73,9 +73,6 @@ type StuiViewInt interface {
 
 	// Updates data from provider and renders the view
 	FetchAndRender()
-
-	// Get active selection count
-	GetSelectionCount()
 }
 
 type StuiView struct {
@@ -111,16 +108,6 @@ func (s *StuiView) SetFilter(filter string) {
 
 func (s *StuiView) SetTitleHeader(v string) {
 	s.titleHeader = v
-}
-
-func (s *StuiView) GetSelectionCount() (count int) {
-	count = 0
-	for key, _ := range s.Selection {
-		if s.Selection[key] {
-			count += 1
-		}
-	}
-	return
 }
 
 func (s *StuiView) SetSearchEnabled(value bool) {
@@ -283,7 +270,7 @@ func (s *StuiView) Render() {
 		FormatNumberWithCommas(filteredCount),
 		FormatNumberWithCommas(totalCount),
 	)
-	selectionCount := s.GetSelectionCount()
+	selectionCount := getSelectionCount(&s.Selection)
 	if selectionCount > 0 {
 		s.completeTitle += fmt.Sprintf("| %s selected", FormatNumberWithCommas(selectionCount))
 	}
