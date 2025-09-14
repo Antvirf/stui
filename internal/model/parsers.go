@@ -112,7 +112,18 @@ func parseScontrolJobsOutput(output string) (jobs []map[string]string) {
 				}
 			}
 
-			// Special case handling
+			// Special case handling: First line with just JobID and JobName
+			// This needs special handling as JobName may have spaces, e..g
+			// JobId=600 JobName=job general 2
+			// Our check for this line uses hardcoded keys, hence the code block does too.
+			if strings.Contains(line, "JobId=") && strings.Contains(line, "JobName=") {
+				firstSpace := strings.Index(line, " ")
+				currentJob["JobId"] = strings.Split(line[:firstSpace], "=")[1]
+				currentJob["JobName"] = strings.Split(line[firstSpace+1:], "=")[1]
+				continue
+			}
+
+			// Special case handling: Fields on a single line
 			if isSingleFieldLine {
 				// Split by the first =
 				if idx := strings.Index(line, "="); idx > 0 {

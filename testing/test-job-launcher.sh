@@ -5,6 +5,6 @@ for NUMBER in {1..15}; do
         MEMORY=$(( (RANDOM % 64) + 1 ))
 
         cat testing/mock-cluster-slurmconf.conf  | grep PartitionName | cut -d= -f2 | cut -d' ' -f1 | \
-            xargs -I{} sbatch --partition={} --uid 1337 --job-name=job-{}-$NUMBER --comment="this is a multi word comment of job-{}-$NUMBER" --mem="$MEMORY"G  --cpus-per-task=$CPUS --qos=$QOS --out=/dev/null testing/sleep.sh "$NUMBER"
+            xargs -I{} sbatch --partition={} --uid 1337 --job-name="job {} $NUMBER" --comment="this is a multi word comment of job-{}-$NUMBER" --mem="$MEMORY"G  --cpus-per-task=$CPUS --qos=$QOS --out=/dev/null testing/sleep.sh "$NUMBER"
     done
 done
