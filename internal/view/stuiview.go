@@ -28,7 +28,7 @@ func NewStuiView(
 	view := StuiView{
 		titleHeader:                   title,
 		provider:                      provider,
-		Selection:                     make(map[string]bool),
+		Selection:                     make(map[string]bool), // The actual true/false is NOT used, only map presence.
 		filter:                        "",
 		searchEnabled:                 false,
 		searchPattern:                 searchStringPointer,
@@ -233,7 +233,9 @@ func (s *StuiView) Render() {
 			}
 
 			// Highlight selected rows, or set color based on status
-			if s.Selection[rowData[0]] {
+			_, isSelected := s.Selection[rowData[0]] // Check if it's IN the map, not the actual value.
+
+			if isSelected {
 				cellView.SetBackgroundColor(selectionColor)
 				cellView.SetTextColor(selectionTextColor)
 				cellView.SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
