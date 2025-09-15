@@ -113,6 +113,10 @@ setup-sacct:
 launch-jobs:
 	sudo bash testing/test-job-launcher.sh
 
+launch-job-array:
+	sudo bash testing/test-job-launcher-array.sh
+
+
 create-runaway-jobs: launch-jobs
 	@sleep 3
 	@echo "Killing slurmdbd.."
