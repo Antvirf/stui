@@ -23,7 +23,7 @@ var (
 	PartitionFilter        string        = ""
 	LogLevel               int           = 2
 	ShowAllColumns         bool          = false
-	ConfigDirPath          string        = DEFAULT_CONFIG_LOCATION
+	ConfigDirPaths         string        = DEFAULT_CONFIG_LOCATIONS
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
 	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason"
@@ -111,9 +111,9 @@ e        Focus on Entity type selector, 'esc' to close
 	LOG_LEVEL_DEBUG = 3
 
 	// Misc
-	ALL_CATEGORIES_OPTION   = "(all)"
-	NO_SORT_OPTION          = "(no sort)"
-	DEFAULT_CONFIG_LOCATION = "/home/$USER/.config/stui.d/"
+	ALL_CATEGORIES_OPTION    = "(all)"
+	NO_SORT_OPTION           = "(no sort)"
+	DEFAULT_CONFIG_LOCATIONS = "/etc/stui.d/,/home/$USER/.config/stui.d/"
 )
 
 func Configure() {
@@ -126,7 +126,7 @@ func Configure() {
 	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, use '//' to combine column or '++' to extend columns to full width. 'JobId', 'Partitions' and 'JobState' are always shown.")
 	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, use '//' to combine columns or '++' to extend columns to full width. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
-	flag.StringVar(&ConfigDirPath, "config-dir", ConfigDirPath, "path to a directory with config files")
+	flag.StringVar(&ConfigDirPaths, "config-dirs", ConfigDirPaths, "comma-separated list of paths to directories with stui config files")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config")
 	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")
@@ -143,21 +143,17 @@ func Configure() {
 	flag.Parse()
 
 	// Load config file if it exists
-	if ConfigDirPath == DEFAULT_CONFIG_LOCATION {
+	if ConfigDirPaths == DEFAULT_CONFIG_LOCATIONS {
 		user, err := user.Current()
 		if err != nil {
 			log.Fatalf("Could not determine current user: %v", err)
 		}
-		ConfigDirPath = fmt.Sprintf(
-			"%s/.config/stui.d/",
+		ConfigDirPaths = fmt.Sprintf(
+			"/etc/stui.d/,%s/.config/stui.d/",
 			user.HomeDir,
 		)
 	}
-	if _, err := os.Stat(ConfigDirPath); err != nil {
-		// No need to print a message as configuration file is NOT mandatory.
-	} else {
-		ConfigFile = LoadConfigsFromDir(ConfigDirPath)
-	}
+	ConfigFile = LoadConfigsFromDirs(ConfigDirPaths)
 
 	// Handle one shot commands
 	if *versionFlag {
