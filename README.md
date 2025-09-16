@@ -55,13 +55,13 @@ sudo mv ~/go/bin/stui /usr/local/bin
 
 1. Ensure your Slurm binaries are working and you can talk to your cluster, e.g. `sdiag` shows a valid output.
 
-2. Run `stui`. Use the `-help` flag to view arguments for additional configuration. Any configuration value (with the exception of `-config-dir`) can be set using a configuration file, see step #4 for details. Command line arguments take precedence over all configuration files.
+2. Run `stui`. Use the `-help` flag to view arguments for additional configuration. Any configuration value (with the exception of `-config-dirs`) can be set using a configuration file, see step #4 for details. Command line arguments take precedence over all configuration files.
 
     <!-- REPLACE_START -->
     ```txt
     Usage of ./stui:
       -config-dir string
-          path to a directory with config files (default "/home/$USER/.config/stui.d/")
+          comma-separated list of paths to directories with stui config files (default "/etc/stui.d/,/home/$USER/.config/stui.d/")
       -copied-lines-separator string
           string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
@@ -99,6 +99,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
 
     <!-- REPLACE_SHORTCUTS_START -->
     ```txt
+    2025/09/16 20:27:00 reading /etc/stui.d/
+    2025/09/16 20:27:00 reading /home/antti/.config/stui.d/
     GENERAL SHORTCUTS
     1        Switch to Nodes view (scontrol)
     2        Switch to Jobs view (scontrol)
@@ -133,7 +135,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ```
     <!-- REPLACE_SHORTCUTS_END -->
 
-4. Configuring `stui` using a config file - pass in `-config-dir` argument or create a `.yaml`/`.yml` file in the default location `/home/$USER/.config/stui.d./`. Files are processed in alphabetical order. Please note that plugin configs are **concatenated**, not merged.
+4. Configuring `stui` using a config file - pass in `-config-dirs` argument or create a `.yaml`/`.yml` files in the default locations of `/etc/stui.d/` or `/home/$USER/.config/stui.d./`. Directories are processed in the given order. Files within each directory are processed in alphabetical order. Later files take precedence. Please note that plugin configs are **concatenated**, not merged.
 
     - Any command line arguments can be configured in the file, under the `argumentOptions` key. See example below.
     - For plugins:
@@ -148,6 +150,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       refresh-interval: 60s
       request-timeout: 10s
       job-columns-config: ""
+      node-columns-config: "ActiveFeatures"
     
     plugins:
       - name: Sstat a job

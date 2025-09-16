@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/stretchr/testify/assert/yaml"
 )
@@ -22,20 +23,23 @@ type Config struct {
 	Plugins         []PluginConfig    `yaml:"plugins"`
 }
 
-func LoadConfigsFromDir(path string) Config {
-	files, err := os.ReadDir(path)
-	if err != nil {
-		log.Fatalf("failed to read config dir '%s': %v", path, err)
-	}
-
+func LoadConfigsFromDirs(paths string) Config {
 	merged := NewConfig()
-	for _, file := range files {
-		if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
-			continue
+	for _, path := range strings.Split(paths, ",") {
+		log.Println("reading", path)
+		files, err := os.ReadDir(path)
+		if err != nil {
+			log.Fatalf("failed to read config dir '%s': %v", path, err)
 		}
 
-		cfg := loadConfig(filepath.Join(path, file.Name()))
-		merged = mergeConfigs(merged, cfg)
+		for _, file := range files {
+			if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
+				continue
+			}
+
+			cfg := loadConfig(filepath.Join(path, file.Name()))
+			merged = mergeConfigs(merged, cfg)
+		}
 	}
 	return merged
 }
