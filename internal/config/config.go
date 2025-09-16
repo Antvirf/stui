@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"slices"
 	"time"
 )
 
@@ -135,6 +136,12 @@ func Configure() {
 	// Config flags that have been deprecated from user config
 	// flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
 
+	// One-shot-and-exit flags
+	versionFlag := flag.Bool("version", false, "print version information and exit")
+	keyboardShortcutsFlag := flag.Bool("show-keyboard-shortcuts", false, "print keyboard shortcuts and exit")
+
+	flag.Parse()
+
 	// Load config file if it exists
 	if ConfigDirPath == DEFAULT_CONFIG_LOCATION {
 		user, err := user.Current()
@@ -152,12 +159,6 @@ func Configure() {
 		ConfigFile = LoadConfigsFromDir(ConfigDirPath)
 	}
 
-	// One-shot-and-exit flags
-	versionFlag := flag.Bool("version", false, "print version information and exit")
-	keyboardShortcutsFlag := flag.Bool("show-keyboard-shortcuts", false, "print keyboard shortcuts and exit")
-
-	flag.Parse()
-
 	// Handle one shot commands
 	if *versionFlag {
 		fmt.Printf("stui version %s\n", STUI_VERSION)
@@ -167,6 +168,24 @@ func Configure() {
 		fmt.Print(KEYBOARD_SHORTCUTS)
 		os.Exit(0)
 	}
+
+	// BEFORE PROCESSING ANY OTHER ACTUAL ARGUMENTS - LOAD ARGUMENTS FROM CONFIG FILE
+	// Any flags set via command line args take precedence over config.
+	// First, we construct a list of flags that were provided.
+	flagsProvidedByUser := []string{}
+	flag.Visit(func(f *flag.Flag) { flagsProvidedByUser = append(flagsProvidedByUser, f.Name) })
+
+	// And then, we check *all* flags, setting their value from the config file if
+	// they had not been set by the user.
+	flag.VisitAll(func(f *flag.Flag) {
+		value, valueExistsInConfigFile := ConfigFile.ArgumentOptions[f.Name]
+		if valueExistsInConfigFile && !slices.Contains(flagsProvidedByUser, f.Name) {
+			err := f.Value.Set(value) // Set to the value in config
+			if err != nil {
+				log.Fatalf("%v: invalid value '%s' for parameter '%s' specified in config file", err, value, f.Name)
+			}
+		}
+	})
 
 	// If slurm.conf location was given, ensure file exists and configure env var if appropriate
 	if SlurmConfLocation != "" {

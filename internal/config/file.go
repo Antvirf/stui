@@ -18,7 +18,8 @@ type PluginConfig struct {
 }
 
 type Config struct {
-	Plugins []PluginConfig `yaml:"plugins"`
+	ArgumentOptions map[string]string `yaml:"argumentOptions"`
+	Plugins         []PluginConfig    `yaml:"plugins"`
 }
 
 func LoadConfigsFromDir(path string) Config {
@@ -58,14 +59,25 @@ func loadConfig(path string) Config {
 // are concatenated, and maps are merged.
 // This is a custom implementation and needs updating as the config structure changes.
 func mergeConfigs(base Config, nextLayer Config) Config {
+	newArgumentOptions := make(map[string]string)
+	// Deep copy of old, then override with the new for all keys it defines
+	for k, v := range base.ArgumentOptions {
+		newArgumentOptions[k] = v
+	}
+	for k, v := range nextLayer.ArgumentOptions {
+		newArgumentOptions[k] = v
+	}
+
 	merged := Config{
-		Plugins: append(base.Plugins, nextLayer.Plugins...),
+		ArgumentOptions: newArgumentOptions,
+		Plugins:         append(base.Plugins, nextLayer.Plugins...),
 	}
 	return merged
 }
 
 func NewConfig() Config {
 	return Config{
-		Plugins: []PluginConfig{},
+		ArgumentOptions: make(map[string]string),
+		Plugins:         []PluginConfig{},
 	}
 }
