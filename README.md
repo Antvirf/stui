@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4409-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-4421-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -60,7 +60,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     <!-- REPLACE_START -->
     ```txt
     Usage of ./stui:
-      -config-dir string
+      -config-dirs string
           comma-separated list of paths to directories with stui config files (default "/etc/stui.d/,/home/$USER/.config/stui.d/")
       -copied-lines-separator string
           string to use when separating copied lines in clipboard (default "\n")
@@ -99,8 +99,6 @@ sudo mv ~/go/bin/stui /usr/local/bin
 
     <!-- REPLACE_SHORTCUTS_START -->
     ```txt
-    2025/09/16 20:27:00 reading /etc/stui.d/
-    2025/09/16 20:27:00 reading /home/antti/.config/stui.d/
     GENERAL SHORTCUTS
     1        Switch to Nodes view (scontrol)
     2        Switch to Jobs view (scontrol)
@@ -149,8 +147,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     argumentOptions:
       refresh-interval: 60s
       request-timeout: 10s
-      job-columns-config: ""
-      node-columns-config: "ActiveFeatures"
+      log-level: 4 # debug logs
     
     plugins:
       - name: Sstat a job

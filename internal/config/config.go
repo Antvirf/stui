@@ -153,7 +153,7 @@ func Configure() {
 			user.HomeDir,
 		)
 	}
-	ConfigFile = LoadConfigsFromDirs(ConfigDirPaths)
+	ConfigFile, debugLogOutput := LoadConfigsFromDirs(ConfigDirPaths)
 
 	// Handle one shot commands
 	if *versionFlag {
@@ -182,6 +182,14 @@ func Configure() {
 			}
 		}
 	})
+
+	// At this point, we know all the flags + config options.
+	// Now we we can print debug logs of config file parsing, if log level is high enough.
+	if LogLevel >= LOG_LEVEL_DEBUG {
+		for _, logline := range debugLogOutput {
+			log.Println(fmt.Sprintf("[DEBUG] config file: %s", logline))
+		}
+	}
 
 	// If slurm.conf location was given, ensure file exists and configure env var if appropriate
 	if SlurmConfLocation != "" {
