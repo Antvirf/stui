@@ -1,7 +1,7 @@
 argumentOptions:
   refresh-interval: 60s
   request-timeout: 10s
-  job-columns-config: ""
+  log-level: 4 # debug logs
 
 plugins:
   - name: Sstat a job

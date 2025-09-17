@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -23,25 +24,28 @@ type Config struct {
 	Plugins         []PluginConfig    `yaml:"plugins"`
 }
 
-func LoadConfigsFromDirs(paths string) Config {
+func LoadConfigsFromDirs(paths string) (Config, []string) {
+	debugLogOutput := []string{}
 	merged := NewConfig()
 	for _, path := range strings.Split(paths, ",") {
-		log.Println("reading", path)
+		debugLogOutput = append(debugLogOutput, fmt.Sprintf("loading configs from directory: '%s'", path))
 		files, err := os.ReadDir(path)
 		if err != nil {
-			log.Fatalf("failed to read config dir '%s': %v", path, err)
+			log.Fatalf("\nfailed to read config dir '%s': %v", path, err)
 		}
 
 		for _, file := range files {
 			if filepath.Ext(file.Name()) != ".yaml" && filepath.Ext(file.Name()) != ".yml" {
+				debugLogOutput = append(debugLogOutput, fmt.Sprintf("path: '%s' - skipping file '%s' due to bad extension (must be .yaml/.yml)", path, file.Name()))
 				continue
 			}
+			debugLogOutput = append(debugLogOutput, fmt.Sprintf("path: '%s' - loading config from file: '%s'", path, file.Name()))
 
 			cfg := loadConfig(filepath.Join(path, file.Name()))
 			merged = mergeConfigs(merged, cfg)
 		}
 	}
-	return merged
+	return merged, debugLogOutput
 }
 
 func loadConfig(path string) Config {
