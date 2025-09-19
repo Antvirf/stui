@@ -31,7 +31,7 @@ func LoadConfigsFromDirs(paths string) (Config, []string) {
 		debugLogOutput = append(debugLogOutput, fmt.Sprintf("loading configs from directory: '%s'", path))
 		files, err := os.ReadDir(path)
 		if err != nil {
-			log.Fatalf("\nfailed to read config dir '%s': %v", path, err)
+			debugLogOutput = append(debugLogOutput, fmt.Sprintf("failed to read config dir '%s': %v", path, err))
 		}
 
 		for _, file := range files {
