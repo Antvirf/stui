@@ -81,7 +81,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -refresh-interval duration
           interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
       -request-timeout duration
-          timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 5s)
+          timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 20s)
       -sacct-columns-config string
           comma-separated list of sacct fields to show in job view, use '//' to combine columns or '++' to extend columns to full width. 'JobIDRaw', 'Partitions' and 'State' are always shown. (default "QOS,Account,User,JobName++,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES++,Comment++,SubmitLine++")
       -show-all-columns

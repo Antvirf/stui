@@ -14,7 +14,7 @@ var (
 	// All configuration options for `stui` are listed here with their defaults
 	SearchDebounceInterval time.Duration = 500 * time.Millisecond
 	RefreshInterval        time.Duration = 60 * time.Second
-	RequestTimeout         time.Duration = 5 * time.Second
+	RequestTimeout         time.Duration = 20 * time.Second
 	LoadSacctDataFrom      time.Duration = 30 * time.Minute
 	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = ""
