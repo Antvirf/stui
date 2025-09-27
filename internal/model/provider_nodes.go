@@ -10,7 +10,9 @@ type NodesProvider struct {
 
 func NewNodesProvider() *NodesProvider {
 	p := NodesProvider{
-		BaseProvider: BaseProvider[*TableData]{},
+		BaseProvider: BaseProvider[*TableData]{
+			data: EmptyTableData(),
+		},
 	}
 	p.Fetch()
 	return &p

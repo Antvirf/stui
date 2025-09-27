@@ -298,6 +298,7 @@ func (a *App) SetupViews() {
 // Starts periodic background processes to refresh data
 func (a *App) StartRefresh() {
 	// Fetch and setup partitions list - static
+	a.PartitionsData = model.EmptyTableData() // Initialize
 	a.PartitionsData = a.PartitionsProvider.Data()
 
 	// First render of all views

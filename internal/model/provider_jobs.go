@@ -10,7 +10,9 @@ type JobsProvider struct {
 
 func NewJobsProvider() *JobsProvider {
 	p := JobsProvider{
-		BaseProvider: BaseProvider[*TableData]{},
+		BaseProvider: BaseProvider[*TableData]{
+			data: EmptyTableData(),
+		},
 	}
 	p.Fetch()
 	return &p

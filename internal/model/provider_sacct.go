@@ -12,7 +12,9 @@ type SacctProvider struct {
 
 func NewSacctProvider() *SacctProvider {
 	p := SacctProvider{
-		BaseProvider: BaseProvider[*TableData]{},
+		BaseProvider: BaseProvider[*TableData]{
+			data: EmptyTableData(),
+		},
 	}
 	p.Fetch()
 	return &p
