@@ -48,8 +48,8 @@ var (
 	JobsViewColumnsStateIndex      int
 	SacctViewColumnsPartitionIndex int
 	SacctViewColumnsStateIndex     int
-	SacctTimeoutMultiplier         int64 = 5 // sacct can be slow, so we give it extra time
-	ConfigFile                     Config
+	SacctTimeoutMultiplier         int64  = 5 // sacct can be slow, so we give it extra time
+	ConfigFile                     Config = NewConfig()
 	AllSacctViewColumns            string // Used in sacct detail view
 	MaximumColumnWidth             int    = 30
 
@@ -155,7 +155,8 @@ func Configure() {
 			user.HomeDir,
 		)
 	}
-	ConfigFile, debugLogOutput := LoadConfigsFromDirs(ConfigDirPaths)
+	debugLogOutput := []string{}
+	ConfigFile, debugLogOutput = LoadConfigsFromDirs(ConfigDirPaths)
 
 	// Handle one shot commands
 	if *versionFlag {
