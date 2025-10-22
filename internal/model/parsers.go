@@ -170,7 +170,7 @@ func parseSacctOutput(output string) (entries []map[string]string) {
 	}
 
 	// Parse the header
-	header := strings.Split(lines[0], "|")
+	header := strings.Split(lines[0], SACCT_DELIMITER)
 
 	// Parse the data rows
 	for _, line := range lines[1:] {
@@ -180,7 +180,7 @@ func parseSacctOutput(output string) (entries []map[string]string) {
 		}
 
 		// Split the line into fields
-		fields := strings.Split(line, "|")
+		fields := strings.Split(line, SACCT_DELIMITER)
 		if len(fields) != len(header) {
 			continue // Skip rows that don't match the header length, if we get some random garbage
 		}

@@ -58,6 +58,8 @@ var (
 
 	SACCT_RUNAWAYJOBS_ENTITY = "RunAwayJobs" // Standardise across codebase to avoid typos
 
+	SACCT_DELIMITER = "|||"
+
 	SACCTMGR_TABLE_ENTITIES = []string{
 		"Account",
 		"Association",
