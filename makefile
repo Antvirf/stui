@@ -103,7 +103,7 @@ run-cluster:
 	sudo useradd slurm || true
 	sudo slurmdbd && echo "Launched Slurmdbd"
 	sudo slurmctld && echo "Launched Slurmctld"
-	@for i in $(shell seq 1 8888); do echo "Lauching slurmd $$i..." ; sudo slurmd -N linux$$i; done
+	@for i in $(shell seq 1 10); do echo "Lauching slurmd $$i..." ; sudo slurmd -N linux$$i; done
 	@sleep 5
 	@sdiag && echo "\n\nCluster up and running!"
 
