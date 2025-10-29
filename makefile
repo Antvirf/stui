@@ -12,7 +12,7 @@ setup-config-if-missing:
 	stat /home/$$USER/.config/stui.d/example.yaml > /dev/null || ln -s $$(pwd)/testing/example-stui-config.yaml /home/$$USER/.config/stui.d/example.yaml
 
 lint: setup-config-if-missing
-	find -name "*.go" | xargs -I{} go fmt {}
+	find . -path "internal/slurmapi" -prune -name "*.go" | xargs -I{} go fmt {}
 	go mod tidy
 	go vet ./...
 
@@ -29,6 +29,28 @@ run:
 
 run-with-all-columns:
 	go run main.go -show-all-columns
+
+_generate-slurm-openapi-schemas:
+	@for ver in 0.0.40 0.0.41 0.0.42 0.0.43; do \
+		SLURM_CONF=/dev/null slurmrestd --generate-openapi-spec -s slurmctld,slurmdbd -d "v$$ver" > "openapi-schemas/$$ver.json" \
+		; done
+
+generate-openapi-models: _generate-slurm-openapi-schemas
+	@for ver in 0.0.40 0.0.41 0.0.42 0.0.43; do \
+	docker run --rm \
+		--user $$(id -u):$$(id -g) \
+		-v $$(pwd):/srv \
+		openapitools/openapi-generator-cli:v5.3.0 \
+		generate \
+		-i /srv/openapi-schemas/$$ver.json \
+		-g go \
+		--skip-validate-spec \
+		-o /srv/internal/slurmapi \
+		--package-name slurmapi \
+		--git-user-id antvirf \
+		--git-repo-id stui \
+		--global-property models,modelDocs=false \
+	; done
 
 install:
 	go install
@@ -60,8 +82,8 @@ update-readme: build
 	@rm -f .help.tmp
 
 
-	@echo "Updating README.md with lines of code badge..."
-	@LOC=$$(rg 'package' -l | grep ".go" | xargs wc -l | grep total | tr -s ' ' |cut -d' ' -f2) && \
+	@echo "Updating README.md with lines of code badge (exclude generated code)..."
+	@LOC=$$(rg 'package' -l | grep ".go" | grep -v "slurmapi" | xargs wc -l | grep total | tr -s ' ' |cut -d' ' -f2) && \
 	sed -i "s/lines%20of%20code-[0-9]*/lines%20of%20code-$${LOC}/" README.md
 
 	@echo "Updating README.md with binary size badge..."
@@ -80,6 +102,9 @@ build-cluster:
 
 	cd ./build && \
 		stat slurm-* > /dev/null || tar -xaf slurm*tar.bz2
+
+	# install deps to get slurmrestd to build
+	sudo apt install libhttp-parser-dev libjson-c-dev
 
 	cd ./build/slurm-* && \
 		# make distclean && \
