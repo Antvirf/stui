@@ -3,7 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	"time"
+	"strings"
 
 	"github.com/antvirf/stui/internal/domain"
 	"github.com/antvirf/stui/internal/slurmapi"
@@ -25,7 +25,7 @@ func ParsePartitionsJSON(jsonData []byte) (domain.Partitions, error) {
 	return partitions, nil
 }
 
-// convertPartitionToDomain converts slurmapi.V0043PartitionInfo to domain.Partition
+// convertPartitionToDomain converts slurmapi.V0043PartitionInfo to domain.Partition  
 func convertPartitionToDomain(apiPart *slurmapi.V0043PartitionInfo) domain.Partition {
 	part := domain.Partition{}
 
@@ -37,20 +37,14 @@ func convertPartitionToDomain(apiPart *slurmapi.V0043PartitionInfo) domain.Parti
 		part.Cluster = *apiPart.Cluster
 	}
 
-	// State & flags
-	if apiPart.State != nil && len(*apiPart.State) > 0 {
-		part.State = (*apiPart.State)[0]
-	}
-	if apiPart.Flags != nil {
-		part.Flags = *apiPart.Flags
+	// State
+	if apiPart.Partition != nil && apiPart.Partition.State != nil && len(*apiPart.Partition.State) > 0 {
+		part.State = (*apiPart.Partition.State)[0]
 	}
 
-	// Node allocation
+	// Nodes  
 	if apiPart.Nodes != nil && apiPart.Nodes.Configured != nil {
 		part.Nodes = *apiPart.Nodes.Configured
-	}
-	if apiPart.NodeSets != nil {
-		part.NodeCount = len(*apiPart.NodeSets)
 	}
 	if apiPart.Nodes != nil && apiPart.Nodes.Total != nil {
 		part.TotalNodes = int(*apiPart.Nodes.Total)
@@ -59,42 +53,23 @@ func convertPartitionToDomain(apiPart *slurmapi.V0043PartitionInfo) domain.Parti
 		part.TotalCPUs = int(*apiPart.Cpus.Total)
 	}
 
-	// Time limits
-	if apiPart.Timeouts != nil {
-		if apiPart.Timeouts.DefaultTime != nil && apiPart.Timeouts.DefaultTime.Number != nil {
-			part.DefaultTime = time.Duration(*apiPart.Timeouts.DefaultTime.Number) * time.Minute
-		}
-		if apiPart.Timeouts.MaximumTime != nil && apiPart.Timeouts.MaximumTime.Number != nil {
-			part.MaxTime = time.Duration(*apiPart.Timeouts.MaximumTime.Number) * time.Minute
-		}
-	}
-
-	// Priority & scheduling
+	// Priority
 	if apiPart.Priority != nil && apiPart.Priority.JobFactor != nil {
 		part.Priority = int(*apiPart.Priority.JobFactor)
 	}
 	if apiPart.Priority != nil && apiPart.Priority.Tier != nil {
 		part.PriorityTier = int(*apiPart.Priority.Tier)
 	}
-	if apiPart.Oversubscribe != nil && len(*apiPart.Oversubscribe) > 0 {
-		part.OverSubscribe = (*apiPart.Oversubscribe)[0]
-	}
-	if apiPart.Preemption != nil {
-		if apiPart.Preemption.Type != nil && len(*apiPart.Preemption.Type) > 0 {
-			part.Preempt = (*apiPart.Preemption.Type)[0]
-		}
-		if apiPart.Preemption.GraceTime != nil {
-			part.GraceTime = int(*apiPart.Preemption.GraceTime)
-		}
+	
+	// Grace time
+	if apiPart.GraceTime != nil {
+		part.GraceTime = int(*apiPart.GraceTime)
 	}
 
-	// Resource limits
+	// Limits
 	if apiPart.Maximums != nil {
 		if apiPart.Maximums.CpusPerNode != nil && apiPart.Maximums.CpusPerNode.Number != nil {
 			part.MaxCPUsPerNode = int(*apiPart.Maximums.CpusPerNode.Number)
-		}
-		if apiPart.Maximums.MemoryPerNode != nil {
-			part.MaxMemPerNode = *apiPart.Maximums.MemoryPerNode
 		}
 		if apiPart.Maximums.MemoryPerCpu != nil {
 			part.MaxMemPerCPU = *apiPart.Maximums.MemoryPerCpu
@@ -103,50 +78,41 @@ func convertPartitionToDomain(apiPart *slurmapi.V0043PartitionInfo) domain.Parti
 			part.MaxNodes = int(*apiPart.Maximums.Nodes.Number)
 		}
 	}
-	if apiPart.Minimums != nil {
-		if apiPart.Minimums.Nodes != nil {
-			part.MinNodes = int(*apiPart.Minimums.Nodes)
-		}
-	}
-	if apiPart.Defaults != nil {
-		if apiPart.Defaults.CpusPerNode != nil && apiPart.Defaults.CpusPerNode.Number != nil {
-			part.DefaultCPUsPerNode = int(*apiPart.Defaults.CpusPerNode.Number)
-		}
-		if apiPart.Defaults.MemoryPerNode != nil {
-			part.DefaultMemPerNode = *apiPart.Defaults.MemoryPerNode
-		}
+	if apiPart.Minimums != nil && apiPart.Minimums.Nodes != nil {
+		part.MinNodes = int(*apiPart.Minimums.Nodes)
 	}
 
-	// Access control
+	// Accounts - these are comma-separated strings, not arrays
 	if apiPart.Accounts != nil {
-		if apiPart.Accounts.Allow != nil {
-			part.AllowAccounts = *apiPart.Accounts.Allow
+		if apiPart.Accounts.Allowed != nil && *apiPart.Accounts.Allowed != "" {
+			part.AllowAccounts = strings.Split(*apiPart.Accounts.Allowed, ",")
 		}
-		if apiPart.Accounts.Deny != nil {
-			part.DenyAccounts = *apiPart.Accounts.Deny
+		if apiPart.Accounts.Deny != nil && *apiPart.Accounts.Deny != "" {
+			part.DenyAccounts = strings.Split(*apiPart.Accounts.Deny, ",")
 		}
 	}
-	if apiPart.Groups != nil && apiPart.Groups.Allowed != nil {
-		part.AllowGroups = *apiPart.Groups.Allowed
+	
+	// Groups - also comma-separated string
+	if apiPart.Groups != nil && apiPart.Groups.Allowed != nil && *apiPart.Groups.Allowed != "" {
+		part.AllowGroups = strings.Split(*apiPart.Groups.Allowed, ",")
 	}
+
+	// QOS - same pattern
 	if apiPart.Qos != nil {
-		if apiPart.Qos.Allowed != nil {
-			part.AllowQOS = *apiPart.Qos.Allowed
+		if apiPart.Qos.Allowed != nil && *apiPart.Qos.Allowed != "" {
+			part.AllowQOS = strings.Split(*apiPart.Qos.Allowed, ",")
 		}
-		if apiPart.Qos.Denied != nil {
-			part.DenyQOS = *apiPart.Qos.Denied
+		if apiPart.Qos.Deny != nil && *apiPart.Qos.Deny != "" {
+			part.DenyQOS = strings.Split(*apiPart.Qos.Deny, ",")
 		}
 		if apiPart.Qos.Assigned != nil {
 			part.QOS = *apiPart.Qos.Assigned
 		}
 	}
 
-	// Misc
-	if apiPart.TresBillingWeights != nil {
-		part.Billing = *apiPart.TresBillingWeights
-	}
-	if apiPart.AllowedAllocatingNodes != nil {
-		part.Features = *apiPart.AllowedAllocatingNodes
+	// TRES billing
+	if apiPart.Tres != nil && apiPart.Tres.BillingWeights != nil {
+		part.Billing = *apiPart.Tres.BillingWeights
 	}
 
 	return part

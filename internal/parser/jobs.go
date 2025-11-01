@@ -93,8 +93,9 @@ func convertJobInfoToDomain(apiJob *slurmapi.V0043JobInfo) domain.Job {
 		t := time.Unix(int64(*apiJob.EligibleTime.Number), 0)
 		job.EligibleTime = &t
 	}
-	if apiJob.RunTime != nil && apiJob.RunTime.Number != nil {
-		job.RunTime = time.Duration(*apiJob.RunTime.Number) * time.Second
+	// RunTime is calculated, not a direct field
+	if job.StartTime != nil && job.EndTime != nil {
+		job.RunTime = job.EndTime.Sub(*job.StartTime)
 	}
 	if apiJob.TimeLimit != nil && apiJob.TimeLimit.Number != nil {
 		job.TimeLimit = time.Duration(*apiJob.TimeLimit.Number) * time.Minute
@@ -108,32 +109,32 @@ func convertJobInfoToDomain(apiJob *slurmapi.V0043JobInfo) domain.Job {
 	if apiJob.Nodes != nil {
 		job.Nodes = *apiJob.Nodes
 	}
-	if apiJob.NodeCount != nil {
-		job.NodeCount = int(*apiJob.NodeCount)
+	if apiJob.NodeCount != nil && apiJob.NodeCount.Number != nil {
+		job.NodeCount = int(*apiJob.NodeCount.Number)
 	}
 	if apiJob.Cpus != nil && apiJob.Cpus.Number != nil {
 		job.CPUs = int(*apiJob.Cpus.Number)
 	}
-	if apiJob.Memory != nil {
-		job.Memory = *apiJob.Memory
+	if apiJob.MemoryPerNode != nil && apiJob.MemoryPerNode.Number != nil {
+		job.Memory = strconv.FormatInt(*apiJob.MemoryPerNode.Number, 10)
+	} else if apiJob.MemoryPerCpu != nil && apiJob.MemoryPerCpu.Number != nil {
+		job.Memory = strconv.FormatInt(*apiJob.MemoryPerCpu.Number, 10)
 	}
 	if apiJob.TresAllocStr != nil {
 		job.TRES = *apiJob.TresAllocStr
 	}
-	if apiJob.UsedGres != nil {
-		job.UsedGRES = *apiJob.UsedGres
+	if apiJob.GresDetail != nil && len(*apiJob.GresDetail) > 0 {
+		job.UsedGRES = strings.Join(*apiJob.GresDetail, ",")
 	}
 
 	// Execution details
-	if apiJob.WorkDir != nil {
-		job.WorkingDir = *apiJob.WorkDir
+	if apiJob.CurrentWorkingDirectory != nil {
+		job.WorkingDir = *apiJob.CurrentWorkingDirectory
 	}
 	if apiJob.Command != nil {
 		job.Command = *apiJob.Command
 	}
-	if apiJob.BatchScript != nil {
-		job.Script = *apiJob.BatchScript
-	}
+	// BatchScript is not available in JobInfo, would need separate call
 	if apiJob.StandardOutput != nil {
 		job.StdOut = *apiJob.StandardOutput
 	}
@@ -163,8 +164,8 @@ func convertJobInfoToDomain(apiJob *slurmapi.V0043JobInfo) domain.Job {
 	if apiJob.Cluster != nil {
 		job.Cluster = *apiJob.Cluster
 	}
-	if apiJob.Reservation != nil {
-		job.Reservation = *apiJob.Reservation
+	if apiJob.ResvName != nil {
+		job.Reservation = *apiJob.ResvName
 	}
 	if apiJob.FailedNode != nil {
 		job.FailedNode = *apiJob.FailedNode
