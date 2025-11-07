@@ -50,7 +50,7 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	return parseSacctOutputToTableData(out, columns, computeColumnWidths)
 }
 func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, computeColumnWidths bool) (*TableData, error) {
-	rawRows := parseSacctOutput(output)
+	rawRows := parseSacctOutput(output, SACCT_DELIMITER)
 	if len(rawRows) == 0 {
 		return EmptyTableData(), nil
 	}

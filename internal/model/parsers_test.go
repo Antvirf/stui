@@ -77,6 +77,62 @@ func TestSafeGetFromMap(t *testing.T) {
 	assert.Empty(t, safeGetFromMap(testMap, "missing"))
 }
 
+func TestParseSacctOutput_WithSacctDelimiter(t *testing.T) {
+	input := "JobID|||User|||State|||Partition\n123|||john|||RUNNING|||general\n456|||jane|||COMPLETED|||compute"
+	entries := parseSacctOutput(input, SACCT_DELIMITER)
+
+	require.Len(t, entries, 2, "should parse 2 entries")
+
+	assert.Equal(t, "123", entries[0]["JobID"])
+	assert.Equal(t, "john", entries[0]["User"])
+	assert.Equal(t, "RUNNING", entries[0]["State"])
+	assert.Equal(t, "general", entries[0]["Partition"])
+
+	assert.Equal(t, "456", entries[1]["JobID"])
+	assert.Equal(t, "jane", entries[1]["User"])
+	assert.Equal(t, "COMPLETED", entries[1]["State"])
+	assert.Equal(t, "compute", entries[1]["Partition"])
+}
+
+func TestParseSacctOutput_WithSacctmgrDelimiter(t *testing.T) {
+	input := "Account|Descr|Org\nroot|default root account|root\nstudent|student|local student\ntest|testumgebung|local staff"
+	entries := parseSacctOutput(input, SACCTMGR_DELIMITER)
+
+	require.Len(t, entries, 3, "should parse 3 entries")
+
+	assert.Equal(t, "root", entries[0]["Account"])
+	assert.Equal(t, "default root account", entries[0]["Descr"])
+	assert.Equal(t, "root", entries[0]["Org"])
+
+	assert.Equal(t, "student", entries[1]["Account"])
+	assert.Equal(t, "student", entries[1]["Descr"])
+	assert.Equal(t, "local student", entries[1]["Org"])
+
+	assert.Equal(t, "test", entries[2]["Account"])
+	assert.Equal(t, "testumgebung", entries[2]["Descr"])
+	assert.Equal(t, "local staff", entries[2]["Org"])
+}
+
+func TestParseSacctOutput_EmptyInput(t *testing.T) {
+	entries := parseSacctOutput("", SACCT_DELIMITER)
+	assert.Empty(t, entries, "empty input should return empty entries")
+}
+
+func TestParseSacctOutput_OnlyHeader(t *testing.T) {
+	entries := parseSacctOutput("Header1|||Header2|||Header3", SACCT_DELIMITER)
+	assert.Empty(t, entries, "only header should return empty entries")
+}
+
+func TestParseSacctOutput_MismatchedFieldCount(t *testing.T) {
+	input := "Col1|Col2|Col3\nvalue1|value2|value3\nvalue4|value5"
+	entries := parseSacctOutput(input, SACCTMGR_DELIMITER)
+
+	require.Len(t, entries, 1, "should skip rows with mismatched field count")
+	assert.Equal(t, "value1", entries[0]["Col1"])
+	assert.Equal(t, "value2", entries[0]["Col2"])
+	assert.Equal(t, "value3", entries[0]["Col3"])
+}
+
 // readTestData helper reads test data from testdata directory
 func readTestData(t *testing.T, filename string) string {
 	data, err := os.ReadFile(filepath.Join("testdata", filename))
