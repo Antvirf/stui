@@ -77,7 +77,10 @@ func TestSafeGetFromMap(t *testing.T) {
 	assert.Empty(t, safeGetFromMap(testMap, "missing"))
 }
 
-func TestParseSacctOutput_WithSacctDelimiter(t *testing.T) {
+// TestParseSacctOutput_WithSacctDelimiter_AIGenerated verifies parseSacctOutput correctly handles
+// the triple-pipe delimiter used by sacct commands.
+// AI-generated test for delimiter parsing functionality.
+func TestParseSacctOutput_WithSacctDelimiter_AIGenerated(t *testing.T) {
 	input := "JobID|||User|||State|||Partition\n123|||john|||RUNNING|||general\n456|||jane|||COMPLETED|||compute"
 	entries := parseSacctOutput(input, SACCT_DELIMITER)
 
@@ -94,7 +97,10 @@ func TestParseSacctOutput_WithSacctDelimiter(t *testing.T) {
 	assert.Equal(t, "compute", entries[1]["Partition"])
 }
 
-func TestParseSacctOutput_WithSacctmgrDelimiter(t *testing.T) {
+// TestParseSacctOutput_WithSacctmgrDelimiter_AIGenerated verifies parseSacctOutput correctly handles
+// the single-pipe delimiter used by sacctmgr commands.
+// AI-generated test for delimiter parsing functionality.
+func TestParseSacctOutput_WithSacctmgrDelimiter_AIGenerated(t *testing.T) {
 	input := "Account|Descr|Org\nroot|default root account|root\nstudent|student|local student\ntest|testumgebung|local staff"
 	entries := parseSacctOutput(input, SACCTMGR_DELIMITER)
 
@@ -113,17 +119,24 @@ func TestParseSacctOutput_WithSacctmgrDelimiter(t *testing.T) {
 	assert.Equal(t, "local staff", entries[2]["Org"])
 }
 
-func TestParseSacctOutput_EmptyInput(t *testing.T) {
+// TestParseSacctOutput_EmptyInput_AIGenerated verifies parseSacctOutput handles empty input correctly.
+// AI-generated test for edge case handling.
+func TestParseSacctOutput_EmptyInput_AIGenerated(t *testing.T) {
 	entries := parseSacctOutput("", SACCT_DELIMITER)
 	assert.Empty(t, entries, "empty input should return empty entries")
 }
 
-func TestParseSacctOutput_OnlyHeader(t *testing.T) {
+// TestParseSacctOutput_OnlyHeader_AIGenerated verifies parseSacctOutput handles header-only input correctly.
+// AI-generated test for edge case handling.
+func TestParseSacctOutput_OnlyHeader_AIGenerated(t *testing.T) {
 	entries := parseSacctOutput("Header1|||Header2|||Header3", SACCT_DELIMITER)
 	assert.Empty(t, entries, "only header should return empty entries")
 }
 
-func TestParseSacctOutput_MismatchedFieldCount(t *testing.T) {
+// TestParseSacctOutput_MismatchedFieldCount_AIGenerated verifies parseSacctOutput correctly skips
+// rows with mismatched field counts.
+// AI-generated test for error handling.
+func TestParseSacctOutput_MismatchedFieldCount_AIGenerated(t *testing.T) {
 	input := "Col1|Col2|Col3\nvalue1|value2|value3\nvalue4|value5"
 	entries := parseSacctOutput(input, SACCTMGR_DELIMITER)
 
