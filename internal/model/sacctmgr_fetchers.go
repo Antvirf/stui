@@ -60,7 +60,7 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 	if config.SacctMgrCurrentEntity == SACCT_RUNAWAYJOBS_ENTITY {
 		rawRows = parseSacctMgrRunawayJobsOutput(out)
 	} else {
-		rawRows = parseSacctOutput(out)
+		rawRows = parseSacctOutput(out, SACCTMGR_DELIMITER)
 	}
 
 	var rows [][]string

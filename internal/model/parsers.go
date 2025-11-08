@@ -163,14 +163,14 @@ func parseScontrolJobsOutput(output string) (jobs []map[string]string) {
 }
 
 // parseSacctOutput parses the sacct/sacctmgr output into a slice of maps
-func parseSacctOutput(output string) (entries []map[string]string) {
+func parseSacctOutput(output string, delimiter string) (entries []map[string]string) {
 	lines := strings.Split(output, "\n")
 	if len(lines) < 2 {
 		return entries // Return empty if there are no rows or only a header
 	}
 
 	// Parse the header
-	header := strings.Split(lines[0], SACCT_DELIMITER)
+	header := strings.Split(lines[0], delimiter)
 
 	// Parse the data rows
 	for _, line := range lines[1:] {
@@ -180,7 +180,7 @@ func parseSacctOutput(output string) (entries []map[string]string) {
 		}
 
 		// Split the line into fields
-		fields := strings.Split(line, SACCT_DELIMITER)
+		fields := strings.Split(line, delimiter)
 		if len(fields) != len(header) {
 			continue // Skip rows that don't match the header length, if we get some random garbage
 		}

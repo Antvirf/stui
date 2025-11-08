@@ -58,7 +58,8 @@ var (
 
 	SACCT_RUNAWAYJOBS_ENTITY = "RunAwayJobs" // Standardise across codebase to avoid typos
 
-	SACCT_DELIMITER = "|||"
+	SACCT_DELIMITER    = "|||"
+	SACCTMGR_DELIMITER = "|" // sacctmgr does not support custom delimiters, uses single pipe
 
 	SACCTMGR_TABLE_ENTITIES = []string{
 		"Account",
