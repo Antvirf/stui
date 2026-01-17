@@ -2,6 +2,8 @@ package model
 
 import (
 	"errors"
+	"regexp"
+	"slices"
 	"strings"
 	"sync"
 
@@ -104,7 +106,10 @@ rowLoop:
 	for _, row := range data.Rows {
 		for filterKey, filterValue := range filters {
 			if filterValue != config.ALL_CATEGORIES_OPTION {
-				if !strings.Contains(row[filterKey], filterValue) {
+
+				// The filters we haves are either by state (+-separated) or by partition (comma-separated). We split by both.
+				valuesInRowField := regexp.MustCompile("[,+]").Split(row[filterKey], -1)
+				if !slices.Contains(valuesInRowField, filterValue) {
 					continue rowLoop
 				}
 			}

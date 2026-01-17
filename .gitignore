@@ -30,3 +30,5 @@ stui
 
 # Added by goreleaser init:
 dist/
+
+TODO.md

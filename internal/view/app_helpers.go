@@ -263,7 +263,7 @@ func (a *App) ShowSacctJobDetails(jobID string) {
 	table.SetBorderPadding(0, 0, 1, 1)
 
 	for i, line := range strings.Split(details, "\n") {
-		for j, cell := range strings.Split(line, "|") {
+		for j, cell := range strings.Split(line, model.SACCT_DELIMITER) {
 			tc := tview.NewTableCell(cell)
 			if i == 0 {
 				tc.SetAlign(2) // Align the title column to the right

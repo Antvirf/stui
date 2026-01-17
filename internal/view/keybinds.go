@@ -389,13 +389,8 @@ func hackyUpdateTitleWithSelectionCount(title string, selection *map[string]bool
 	return fmt.Sprintf("%s| %s selected", title, FormatNumberWithCommas(selectionCount))
 }
 
-func getSelectionCount(selection *map[string]bool) (count int) {
-	for key, _ := range *selection {
-		if (*selection)[key] {
-			count += 1
-		}
-	}
-	return
+func getSelectionCount(selection *map[string]bool) int {
+	return len(*selection)
 }
 
 func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bool, dataLength int, additionalSelectOnly bool) {
@@ -419,9 +414,10 @@ func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bo
 
 	// Cells can be padded for width/alignment reasons, hence we have to trim.
 	entryName := strings.TrimSpace(view.GetCell(rowIndex, 0).Text)
+	_, isSelected := (*selection)[entryName]
 
-	if (*selection)[entryName] && !additionalSelectOnly {
-		(*selection)[entryName] = false
+	if isSelected && !additionalSelectOnly {
+		delete(*selection, entryName) // Clear selection
 
 		// Check whether we should give this row a special color based on its state field
 		stateText := view.GetCell(rowIndex, config.NodeViewColumnsStateIndex).Text
@@ -438,7 +434,8 @@ func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bo
 			}
 		}
 	} else {
-		(*selection)[entryName] = true
+		(*selection)[entryName] = false // This boolean is NEVER used. Only presence in this map matters.
+
 		for col := 0; col < view.GetColumnCount(); col++ {
 			view.GetCell(rowIndex, col).
 				SetBackgroundColor(selectionColor).

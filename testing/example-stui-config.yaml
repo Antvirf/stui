@@ -1,3 +1,8 @@
+argumentOptions:
+  refresh-interval: 60s
+  request-timeout: 10s
+  log-level: 4 # debug logs
+
 plugins:
   - name: Sstat a job
     # Available pages: `nodes`, `jobs`, `sacct`, `sacctmgr`

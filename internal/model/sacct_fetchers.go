@@ -16,8 +16,9 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	startTime := time.Now()
 	FetchCounter.increment()
 
-	fullCommand := fmt.Sprintf("%s --allusers --allocations --parsable2 --starttime=now-%d --format %s",
+	fullCommand := fmt.Sprintf("%s --allusers --allocations --parsable2 --delimiter %s --starttime=now-%d --format %s",
 		path.Join(config.SlurmBinariesPath, "sacct"),
+		SACCT_DELIMITER,
 		max(
 			int(config.RefreshInterval.Seconds()),
 			int(since.Seconds()),
@@ -49,7 +50,7 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	return parseSacctOutputToTableData(out, columns, computeColumnWidths)
 }
 func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, computeColumnWidths bool) (*TableData, error) {
-	rawRows := parseSacctOutput(output)
+	rawRows := parseSacctOutput(output, SACCT_DELIMITER)
 	if len(rawRows) == 0 {
 		return EmptyTableData(), nil
 	}
@@ -103,10 +104,11 @@ func GetSacctJobDetailsWithTimeout(jobID string, timeout time.Duration) (string,
 	columnStrings = strings.ReplaceAll(columnStrings, "//", ",")
 
 	fullCommand := fmt.Sprintf(
-		"%s -j %s --format %s --parsable",
+		"%s -j %s --format %s --parsable --delimiter %s",
 		path.Join(config.SlurmBinariesPath, "sacct"),
 		jobID,
 		columnStrings,
+		SACCT_DELIMITER,
 	)
 	cmd := execStringCommand(ctx, fullCommand)
 	out, err := cmd.Output()

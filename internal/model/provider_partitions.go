@@ -10,7 +10,9 @@ type PartitionsProvider struct {
 
 func NewPartitionsProvider() *PartitionsProvider {
 	p := PartitionsProvider{
-		BaseProvider: BaseProvider[*TableData]{},
+		BaseProvider: BaseProvider[*TableData]{
+			data: EmptyTableData(),
+		},
 	}
 	p.Fetch()
 	return &p

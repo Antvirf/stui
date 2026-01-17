@@ -76,13 +76,13 @@ update-readme: build
 build-cluster:
 	mkdir -p ./build && \
 		cd ./build && \
-		stat slurm.tar.bz2 > /dev/null || wget https://download.schedmd.com/slurm/slurm-24.11.3.tar.bz2 -O slurm.tar.bz2
+		stat slurm.tar.bz2 > /dev/null || wget https://download.schedmd.com/slurm/slurm-25.05.3.tar.bz2 -O slurm.tar.bz2
 
 	cd ./build && \
 		stat slurm-* > /dev/null || tar -xaf slurm*tar.bz2
 
 	cd ./build/slurm-* && \
-		make distclean && \
+		# make distclean && \
 		./configure \
 		--enable-debug \
 		--sysconfdir=/etc/slurm \
@@ -103,7 +103,7 @@ run-cluster:
 	sudo useradd slurm || true
 	sudo slurmdbd && echo "Launched Slurmdbd"
 	sudo slurmctld && echo "Launched Slurmctld"
-	sudo slurmd -N localhost && echo "Launched Slurmd"
+	@for i in $(shell seq 1 10); do echo "Lauching slurmd $$i..." ; sudo slurmd -N linux$$i; done
 	@sleep 5
 	@sdiag && echo "\n\nCluster up and running!"
 
@@ -112,6 +112,10 @@ setup-sacct:
 
 launch-jobs:
 	sudo bash testing/test-job-launcher.sh
+
+launch-job-array:
+	sudo bash testing/test-job-launcher-array.sh
+
 
 create-runaway-jobs: launch-jobs
 	@sleep 3

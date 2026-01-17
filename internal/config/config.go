@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/user"
+	"slices"
 	"time"
 )
 
@@ -13,7 +14,7 @@ var (
 	// All configuration options for `stui` are listed here with their defaults
 	SearchDebounceInterval time.Duration = 500 * time.Millisecond
 	RefreshInterval        time.Duration = 60 * time.Second
-	RequestTimeout         time.Duration = 5 * time.Second
+	RequestTimeout         time.Duration = 20 * time.Second
 	LoadSacctDataFrom      time.Duration = 30 * time.Minute
 	SlurmBinariesPath      string        = ""
 	SlurmConfLocation      string        = ""
@@ -22,7 +23,8 @@ var (
 	PartitionFilter        string        = ""
 	LogLevel               int           = 2
 	ShowAllColumns         bool          = false
-	ConfigDirPath          string        = DEFAULT_CONFIG_LOCATION
+	ConfigDirPaths         string        = DEFAULT_CONFIG_LOCATIONS
+	MouseDisabled          bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
 	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason"
@@ -46,8 +48,8 @@ var (
 	JobsViewColumnsStateIndex      int
 	SacctViewColumnsPartitionIndex int
 	SacctViewColumnsStateIndex     int
-	SacctTimeoutMultiplier         int64 = 5 // sacct can be slow, so we give it extra time
-	ConfigFile                     Config
+	SacctTimeoutMultiplier         int64  = 5 // sacct can be slow, so we give it extra time
+	ConfigFile                     Config = NewConfig()
 	AllSacctViewColumns            string // Used in sacct detail view
 	MaximumColumnWidth             int    = 30
 
@@ -58,7 +60,7 @@ var (
 )
 
 const (
-	STUI_VERSION       = "0.9.1"
+	STUI_VERSION       = "0.11.5"
 	KEYBOARD_SHORTCUTS = `GENERAL SHORTCUTS
 1        Switch to Nodes view (scontrol)
 2        Switch to Jobs view (scontrol)
@@ -110,9 +112,9 @@ e        Focus on Entity type selector, 'esc' to close
 	LOG_LEVEL_DEBUG = 3
 
 	// Misc
-	ALL_CATEGORIES_OPTION   = "(all)"
-	NO_SORT_OPTION          = "(no sort)"
-	DEFAULT_CONFIG_LOCATION = "/home/$USER/.config/stui.d/"
+	ALL_CATEGORIES_OPTION    = "(all)"
+	NO_SORT_OPTION           = "(no sort)"
+	DEFAULT_CONFIG_LOCATIONS = "/etc/stui.d/,/home/$USER/.config/stui.d/"
 )
 
 func Configure() {
@@ -125,38 +127,36 @@ func Configure() {
 	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, use '//' to combine column or '++' to extend columns to full width. 'JobId', 'Partitions' and 'JobState' are always shown.")
 	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, use '//' to combine columns or '++' to extend columns to full width. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
-	flag.StringVar(&ConfigDirPath, "config-dir", ConfigDirPath, "path to a directory with config files")
+	flag.StringVar(&ConfigDirPaths, "config-dirs", ConfigDirPaths, "comma-separated list of paths to directories with stui config files")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config")
 	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")
 	flag.StringVar(&CopiedLinesSeparator, "copied-lines-separator", CopiedLinesSeparator, "string to use when separating copied lines in clipboard")
 	flag.DurationVar(&LoadSacctDataFrom, CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM, LoadSacctDataFrom, "load sacct data starting from this long ago, specify as a duration, e.g. '1h', '2h'. This can be very slow on busy clusters, so use with caution. Set to 0 to not load any data from sacct.")
+	flag.BoolVar(&MouseDisabled, "disable-mouse", MouseDisabled, "disable mouse input")
 
 	// Config flags that have been deprecated from user config
 	// flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
-
-	// Load config file if it exists
-	if ConfigDirPath == DEFAULT_CONFIG_LOCATION {
-		user, err := user.Current()
-		if err != nil {
-			log.Fatalf("Could not determine current user: %v", err)
-		}
-		ConfigDirPath = fmt.Sprintf(
-			"%s/.config/stui.d/",
-			user.HomeDir,
-		)
-	}
-	if _, err := os.Stat(ConfigDirPath); err != nil {
-		// No need to print a message as configuration file is NOT mandatory.
-	} else {
-		ConfigFile = LoadConfigsFromDir(ConfigDirPath)
-	}
 
 	// One-shot-and-exit flags
 	versionFlag := flag.Bool("version", false, "print version information and exit")
 	keyboardShortcutsFlag := flag.Bool("show-keyboard-shortcuts", false, "print keyboard shortcuts and exit")
 
 	flag.Parse()
+
+	// Load config file if it exists
+	if ConfigDirPaths == DEFAULT_CONFIG_LOCATIONS {
+		user, err := user.Current()
+		if err != nil {
+			log.Fatalf("Could not determine current user: %v", err)
+		}
+		ConfigDirPaths = fmt.Sprintf(
+			"/etc/stui.d/,%s/.config/stui.d/",
+			user.HomeDir,
+		)
+	}
+	debugLogOutput := []string{}
+	ConfigFile, debugLogOutput = LoadConfigsFromDirs(ConfigDirPaths)
 
 	// Handle one shot commands
 	if *versionFlag {
@@ -166,6 +166,32 @@ func Configure() {
 	if *keyboardShortcutsFlag {
 		fmt.Print(KEYBOARD_SHORTCUTS)
 		os.Exit(0)
+	}
+
+	// BEFORE PROCESSING ANY OTHER ACTUAL ARGUMENTS - LOAD ARGUMENTS FROM CONFIG FILE
+	// Any flags set via command line args take precedence over config.
+	// First, we construct a list of flags that were provided.
+	flagsProvidedByUser := []string{}
+	flag.Visit(func(f *flag.Flag) { flagsProvidedByUser = append(flagsProvidedByUser, f.Name) })
+
+	// And then, we check *all* flags, setting their value from the config file if
+	// they had not been set by the user.
+	flag.VisitAll(func(f *flag.Flag) {
+		value, valueExistsInConfigFile := ConfigFile.ArgumentOptions[f.Name]
+		if valueExistsInConfigFile && !slices.Contains(flagsProvidedByUser, f.Name) {
+			err := f.Value.Set(value) // Set to the value in config
+			if err != nil {
+				log.Fatalf("%v: invalid value '%s' for parameter '%s' specified in config file", err, value, f.Name)
+			}
+		}
+	})
+
+	// At this point, we know all the flags + config options.
+	// Now we we can print debug logs of config file parsing, if log level is high enough.
+	if LogLevel >= LOG_LEVEL_DEBUG {
+		for _, logline := range debugLogOutput {
+			log.Println(fmt.Sprintf("[DEBUG] config file: %s", logline))
+		}
 	}
 
 	// If slurm.conf location was given, ensure file exists and configure env var if appropriate

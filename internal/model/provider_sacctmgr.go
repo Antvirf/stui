@@ -13,7 +13,9 @@ type SacctMgrProvider struct {
 
 func NewSacctMgrProvider() *SacctMgrProvider {
 	p := SacctMgrProvider{
-		BaseProvider: BaseProvider[*TableData]{},
+		BaseProvider: BaseProvider[*TableData]{
+			data: EmptyTableData(),
+		},
 	}
 	p.Fetch()
 	return &p

@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4377-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-4444-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -55,17 +55,19 @@ sudo mv ~/go/bin/stui /usr/local/bin
 
 1. Ensure your Slurm binaries are working and you can talk to your cluster, e.g. `sdiag` shows a valid output.
 
-2. Run `stui`. Use the `-help` flag to view arguments for additional configuration.
+2. Run `stui`. Use the `-help` flag to view arguments for additional configuration. Any configuration value (with the exception of `-config-dirs`) can be set using a configuration file, see step #4 for details. Command line arguments take precedence over all configuration files.
 
     <!-- REPLACE_START -->
     ```txt
     Usage of ./stui:
-      -config-dir string
-          path to a directory with config files (default "/home/$USER/.config/stui.d/")
+      -config-dirs string
+          comma-separated list of paths to directories with stui config files (default "/etc/stui.d/,/home/$USER/.config/stui.d/")
       -copied-lines-separator string
           string to use when separating copied lines in clipboard (default "\n")
       -copy-first-column-only
           if true, only copy the first column of the table to clipboard when copying (default true)
+      -disable-mouse
+          disable mouse input
       -job-columns-config string
           comma-separated list of scontrol fields to show in job view, use '//' to combine column or '++' to extend columns to full width. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName++,Comment,RunTime,NodeList,QOS,NumCPUs,Mem")
       -load-sacct-data-from duration
@@ -79,7 +81,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -refresh-interval duration
           interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
       -request-timeout duration
-          timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 5s)
+          timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m' (default 20s)
       -sacct-columns-config string
           comma-separated list of sacct fields to show in job view, use '//' to combine columns or '++' to extend columns to full width. 'JobIDRaw', 'Partitions' and 'State' are always shown. (default "QOS,Account,User,JobName++,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES++,Comment++,SubmitLine++")
       -show-all-columns
@@ -133,15 +135,22 @@ sudo mv ~/go/bin/stui /usr/local/bin
     ```
     <!-- REPLACE_SHORTCUTS_END -->
 
-4. Configure custom plugins/shortcuts - configure `-config-dir` argument or create a `.yaml`/`.yml` file in the default location `/home/$USER/.config/stui.d./`. Files are processed in alphabetical order. Please note that plugin configs are **concatenated**, not merged.
+4. Configuring `stui` using a config file - pass in `-config-dirs` argument or create a `.yaml`/`.yml` files in the default locations of `/etc/stui.d/` or `/home/$USER/.config/stui.d./`. Directories are processed in the given order. Files within each directory are processed in alphabetical order. Later files take precedence. Please note that plugin configs are **concatenated**, not merged.
 
-    - Full list of available keybinds can be found [here](https://github.com/gdamore/tcell/blob/781586687ddb57c9d44727dc9320340c4d049b11/key.go#L83-L202).
-    - If several keybinds match, first plugin defined for that page takes priority.
-    - Plugins are processed after existing keybinds, and cannot override the defaults.
-    - Any column in a given table view is available for use, following standard [Go template](https://pkg.go.dev/text/template) syntax.
+    - Any command line arguments can be configured in the file, under the `argumentOptions` key. See example below.
+    - For plugins:
+      - Full list of available keybinds can be found [here](https://github.com/gdamore/tcell/blob/781586687ddb57c9d44727dc9320340c4d049b11/key.go#L83-L202).
+      - If several keybinds match, first plugin defined for that page takes priority.
+      - Plugins are processed after existing keybinds, and cannot override the defaults.
+      - Any column in a given table view is available for use, following standard [Go template](https://pkg.go.dev/text/template) syntax.
 
     <!-- REPLACE_CONFIG_EXAMPLE_START -->
     ```yaml
+    argumentOptions:
+      refresh-interval: 60s
+      request-timeout: 10s
+      log-level: 4 # debug logs
+    
     plugins:
       - name: Sstat a job
         # Available pages: `nodes`, `jobs`, `sacct`, `sacctmgr`
