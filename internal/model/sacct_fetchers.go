@@ -97,7 +97,7 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, 
 					values = append(values, safeGetFromMap(rawRow, component))
 				}
 				rawValue := strings.Join(values, " / ")
-				row[j] = NewStringValue(rawValue)
+				row[j] = parseTypedValue(rawValue, TypeString)
 
 			} else {
 				// Normal single column - use type lookup

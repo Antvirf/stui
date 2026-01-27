@@ -96,6 +96,9 @@ type StringValue struct {
 }
 
 // NewStringValue creates a new StringValue
+// Note: Null indicators like "N/A" and "(null)" are stored as-is internally,
+// but Display() always normalizes them to "N/A" for consistent user-facing output.
+// This preserves the original input while providing UI consistency.
 func NewStringValue(s string) *StringValue {
 	// For strings, we generally don't treat empty as null
 	// But we do treat explicit null indicators as null

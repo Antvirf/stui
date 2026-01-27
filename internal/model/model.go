@@ -50,7 +50,9 @@ func (t *TableData) DeepCopy() *TableData {
 	rowsCopy := make([][]CellValue, len(t.Rows))
 	for i, row := range t.Rows {
 		rowCopy := make([]CellValue, len(row))
-		copy(rowCopy, row) // CellValue is interface, shallow copy is fine
+		// Shallow copy is safe because all CellValue implementations are immutable
+		// (no methods modify internal state after creation)
+		copy(rowCopy, row)
 		rowsCopy[i] = rowCopy
 	}
 
