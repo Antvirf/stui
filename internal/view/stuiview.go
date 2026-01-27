@@ -264,6 +264,7 @@ func (s *StuiView) Render() {
 			spaces := strings.Repeat(" ", 1)
 			s.Table.SetCell(1, col, tview.NewTableCell(spaces).
 				SetAlign(tview.AlignLeft).
+				SetSelectable(false).
 				SetMaxWidth(0).
 				SetExpansion(1))
 		}
