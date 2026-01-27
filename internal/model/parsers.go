@@ -1,9 +1,7 @@
 package model
 
 import (
-	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/antvirf/stui/internal/logger"
@@ -16,20 +14,6 @@ func safeGetFromMap(input map[string]string, key string) string {
 		return value
 	}
 	return ""
-}
-
-// formatMemoryValue converts raw memory values (in bytes) to human-readable format
-func formatMemoryValue(raw string) string {
-	// Try to parse as integer first, then as float, give up and return original value on failure
-	mem, err := strconv.ParseInt(raw, 10, 64)
-	if err != nil {
-		if memFloat, err := strconv.ParseFloat(raw, 64); err == nil {
-			mem = int64(memFloat)
-		} else {
-			return raw // Return original if not a number
-		}
-	}
-	return fmt.Sprintf("%.1fG", float64(mem)/1024)
 }
 
 // parseScontrolOutput parses the scontrol show output into a slice of maps
@@ -58,12 +42,6 @@ func parseScontrolOutput(output string) (entries []map[string]string) {
 					// Capture everything after "Reason=" since it's the last key
 					// and can contain arbitrary whitespaces and other characters.
 					value = strings.Join(pairs[i:], " ")[idx+1:]
-				}
-
-				// Format memory-related fields
-				if strings.HasSuffix(key, "Mem") ||
-					strings.HasSuffix(key, "Memory") {
-					value = formatMemoryValue(value)
 				}
 
 				currentEntry[key] = value
@@ -144,11 +122,6 @@ func parseScontrolJobsOutput(output string) (jobs []map[string]string) {
 					key := pair[:idx]
 					value := pair[idx+1:]
 
-					// Format memory-related fields
-					if strings.HasSuffix(key, "Mem") ||
-						strings.HasSuffix(key, "Memory") {
-						value = formatMemoryValue(value)
-					}
 					currentJob[key] = value
 				}
 			}
@@ -188,12 +161,7 @@ func parseSacctOutput(output string, delimiter string) (entries []map[string]str
 		// Create a map for the current entry
 		currentEntry := make(map[string]string)
 		for i, key := range header {
-			// Format memory-related fields from sacct output too
-			if strings.HasSuffix(key, "Mem") || key == "Memory" {
-				currentEntry[key] = formatMemoryValue(fields[i])
-			} else {
-				currentEntry[key] = fields[i]
-			}
+			currentEntry[key] = fields[i]
 		}
 
 		entries = append(entries, currentEntry)
