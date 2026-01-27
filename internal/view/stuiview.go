@@ -130,14 +130,14 @@ func (s *StuiView) Render() {
 	if s.searchEnabled && *s.searchPattern != "" {
 		filteredCount = 0 // Will be updated in the filtering loop below
 		searchFilterStartTime := time.Now()
-		filteredRows = [][]string{}
+		filteredRows = [][]model.CellValue{}
 
 		pattern, err := regexp.Compile("(?i)" + *s.searchPattern)
 		if err != nil {
 			s.errorNotificationFunction(fmt.Sprintf("[red]Invalid search pattern: %v[white]", err))
 		} else {
 			// Preallocate slice with reasonable capacity
-			filteredRows = make([][]string, 0, len(s.data.Rows)/2)
+			filteredRows = make([][]model.CellValue, 0, len(s.data.Rows)/2)
 
 			for i, row := range s.data.Rows {
 				// Check the row as a single string - this allows for regex across columns
@@ -152,13 +152,17 @@ func (s *StuiView) Render() {
 		searchFilterTime = time.Since(searchFilterStartTime).Milliseconds()
 	}
 
-	// Sort rows if sort column is set
+	// Sort rows if sort column is set - using typed comparison
 	if s.sortColumn >= 0 && len(filteredRows) > 0 {
 		sort.Slice(filteredRows, func(i, j int) bool {
+			valI := filteredRows[i][s.sortColumn]
+			valJ := filteredRows[j][s.sortColumn]
+
+			comparison := valI.Compare(valJ)
 			if s.sortDirection > 0 {
-				return filteredRows[i][s.sortColumn] < filteredRows[j][s.sortColumn]
+				return comparison < 0 // Ascending
 			}
-			return filteredRows[i][s.sortColumn] > filteredRows[j][s.sortColumn]
+			return comparison > 0 // Descending
 		})
 	}
 
@@ -206,23 +210,23 @@ func (s *StuiView) Render() {
 
 		// Check whether we should give this row a special color based on its state field
 		if len(rowData) > config.NodeViewColumnsStateIndex {
-			colorizedColor, shouldColorizeRow = GetStateColorMapping(rowData[config.NodeViewColumnsStateIndex])
+			colorizedColor, shouldColorizeRow = GetStateColorMapping(rowData[config.NodeViewColumnsStateIndex].Display())
 		} else {
 			colorizedColor, shouldColorizeRow = generalBackgroundColor, false
 		}
 
 		for col, cell := range rowData {
-			//logger.Debugf(fmt.Sprintf("'%-*s'", (*s.data.Headers)[col].Width, cell))
 			// Op 1: Text wrapping
 			colObject := (*s.data.Headers)[col]
+			cellText := cell.Display()
 			// We need to *pad* the text here, as tview does not support a 'minimum width' parameter for tables.
 			// That is why we need to then trim the spaces later during selecting/deselecting rows.
-			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colObject.Width, cell)).
+			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colObject.Width, cellText)).
 				SetAlign(tview.AlignLeft).
 				SetExpansion(1)
 
 			cellView.SetClickedFunc(func() bool {
-				s.cellClickFunction(cell)
+				s.cellClickFunction(cellText)
 				return true
 			})
 
@@ -233,7 +237,7 @@ func (s *StuiView) Render() {
 			}
 
 			// Highlight selected rows, or set color based on status
-			_, isSelected := s.Selection[rowData[0]] // Check if it's IN the map, not the actual value.
+			_, isSelected := s.Selection[rowData[0].Display()] // Check if it's IN the map, not the actual value.
 
 			if isSelected {
 				cellView.SetBackgroundColor(selectionColor)
@@ -260,6 +264,7 @@ func (s *StuiView) Render() {
 			spaces := strings.Repeat(" ", 1)
 			s.Table.SetCell(1, col, tview.NewTableCell(spaces).
 				SetAlign(tview.AlignLeft).
+				SetSelectable(false).
 				SetMaxWidth(0).
 				SetExpansion(1))
 		}

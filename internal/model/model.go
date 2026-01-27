@@ -11,24 +11,29 @@ import (
 )
 
 // TableData represents the data returned by the model package, ready for display.
+// Rows contain typed CellValue instances that maintain column-level type consistency.
 type TableData struct {
 	Headers             *[]config.ColumnConfig
-	Rows                [][]string // List of lists
-	RowsAsSingleStrings []string   // List of strings - used for searching
+	Rows                [][]CellValue // List of typed cell values
+	RowsAsSingleStrings []string      // List of strings - used for searching
 }
 
 func EmptyTableData() *TableData {
 	return &TableData{
 		Headers:             &[]config.ColumnConfig{},
-		Rows:                [][]string{},
+		Rows:                [][]CellValue{},
 		RowsAsSingleStrings: []string{},
 	}
 }
 
-func convertRowsToRowsAsSingleStrings(rows [][]string) []string {
+func convertRowsToRowsAsSingleStrings(rows [][]CellValue) []string {
 	rowsAsStrings := []string{}
 	for _, row := range rows {
-		rowsAsStrings = append(rowsAsStrings, strings.Join(row, ""))
+		cells := make([]string, len(row))
+		for i, cell := range row {
+			cells[i] = cell.Display()
+		}
+		rowsAsStrings = append(rowsAsStrings, strings.Join(cells, ""))
 	}
 	return rowsAsStrings
 }
@@ -42,9 +47,11 @@ func (t *TableData) DeepCopy() *TableData {
 		copiedHeaders = &headersCopy
 	}
 
-	rowsCopy := make([][]string, len(t.Rows))
+	rowsCopy := make([][]CellValue, len(t.Rows))
 	for i, row := range t.Rows {
-		rowCopy := make([]string, len(row))
+		rowCopy := make([]CellValue, len(row))
+		// Shallow copy is safe because all CellValue implementations are immutable
+		// (no methods modify internal state after creation)
 		copy(rowCopy, row)
 		rowsCopy[i] = rowCopy
 	}
@@ -101,14 +108,15 @@ func init() {
 func (t *TableData) ApplyFilters(filters map[int]string) *TableData {
 	data := t.DeepCopy()
 
-	var rows [][]string
+	var rows [][]CellValue
 rowLoop:
 	for _, row := range data.Rows {
 		for filterKey, filterValue := range filters {
 			if filterValue != config.ALL_CATEGORIES_OPTION {
 
-				// The filters we haves are either by state (+-separated) or by partition (comma-separated). We split by both.
-				valuesInRowField := regexp.MustCompile("[,+]").Split(row[filterKey], -1)
+				// The filters we have are either by state (+-separated) or by partition (comma-separated). We split by both.
+				// Use Display() to get string representation for filtering
+				valuesInRowField := regexp.MustCompile("[,+]").Split(row[filterKey].Display(), -1)
 				if !slices.Contains(valuesInRowField, filterValue) {
 					continue rowLoop
 				}
@@ -124,13 +132,14 @@ rowLoop:
 	}
 }
 
-func (td *TableData) rowToMap(row []string) map[string]string {
+func (td *TableData) rowToMap(row []CellValue) map[string]string {
 	data := make(map[string]string)
 	for i, header := range *td.Headers {
 		if i < len(row) {
 			// Convert header name to Go-template-friendly format
 			key := strings.ReplaceAll(header.RawName, " ", "_")
-			data[key] = row[i]
+			// Use Display() for template compatibility
+			data[key] = row[i].Display()
 		}
 	}
 	return data
@@ -138,7 +147,7 @@ func (td *TableData) rowToMap(row []string) map[string]string {
 
 func (td *TableData) GetRowAsMapById(idString string) (map[string]string, error) {
 	for _, row := range td.Rows {
-		if len(row) > 0 && row[0] == idString {
+		if len(row) > 0 && row[0].Display() == idString {
 			return td.rowToMap(row), nil
 		}
 	}

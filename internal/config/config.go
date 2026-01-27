@@ -27,9 +27,9 @@ var (
 	MouseDisabled          bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
-	rawNodeViewColumns  string = "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason"
+	rawNodeViewColumns  string = "CPULoad%%CPUAlloc,CPUAlloc%%CPUTot,AllocMem%%RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason"
 	rawJobViewColumns   string = "UserId,JobName++,Comment,RunTime,NodeList,QOS,NumCPUs,Mem"
-	rawSacctViewColumns string = "QOS,Account,User,JobName++,NodeList,ReqCPUS//AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES++,Comment++,SubmitLine++"
+	rawSacctViewColumns string = "QOS,Account,User,JobName++,NodeList,ReqCPUS%%AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES++,Comment++,SubmitLine++"
 
 	NodeViewColumns  *[]ColumnConfig
 	JobViewColumns   *[]ColumnConfig
@@ -123,9 +123,9 @@ func Configure() {
 	flag.DurationVar(&RequestTimeout, "request-timeout", RequestTimeout, "timeout setting for fetching data, specify as a duration e.g. '300ms', '1s', '2m'")
 	flag.StringVar(&SlurmBinariesPath, "slurm-binaries-path", SlurmBinariesPath, "path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH")
 	flag.StringVar(&SlurmConfLocation, "slurm-conf-location", SlurmConfLocation, "path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set")
-	flag.StringVar(&rawNodeViewColumns, "node-columns-config", rawNodeViewColumns, "comma-separated list of scontrol fields to show in node view, use '//' to combine column or '++' to extend columns to full width. 'NodeName', 'Partition' and 'State' are always shown.")
-	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, use '//' to combine column or '++' to extend columns to full width. 'JobId', 'Partitions' and 'JobState' are always shown.")
-	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, use '//' to combine columns or '++' to extend columns to full width. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
+	flag.StringVar(&rawNodeViewColumns, "node-columns-config", rawNodeViewColumns, "comma-separated list of scontrol fields to show in node view, use '//' to combine columns, '%%' for ratio/percentage columns, or '++' to extend columns to full width. 'NodeName', 'Partition' and 'State' are always shown.")
+	flag.StringVar(&rawJobViewColumns, "job-columns-config", rawJobViewColumns, "comma-separated list of scontrol fields to show in job view, use '//' to combine columns, '%%' for ratio/percentage columns, or '++' to extend columns to full width. 'JobId', 'Partitions' and 'JobState' are always shown.")
+	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, use '//' to combine columns, '%%' for ratio/percentage columns, or '++' to extend columns to full width. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
 	flag.StringVar(&ConfigDirPaths, "config-dirs", ConfigDirPaths, "comma-separated list of paths to directories with stui config files")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")

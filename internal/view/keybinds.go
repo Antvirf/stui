@@ -266,11 +266,14 @@ func tableViewInputCapture(
 					// Otherwise, try to use the current node under the cursor, if any
 					row, _ := view.GetSelection()
 					if row > 0 {
-						a.ShowStandardCommandModal(commandModalFilter, map[string]bool{
-							view.GetCell(row, 0).Text: true,
-						},
-							a.GetCurrentPageName(),
-						)
+						entryName := strings.TrimSpace(view.GetCell(row, 0).Text)
+						if entryName != "" {
+							a.ShowStandardCommandModal(commandModalFilter, map[string]bool{
+								entryName: true,
+							},
+								a.GetCurrentPageName(),
+							)
+						}
 					}
 				}
 			}
@@ -281,11 +284,16 @@ func tableViewInputCapture(
 				for entryName := range *selection {
 					// Find the node in our table data
 					for _, row := range data.Rows {
-						if row[0] == entryName {
+						if row[0].Display() == entryName {
 							if config.CopyFirstColumnOnly {
-								sb.WriteString(row[0])
+								sb.WriteString(row[0].Display())
 							} else {
-								sb.WriteString(strings.Join(row, " "))
+								// Convert row to strings
+								rowStrings := make([]string, len(row))
+								for i, cell := range row {
+									rowStrings[i] = cell.Display()
+								}
+								sb.WriteString(strings.Join(rowStrings, " "))
 							}
 							sb.WriteString(config.CopiedLinesSeparator)
 							break
@@ -324,8 +332,10 @@ func tableViewInputCapture(
 		case tcell.KeyEnter:
 			row, _ := view.GetSelection()
 			if row > 0 { // Skip header row
-				entryName := view.GetCell(row, 0).Text
-				detailsFunction(entryName)
+				entryName := strings.TrimSpace(view.GetCell(row, 0).Text)
+				if entryName != "" {
+					detailsFunction(entryName)
+				}
 				return nil
 			}
 		case tcell.KeyCtrlR:
@@ -346,11 +356,14 @@ func tableViewInputCapture(
 				} else {
 					// Otherwise, try to use the current node under the cursor, if any
 					if row > 0 {
-						a.ShowStandardCommandModal(SCANCEL_COMMAND, map[string]bool{
-							view.GetCell(row, 0).Text: true,
-						},
-							a.GetCurrentPageName(),
-						)
+						entryName := strings.TrimSpace(view.GetCell(row, 0).Text)
+						if entryName != "" {
+							a.ShowStandardCommandModal(SCANCEL_COMMAND, map[string]bool{
+								entryName: true,
+							},
+								a.GetCurrentPageName(),
+							)
+						}
 					}
 				}
 			}
@@ -366,8 +379,10 @@ func tableViewInputCapture(
 			// Get the current row and pass it in.
 			row, _ := view.GetSelection()
 			if row > 0 {
-				rowId := view.GetCell(row, 0).Text
-				a.ExecutePluginForShortcut(event.Key(), a.GetCurrentPageName(), rowId)
+				rowId := strings.TrimSpace(view.GetCell(row, 0).Text)
+				if rowId != "" {
+					a.ExecutePluginForShortcut(event.Key(), a.GetCurrentPageName(), rowId)
+				}
 			}
 		}
 		return event
@@ -408,12 +423,15 @@ func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bo
 		return
 	}
 
-	if dataLength <= 1 { // header row does not count
+	if dataLength <= 0 {
 		return
 	}
 
 	// Cells can be padded for width/alignment reasons, hence we have to trim.
 	entryName := strings.TrimSpace(view.GetCell(rowIndex, 0).Text)
+	if entryName == "" {
+		return
+	}
 	_, isSelected := (*selection)[entryName]
 
 	if isSelected && !additionalSelectOnly {
