@@ -43,6 +43,7 @@ const (
 	TypeDuration
 	TypeMemory
 	TypeTimestamp
+	TypeRatio
 )
 
 func (ct CellType) String() string {
@@ -59,6 +60,8 @@ func (ct CellType) String() string {
 		return "Memory"
 	case TypeTimestamp:
 		return "Timestamp"
+	case TypeRatio:
+		return "Ratio"
 	default:
 		return "Unknown"
 	}
@@ -628,6 +631,124 @@ func (v *TimestampValue) IsNull() bool {
 	return v.isNull
 }
 
+// RatioValue represents a computed ratio between two numeric values
+// Display shows: "numerator / denominator (percentage%)"
+// Sorts by: the ratio value (0.0 to 1.0+)
+type RatioValue struct {
+	numerator   CellValue // The first value (e.g., AllocMem)
+	denominator CellValue // The second value (e.g., RealMemory)
+	ratio       float64   // Computed ratio (numerator/denominator)
+	isNull      bool      // True if either value is null or denominator is zero
+}
+
+// NewRatioValue creates a new RatioValue from two numeric values
+func NewRatioValue(numerator, denominator CellValue) *RatioValue {
+	// Check if either is null
+	if numerator.IsNull() || denominator.IsNull() {
+		return &RatioValue{
+			numerator:   numerator,
+			denominator: denominator,
+			ratio:       0,
+			isNull:      true,
+		}
+	}
+
+	// Extract raw numeric values
+	numRaw := numerator.Raw()
+	denRaw := denominator.Raw()
+
+	// Convert to float64 for ratio calculation
+	var numFloat, denFloat float64
+
+	switch v := numRaw.(type) {
+	case int64:
+		numFloat = float64(v)
+	case float64:
+		numFloat = v
+	default:
+		// Non-numeric type, cannot compute ratio
+		logger.Debugf("Cannot compute ratio: numerator is non-numeric type %T", numRaw)
+		return &RatioValue{numerator: numerator, denominator: denominator, isNull: true}
+	}
+
+	switch v := denRaw.(type) {
+	case int64:
+		denFloat = float64(v)
+	case float64:
+		denFloat = v
+	default:
+		// Non-numeric type, cannot compute ratio
+		logger.Debugf("Cannot compute ratio: denominator is non-numeric type %T", denRaw)
+		return &RatioValue{numerator: numerator, denominator: denominator, isNull: true}
+	}
+
+	// Handle division by zero
+	if denFloat == 0 {
+		return &RatioValue{
+			numerator:   numerator,
+			denominator: denominator,
+			ratio:       0,
+			isNull:      true,
+		}
+	}
+
+	ratio := numFloat / denFloat
+	return &RatioValue{
+		numerator:   numerator,
+		denominator: denominator,
+		ratio:       ratio,
+		isNull:      false,
+	}
+}
+
+func (v *RatioValue) Display() string {
+	if v.isNull {
+		return "N/A"
+	}
+
+	// Show: "numerator / denominator (percentage%)"
+	percentage := v.ratio * 100
+	return fmt.Sprintf("%s / %s (%.0f%%)",
+		v.numerator.Display(),
+		v.denominator.Display(),
+		percentage)
+}
+
+func (v *RatioValue) Raw() interface{} {
+	if v.isNull {
+		return nil
+	}
+	return v.ratio // Return the ratio for sorting/programmatic use
+}
+
+func (v *RatioValue) Compare(other CellValue) int {
+	otherRatio, ok := other.(*RatioValue)
+	if !ok {
+		return strings.Compare(v.Display(), other.Display())
+	}
+
+	// Handle null values
+	if cmp, done := compareNulls(v.isNull, otherRatio.isNull); done {
+		return cmp
+	}
+
+	// Compare by ratio
+	if v.ratio < otherRatio.ratio {
+		return -1
+	} else if v.ratio > otherRatio.ratio {
+		return 1
+	}
+	return 0
+}
+
+func (v *RatioValue) Type() CellType {
+	return TypeRatio
+}
+
+func (v *RatioValue) IsNull() bool {
+	return v.isNull
+}
+
 // parseTypedValue converts a raw string to the appropriate CellValue type
 func parseTypedValue(rawValue string, columnType CellType) CellValue {
 	switch columnType {
@@ -641,6 +762,10 @@ func parseTypedValue(rawValue string, columnType CellType) CellValue {
 		return NewDurationValue(rawValue)
 	case TypeTimestamp:
 		return NewTimestampValue(rawValue)
+	case TypeRatio:
+		// Ratio values are created directly, not parsed from strings
+		logger.Debugf("TypeRatio should not be parsed from string, using StringValue")
+		return NewStringValue(rawValue)
 	default:
 		return NewStringValue(rawValue)
 	}

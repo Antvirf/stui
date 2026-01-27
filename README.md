@@ -1,8 +1,8 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-4444-blue)
-![size](https://img.shields.io/badge/binary%20size-5%2E4M-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-6304-blue)
+![size](https://img.shields.io/badge/binary%20size-5%2E7M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
 
@@ -75,7 +75,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -log-level int
           log level, 0=none, 1=error, 2=info, 3=debug (default 2)
       -node-columns-config string
-          comma-separated list of scontrol fields to show in node view, use '//' to combine column or '++' to extend columns to full width. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad//CPUAlloc//CPUTot,AllocMem//RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason")
+          comma-separated list of scontrol fields to show in node view, use '//' to combine column or '++' to extend columns to full width. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad%%CPUAlloc,CPUAlloc%%CPUTot,AllocMem%%RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason")
       -partition string
           limit views to specific partition only, leave empty to show all partitions
       -refresh-interval duration

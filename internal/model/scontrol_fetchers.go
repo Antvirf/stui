@@ -44,29 +44,49 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 			// Access elements by index so we modify the original
 			col := &(*columns)[j]
 
-			// Get raw value from parsed data
-			var rawValue string
-			if col.DividedByColumn {
+			// Handle computed columns (ratios)
+			if col.ComputedColumn && col.ComputationType == "ratio" {
+				// Parse components as typed values for ratio computation
+				components := strings.Split(col.RawName, "%%")
+				if len(components) != 2 {
+					// Invalid format, treat as string
+					row[j] = NewStringValue("ERROR: Invalid ratio format")
+					continue
+				}
+
+				// Get field types for both components
+				numeratorField := strings.TrimSpace(components[0])
+				denominatorField := strings.TrimSpace(components[1])
+
+				numeratorType := GetFieldType(numeratorField)
+				denominatorType := GetFieldType(denominatorField)
+
+				// Parse raw values as typed
+				numeratorRaw := safeGetFromMap(rawRow, numeratorField)
+				denominatorRaw := safeGetFromMap(rawRow, denominatorField)
+
+				numeratorVal := parseTypedValue(numeratorRaw, numeratorType)
+				denominatorVal := parseTypedValue(denominatorRaw, denominatorType)
+
+				// Create ratio value
+				row[j] = NewRatioValue(numeratorVal, denominatorVal)
+
+			} else if col.DividedByColumn {
+				// Non-computed divided columns (just display side-by-side)
 				components := strings.Split(col.RawName, "//")
 				var values []string
 				for _, component := range components {
 					values = append(values, safeGetFromMap(rawRow, component))
 				}
-				rawValue = strings.Join(values, " / ")
-			} else {
-				rawValue = safeGetFromMap(rawRow, col.DisplayName)
-			}
+				rawValue := strings.Join(values, " / ")
+				row[j] = parseTypedValue(rawValue, TypeString)
 
-			// Determine field type and convert to typed value
-			var fieldType CellType
-			if col.DividedByColumn {
-				// Divided columns combine multiple values, so always treat as string
-				// (e.g., "0.0G / 15.6G" or "0.00 / 0 / 2")
-				fieldType = TypeString
 			} else {
-				fieldType = GetFieldType(col.DisplayName)
+				// Normal single column
+				rawValue := safeGetFromMap(rawRow, col.DisplayName)
+				fieldType := GetFieldType(col.DisplayName)
+				row[j] = parseTypedValue(rawValue, fieldType)
 			}
-			row[j] = parseTypedValue(rawValue, fieldType)
 
 			// Update column width based on display value
 			if computeColumnWidths {

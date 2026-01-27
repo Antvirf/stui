@@ -12,6 +12,8 @@ type ColumnConfig struct {
 	Width           int
 	DividedByColumn bool
 	FullWidthColumn bool
+	ComputedColumn  bool   // Indicates this is a computed column (e.g., ratio)
+	ComputationType string // Type of computation ("ratio", etc.)
 }
 
 // Get column fields returns the full expanded list of field names that
@@ -40,11 +42,21 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 	var configs []ColumnConfig
 
 	for _, part := range parts {
-		col := ColumnConfig{DividedByColumn: false, FullWidthColumn: false}
+		col := ColumnConfig{
+			DividedByColumn: false,
+			FullWidthColumn: false,
+			ComputedColumn:  false,
+		}
 		col.RawName = strings.TrimSpace(part)
 		col.DisplayName = strings.TrimSpace(part)
 
-		if strings.Contains(part, "//") {
+		// Check for %% operator (computed ratio column)
+		if strings.Contains(part, "%%") {
+			col.DisplayName = strings.ReplaceAll(col.DisplayName, "%%", " / ")
+			col.ComputedColumn = true
+			col.ComputationType = "ratio"
+			col.DividedByColumn = true // Still uses components like divided columns
+		} else if strings.Contains(part, "//") {
 			col.DisplayName = strings.ReplaceAll(col.DisplayName, "//", "/")
 			col.DividedByColumn = true
 		}

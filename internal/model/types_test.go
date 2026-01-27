@@ -554,6 +554,119 @@ func TestGetFieldType_KnownTimestamp(t *testing.T) {
 	assert.Equal(t, TypeTimestamp, GetFieldType("EndTime"))
 }
 
+// ==================== RatioValue Tests ====================
+
+func TestRatioValue_MemoryRatio(t *testing.T) {
+	num := NewMemoryValue("8192")  // 8192 MB = 8G
+	den := NewMemoryValue("16384") // 16384 MB = 16G
+	ratio := NewRatioValue(num, den)
+
+	assert.False(t, ratio.IsNull())
+	assert.Equal(t, "8.0G / 16.0G (50%)", ratio.Display())
+	assert.Equal(t, 0.5, ratio.Raw())
+	assert.Equal(t, TypeRatio, ratio.Type())
+}
+
+func TestRatioValue_IntegerRatio(t *testing.T) {
+	num := NewIntegerValue("4")
+	den := NewIntegerValue("8")
+	ratio := NewRatioValue(num, den)
+
+	assert.False(t, ratio.IsNull())
+	assert.Equal(t, "4 / 8 (50%)", ratio.Display())
+	assert.Equal(t, 0.5, ratio.Raw())
+}
+
+func TestRatioValue_FloatRatio(t *testing.T) {
+	num := NewFloatValue("2.5")
+	den := NewFloatValue("5.0")
+	ratio := NewRatioValue(num, den)
+
+	assert.False(t, ratio.IsNull())
+	assert.Contains(t, ratio.Display(), "2.5 / 5")
+	assert.Equal(t, 0.5, ratio.Raw())
+}
+
+func TestRatioValue_MixedTypes(t *testing.T) {
+	num := NewIntegerValue("50")
+	den := NewFloatValue("100.0")
+	ratio := NewRatioValue(num, den)
+
+	assert.False(t, ratio.IsNull())
+	assert.Equal(t, 0.5, ratio.Raw())
+}
+
+func TestRatioValue_DivisionByZero(t *testing.T) {
+	num := NewMemoryValue("8192")
+	den := NewMemoryValue("0")
+	ratio := NewRatioValue(num, den)
+
+	assert.True(t, ratio.IsNull())
+	assert.Equal(t, "N/A", ratio.Display())
+	assert.Nil(t, ratio.Raw())
+}
+
+func TestRatioValue_NullNumerator(t *testing.T) {
+	num := NewMemoryValue("N/A")
+	den := NewMemoryValue("16384")
+	ratio := NewRatioValue(num, den)
+
+	assert.True(t, ratio.IsNull())
+	assert.Equal(t, "N/A", ratio.Display())
+}
+
+func TestRatioValue_NullDenominator(t *testing.T) {
+	num := NewMemoryValue("8192")
+	den := NewMemoryValue("")
+	ratio := NewRatioValue(num, den)
+
+	assert.True(t, ratio.IsNull())
+}
+
+func TestRatioValue_Compare(t *testing.T) {
+	r25 := NewRatioValue(NewIntegerValue("25"), NewIntegerValue("100")) // 25%
+	r50 := NewRatioValue(NewIntegerValue("50"), NewIntegerValue("100")) // 50%
+	r75 := NewRatioValue(NewIntegerValue("75"), NewIntegerValue("100")) // 75%
+	rNull := NewRatioValue(NewIntegerValue("N/A"), NewIntegerValue("100"))
+
+	assert.Equal(t, -1, r25.Compare(r50))
+	assert.Equal(t, -1, r50.Compare(r75))
+	assert.Equal(t, 1, r75.Compare(r50))
+
+	// Null sorting
+	assert.Equal(t, 1, rNull.Compare(r50))
+	assert.Equal(t, -1, r50.Compare(rNull))
+}
+
+func TestRatioValue_Sorting(t *testing.T) {
+	values := []CellValue{
+		NewRatioValue(NewIntegerValue("8"), NewIntegerValue("10")),   // 80%
+		NewRatioValue(NewIntegerValue("2"), NewIntegerValue("10")),   // 20%
+		NewRatioValue(NewIntegerValue("N/A"), NewIntegerValue("10")), // null
+		NewRatioValue(NewIntegerValue("5"), NewIntegerValue("10")),   // 50%
+	}
+
+	sort.Slice(values, func(i, j int) bool {
+		return values[i].Compare(values[j]) < 0
+	})
+
+	// Should be: 20%, 50%, 80%, null
+	assert.Equal(t, 0.2, values[0].Raw())
+	assert.Equal(t, 0.5, values[1].Raw())
+	assert.Equal(t, 0.8, values[2].Raw())
+	assert.True(t, values[3].IsNull())
+}
+
+func TestRatioValue_OverHundredPercent(t *testing.T) {
+	num := NewIntegerValue("150")
+	den := NewIntegerValue("100")
+	ratio := NewRatioValue(num, den)
+
+	assert.False(t, ratio.IsNull())
+	assert.Equal(t, "150 / 100 (150%)", ratio.Display())
+	assert.Equal(t, 1.5, ratio.Raw())
+}
+
 // ==================== Edge Cases ====================
 
 func TestIntegerValue_LargeNumber(t *testing.T) {
