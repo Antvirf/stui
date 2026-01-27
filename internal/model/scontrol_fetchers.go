@@ -37,40 +37,53 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 
 	rawRows := parserFunction(out)
 
-	var rows [][]string
+	var rows [][]CellValue
 	for _, rawRow := range rawRows {
-		row := make([]string, len(*columns))
+		row := make([]CellValue, len(*columns))
 		for j := range *columns {
 			// Access elements by index so we modify the original
 			col := &(*columns)[j]
 
-			if computeColumnWidths {
-				col.Width = min(
-					max( // Increase col width if current cell is bigger than current max
-						len(safeGetFromMap(rawRow, col.DisplayName)),
-						col.Width,
-					),
-					config.MaximumColumnWidth, // .. but don't go above this value.
-				)
-			}
-
+			// Get raw value from parsed data
+			var rawValue string
 			if col.DividedByColumn {
 				components := strings.Split(col.RawName, "//")
 				var values []string
 				for _, component := range components {
 					values = append(values, safeGetFromMap(rawRow, component))
 				}
-				row[j] = strings.Join(values, " / ")
+				rawValue = strings.Join(values, " / ")
 			} else {
-				row[j] = safeGetFromMap(rawRow, col.DisplayName)
+				rawValue = safeGetFromMap(rawRow, col.DisplayName)
+			}
+
+			// Determine field type and convert to typed value
+			var fieldType CellType
+			if col.DividedByColumn {
+				// Divided columns combine multiple values, so always treat as string
+				// (e.g., "0.0G / 15.6G" or "0.00 / 0 / 2")
+				fieldType = TypeString
+			} else {
+				fieldType = GetFieldType(col.DisplayName)
+			}
+			row[j] = parseTypedValue(rawValue, fieldType)
+
+			// Update column width based on display value
+			if computeColumnWidths {
+				displayLen := len(row[j].Display())
+				col.Width = min(
+					max(displayLen, col.Width),
+					config.MaximumColumnWidth,
+				)
 			}
 		}
 		rows = append(rows, row)
 	}
 
 	return &TableData{
-		Headers: columns,
-		Rows:    rows,
+		Headers:             columns,
+		Rows:                rows,
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
 	}, nil
 }
 

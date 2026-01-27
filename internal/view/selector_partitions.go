@@ -42,7 +42,7 @@ func (a *App) setupPartitionSelectorOptions() {
 			)
 		}
 
-		partitionName := partition[0]
+		partitionName := partition[0].Display()
 		a.PartitionSelector.AddOption(
 			partitionName,
 			a.applyPartitionSelector(partitionName),
@@ -55,7 +55,7 @@ func (a *App) setupPartitionSelectorOptions() {
 	} else {
 		found := false
 		for index, partition := range a.PartitionsData.Rows {
-			if partition[0] == config.PartitionFilter {
+			if partition[0].Display() == config.PartitionFilter {
 				a.PartitionSelector.SetCurrentOption(index + 1)
 				found = true
 				break

@@ -86,9 +86,19 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 		rows = append(rows, row)
 	}
 
+	// Convert string rows to CellValue rows (temporary until this provider is fully converted)
+	cellRows := make([][]CellValue, len(rows))
+	for i, row := range rows {
+		cellRow := make([]CellValue, len(row))
+		for j, val := range row {
+			cellRow[j] = NewStringValue(val)
+		}
+		cellRows[i] = cellRow
+	}
+
 	return &TableData{
 		Headers:             columns,
-		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		Rows:                cellRows,
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(cellRows),
 	}, nil
 }

@@ -281,11 +281,16 @@ func tableViewInputCapture(
 				for entryName := range *selection {
 					// Find the node in our table data
 					for _, row := range data.Rows {
-						if row[0] == entryName {
+						if row[0].Display() == entryName {
 							if config.CopyFirstColumnOnly {
-								sb.WriteString(row[0])
+								sb.WriteString(row[0].Display())
 							} else {
-								sb.WriteString(strings.Join(row, " "))
+								// Convert row to strings
+								rowStrings := make([]string, len(row))
+								for i, cell := range row {
+									rowStrings[i] = cell.Display()
+								}
+								sb.WriteString(strings.Join(rowStrings, " "))
 							}
 							sb.WriteString(config.CopiedLinesSeparator)
 							break
