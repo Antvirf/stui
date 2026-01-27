@@ -303,13 +303,27 @@ func NewMemoryValue(s string) *MemoryValue {
 
 	// Parse memory string to megabytes
 	megabytes := parseMemoryString(s)
-	if megabytes == 0 && s != "0" {
-		// Parse failed (and it wasn't actually zero)
+
+	// Treat as null if parse likely failed (returned 0 but input doesn't look like a zero value)
+	if megabytes == 0 && !looksLikeZero(s) {
 		logger.Debugf("Failed to parse memory value '%s', treating as null", s)
 		return &MemoryValue{megabytes: 0, isNull: true}
 	}
 
 	return &MemoryValue{megabytes: megabytes, isNull: false}
+}
+
+// looksLikeZero checks if a string appears to be a zero value (not a parse failure)
+func looksLikeZero(s string) bool {
+	s = strings.ToUpper(strings.TrimSpace(s))
+	// Strip sacct suffixes
+	s = strings.TrimSuffix(s, "N")
+	s = strings.TrimSuffix(s, "C")
+
+	// Check common zero patterns
+	return s == "0" || s == "0M" || s == "0G" || s == "0K" || s == "0T" ||
+		s == "0.0" || s == "0.0M" || s == "0.0G" || s == "0.0K" || s == "0.0T" ||
+		s == "0MB" || s == "0GB" || s == "0KB" || s == "0TB"
 }
 
 func (v *MemoryValue) Display() string {
@@ -364,14 +378,14 @@ func parseMemoryString(s string) int64 {
 		return 0
 	}
 
-	// Try parsing as raw bytes first
-	if bytes, err := strconv.ParseInt(s, 10, 64); err == nil {
-		return bytes
+	// Try parsing as raw megabytes (MB) first
+	if mb, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return mb
 	}
 
 	// Try parsing as float (for decimal values)
-	if bytes, err := strconv.ParseFloat(s, 64); err == nil {
-		return int64(bytes)
+	if mb, err := strconv.ParseFloat(s, 64); err == nil {
+		return int64(mb)
 	}
 
 	// Parse with unit suffix

@@ -205,6 +205,28 @@ func TestMemoryValue_WithSuffix_PerCore(t *testing.T) {
 	assert.Equal(t, int64(100), v.Raw()) // Should parse as 100M
 }
 
+func TestMemoryValue_ZeroWithUnits(t *testing.T) {
+	// Test that zero values with units are not treated as null (reviewer feedback fix)
+	testCases := []struct {
+		input    string
+		expected int64
+	}{
+		{"0", 0},
+		{"0M", 0},
+		{"0G", 0},
+		{"0.0G", 0},
+		{"0Gn", 0}, // With per-node suffix
+		{"0Mc", 0}, // With per-core suffix
+		{"0K", 0},
+	}
+
+	for _, tc := range testCases {
+		v := NewMemoryValue(tc.input)
+		assert.False(t, v.IsNull(), "Input %q should not be null", tc.input)
+		assert.Equal(t, tc.expected, v.Raw(), "Input %q should parse to %d MB", tc.input, tc.expected)
+	}
+}
+
 func TestMemoryValue_Invalid(t *testing.T) {
 	v := NewMemoryValue("invalid")
 	assert.True(t, v.IsNull())

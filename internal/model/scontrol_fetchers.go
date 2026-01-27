@@ -47,7 +47,8 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 			// Handle computed columns (ratios)
 			if col.ComputedColumn && col.ComputationType == "ratio" {
 				// Parse components as typed values for ratio computation
-				components := strings.Split(col.RawName, "%%")
+				// RawName is normalized to use // separator for compatibility with GetColumnFields
+				components := strings.Split(col.RawName, "//")
 				if len(components) != 2 {
 					// Invalid format, treat as string
 					row[j] = NewStringValue("ERROR: Invalid ratio format")

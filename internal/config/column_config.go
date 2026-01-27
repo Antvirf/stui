@@ -55,7 +55,8 @@ func parseColumnConfigLine(input string) (*[]ColumnConfig, error) {
 			col.DisplayName = strings.ReplaceAll(col.DisplayName, "%%", " / ")
 			col.ComputedColumn = true
 			col.ComputationType = "ratio"
-			col.DividedByColumn = true // Still uses components like divided columns
+			col.DividedByColumn = true                                // Still uses components like divided columns
+			col.RawName = strings.ReplaceAll(col.RawName, "%%", "//") // Normalize for GetColumnFields
 		} else if strings.Contains(part, "//") {
 			col.DisplayName = strings.ReplaceAll(col.DisplayName, "//", "/")
 			col.DividedByColumn = true
