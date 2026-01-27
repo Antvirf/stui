@@ -191,6 +191,20 @@ func TestMemoryValue_Zero(t *testing.T) {
 	assert.Equal(t, int64(0), v.Raw())
 }
 
+func TestMemoryValue_WithSuffix_PerNode(t *testing.T) {
+	// Sacct format: "43Gn" means 43G per node
+	v := NewMemoryValue("43Gn")
+	assert.False(t, v.IsNull())
+	assert.Equal(t, int64(43*1024), v.Raw()) // Should parse as 43G
+}
+
+func TestMemoryValue_WithSuffix_PerCore(t *testing.T) {
+	// Sacct format: "100Mc" means 100M per core
+	v := NewMemoryValue("100Mc")
+	assert.False(t, v.IsNull())
+	assert.Equal(t, int64(100), v.Raw()) // Should parse as 100M
+}
+
 func TestMemoryValue_Invalid(t *testing.T) {
 	v := NewMemoryValue("invalid")
 	assert.True(t, v.IsNull())

@@ -28,6 +28,32 @@ var FieldTypeMap = map[string]CellType{
 	"MinTmpDiskNode": TypeInteger,
 	"SecsPreSuspend": TypeInteger,
 
+	// Integer fields - Sacct
+	"JobIDRaw":     TypeInteger,
+	"AssocID":      TypeInteger,
+	"GID":          TypeInteger,
+	"UID":          TypeInteger,
+	"WCKeyID":      TypeInteger,
+	"DBIndex":      TypeInteger,
+	"NCPUS":        TypeInteger,
+	"NNodes":       TypeInteger,
+	"NTasks":       TypeInteger,
+	"QOSRAW":       TypeInteger,
+	"CPUTimeRAW":   TypeInteger,
+	"ElapsedRaw":   TypeInteger,
+	"TimelimitRaw": TypeInteger,
+	"AllocNodes":   TypeInteger,
+
+	// Integer fields - Sacctmgr
+	"Share":       TypeInteger,
+	"GrpJobs":     TypeInteger,
+	"MaxJobs":     TypeInteger,
+	"MaxSubmit":   TypeInteger,
+	"ControlPort": TypeInteger,
+	"UsageThres":  TypeInteger,
+	"UsageFactor": TypeInteger,
+	"ID":          TypeInteger,
+
 	// Float fields
 	"CPULoad": TypeFloat,
 
@@ -39,6 +65,18 @@ var FieldTypeMap = map[string]CellType{
 	"Mem":           TypeMemory,
 	"MinMemoryNode": TypeMemory,
 
+	// Memory fields - Sacct
+	"AveDiskRead":  TypeMemory,
+	"AveDiskWrite": TypeMemory,
+	"MaxDiskRead":  TypeMemory,
+	"MaxDiskWrite": TypeMemory,
+	"AveRSS":       TypeMemory,
+	"MaxRSS":       TypeMemory,
+	"AveVMSize":    TypeMemory,
+	"MaxVMSize":    TypeMemory,
+	"MinRSS":       TypeMemory,
+	"MinVMSize":    TypeMemory,
+
 	// Duration fields (time spans)
 	"RunTime":     TypeDuration,
 	"TimeLimit":   TypeDuration,
@@ -46,6 +84,18 @@ var FieldTypeMap = map[string]CellType{
 	"TimeMin":     TypeDuration,
 	"DelayBoot":   TypeDuration,
 	"SuspendTime": TypeDuration,
+
+	// Duration fields - Sacct
+	"CPUTime":    TypeDuration,
+	"TotalCPU":   TypeDuration,
+	"UserCPU":    TypeDuration,
+	"SystemCPU":  TypeDuration,
+	"MinCPU":     TypeDuration,
+	"AveCPU":     TypeDuration,
+	"Timelimit":  TypeDuration,
+	"Suspended":  TypeDuration,
+	"Planned":    TypeDuration,
+	"PlannedCPU": TypeDuration,
 
 	// Timestamp fields (absolute points in time)
 	"SubmitTime":    TypeTimestamp,
@@ -55,6 +105,12 @@ var FieldTypeMap = map[string]CellType{
 	"AccrueTime":    TypeTimestamp,
 	"Deadline":      TypeTimestamp,
 	"LastSchedEval": TypeTimestamp,
+
+	// Timestamp fields - Sacct
+	"Start":    TypeTimestamp,
+	"End":      TypeTimestamp,
+	"Submit":   TypeTimestamp,
+	"Eligible": TypeTimestamp,
 
 	// String fields (explicit for documentation)
 	// Node fields

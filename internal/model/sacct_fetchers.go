@@ -55,52 +55,72 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, 
 		return EmptyTableData(), nil
 	}
 
-	var rows [][]string
+	var rows [][]CellValue
 	for _, rawRow := range rawRows {
-		row := make([]string, len(*columns))
+		row := make([]CellValue, len(*columns))
 		for j := range *columns {
 			// Access elements by index so we modify the original
 			col := &(*columns)[j]
 
-			if computeColumnWidths {
-				col.Width = min(
-					max( // Increase col width if current cell is bigger than current max
-						len(safeGetFromMap(rawRow, col.DisplayName)),
-						col.Width,
-					),
-					config.MaximumColumnWidth, // .. but don't go above this value.
-				)
-			}
+			// Handle computed columns (ratios)
+			if col.ComputedColumn && col.ComputationType == "ratio" {
+				components := strings.Split(col.RawName, "%%")
+				if len(components) != 2 {
+					// Invalid format, treat as string
+					row[j] = NewStringValue("ERROR: Invalid ratio format")
+					continue
+				}
 
-			// Check if it's a combined column
-			if col.DividedByColumn {
+				// Get field types for both components
+				numeratorField := strings.TrimSpace(components[0])
+				denominatorField := strings.TrimSpace(components[1])
+
+				numeratorType := GetFieldType(numeratorField)
+				denominatorType := GetFieldType(denominatorField)
+
+				// Parse raw values as typed
+				numeratorRaw := safeGetFromMap(rawRow, numeratorField)
+				denominatorRaw := safeGetFromMap(rawRow, denominatorField)
+
+				numeratorVal := parseTypedValue(numeratorRaw, numeratorType)
+				denominatorVal := parseTypedValue(denominatorRaw, denominatorType)
+
+				// Create ratio value
+				row[j] = NewRatioValue(numeratorVal, denominatorVal)
+
+			} else if col.DividedByColumn {
+				// Non-computed divided columns (just display side-by-side)
 				components := strings.Split(col.RawName, "//")
 				var values []string
 				for _, component := range components {
 					values = append(values, safeGetFromMap(rawRow, component))
 				}
-				row[j] = strings.Join(values, " / ")
+				rawValue := strings.Join(values, " / ")
+				row[j] = NewStringValue(rawValue)
+
 			} else {
-				row[j] = safeGetFromMap(rawRow, col.DisplayName)
+				// Normal single column - use type lookup
+				rawValue := safeGetFromMap(rawRow, col.DisplayName)
+				fieldType := GetFieldType(col.DisplayName)
+				row[j] = parseTypedValue(rawValue, fieldType)
+			}
+
+			// Update column width based on display value
+			if computeColumnWidths {
+				displayLen := len(row[j].Display())
+				col.Width = min(
+					max(displayLen, col.Width),
+					config.MaximumColumnWidth,
+				)
 			}
 		}
 		rows = append(rows, row)
 	}
 
-	// Convert string rows to CellValue rows (temporary until this provider is fully converted)
-	cellRows := make([][]CellValue, len(rows))
-	for i, row := range rows {
-		cellRow := make([]CellValue, len(row))
-		for j, val := range row {
-			cellRow[j] = NewStringValue(val)
-		}
-		cellRows[i] = cellRow
-	}
-
 	return &TableData{
 		Headers:             columns,
-		Rows:                cellRows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(cellRows),
+		Rows:                rows,
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
 	}, nil
 }
 

@@ -63,42 +63,34 @@ func getSacctMgrDataWithTimeout(command string, timeout time.Duration, columns *
 		rawRows = parseSacctOutput(out, SACCTMGR_DELIMITER)
 	}
 
-	var rows [][]string
+	var rows [][]CellValue
 	for _, rawRow := range rawRows {
 		// Each row will have all of its fields, no filtering
-		row := make([]string, len(*columns))
+		row := make([]CellValue, len(*columns))
 		for j := range *columns {
 			// Access elements by index so we modify the original
 			col := &(*columns)[j]
 
+			// Get raw value and determine field type
+			rawValue := safeGetFromMap(rawRow, col.DisplayName)
+			fieldType := GetFieldType(col.DisplayName)
+			row[j] = parseTypedValue(rawValue, fieldType)
+
+			// Update column width based on display value
 			if computeColumnWidths {
+				displayLen := len(row[j].Display())
 				col.Width = min(
-					max( // Increase col width if current cell is bigger than current max
-						len(safeGetFromMap(rawRow, col.DisplayName)),
-						col.Width,
-					),
-					config.MaximumColumnWidth, // .. but don't go above this value.
+					max(displayLen, col.Width),
+					config.MaximumColumnWidth,
 				)
 			}
-
-			row[j] = safeGetFromMap(rawRow, col.DisplayName)
 		}
 		rows = append(rows, row)
 	}
 
-	// Convert string rows to CellValue rows (temporary until this provider is fully converted)
-	cellRows := make([][]CellValue, len(rows))
-	for i, row := range rows {
-		cellRow := make([]CellValue, len(row))
-		for j, val := range row {
-			cellRow[j] = NewStringValue(val)
-		}
-		cellRows[i] = cellRow
-	}
-
 	return &TableData{
 		Headers:             columns,
-		Rows:                cellRows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(cellRows),
+		Rows:                rows,
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
 	}, nil
 }

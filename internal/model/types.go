@@ -377,6 +377,11 @@ func parseMemoryString(s string) int64 {
 	// Parse with unit suffix
 	s = strings.ToUpper(s)
 
+	// Strip sacct-specific suffixes (n=per-node, c=per-core)
+	// Example: "43Gn" → "43G", "100Mc" → "100M"
+	s = strings.TrimSuffix(s, "N")
+	s = strings.TrimSuffix(s, "C")
+
 	// Extract number and unit
 	var numStr string
 	var unit string
