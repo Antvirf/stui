@@ -42,6 +42,7 @@ const (
 	TypeFloat
 	TypeDuration
 	TypeMemory
+	TypeTimestamp
 )
 
 func (ct CellType) String() string {
@@ -56,6 +57,8 @@ func (ct CellType) String() string {
 		return "Duration"
 	case TypeMemory:
 		return "Memory"
+	case TypeTimestamp:
+		return "Timestamp"
 	default:
 		return "Unknown"
 	}
@@ -547,6 +550,84 @@ func parseSlurmDuration(s string) time.Duration {
 	return time.Duration(totalSeconds) * time.Second
 }
 
+// TimestampValue represents an absolute point in time (distinct from duration which is a time span)
+// Handles Slurm timestamp formats like "2025-10-22T19:05:58" (ISO 8601)
+// Also handles special values: "Unknown", "None", "N/A"
+type TimestampValue struct {
+	timestamp time.Time
+	isNull    bool
+	rawText   string
+}
+
+// NewTimestampValue creates a new TimestampValue
+func NewTimestampValue(s string) *TimestampValue {
+	// Check for null indicators
+	if isNullIndicator(s) {
+		return &TimestampValue{isNull: true, rawText: s}
+	}
+
+	s = strings.TrimSpace(s)
+
+	// Try parsing ISO 8601 format used by Slurm
+	formats := []string{
+		"2006-01-02T15:04:05",
+		time.RFC3339,
+	}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, s); err == nil {
+			return &TimestampValue{timestamp: t, isNull: false, rawText: s}
+		}
+	}
+
+	// Parse failed - treat as null
+	logger.Debugf("Failed to parse timestamp value '%s', treating as null", s)
+	return &TimestampValue{isNull: true, rawText: s}
+}
+
+func (v *TimestampValue) Display() string {
+	if v.isNull {
+		return "N/A"
+	}
+	// Show original format from Slurm
+	return v.rawText
+}
+
+func (v *TimestampValue) Raw() interface{} {
+	if v.isNull {
+		return nil
+	}
+	return v.timestamp
+}
+
+func (v *TimestampValue) Compare(other CellValue) int {
+	otherTs, ok := other.(*TimestampValue)
+	if !ok {
+		return strings.Compare(v.Display(), other.Display())
+	}
+
+	// Handle null values
+	if cmp, done := compareNulls(v.isNull, otherTs.isNull); done {
+		return cmp
+	}
+
+	// Time comparison
+	if v.timestamp.Before(otherTs.timestamp) {
+		return -1
+	} else if v.timestamp.After(otherTs.timestamp) {
+		return 1
+	}
+	return 0
+}
+
+func (v *TimestampValue) Type() CellType {
+	return TypeTimestamp
+}
+
+func (v *TimestampValue) IsNull() bool {
+	return v.isNull
+}
+
 // parseTypedValue converts a raw string to the appropriate CellValue type
 func parseTypedValue(rawValue string, columnType CellType) CellValue {
 	switch columnType {
@@ -558,6 +639,8 @@ func parseTypedValue(rawValue string, columnType CellType) CellValue {
 		return NewMemoryValue(rawValue)
 	case TypeDuration:
 		return NewDurationValue(rawValue)
+	case TypeTimestamp:
+		return NewTimestampValue(rawValue)
 	default:
 		return NewStringValue(rawValue)
 	}

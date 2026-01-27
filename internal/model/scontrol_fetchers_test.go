@@ -53,6 +53,7 @@ func TestJobsProvider(t *testing.T) {
 	provider := NewJobsProvider()
 
 	config.PartitionFilter = config.ALL_CATEGORIES_OPTION
+	config.JobStateCurrentChoice = config.ALL_CATEGORIES_OPTION
 	data := provider.FilteredData()
 	assert.Greater(t, len(data.Rows), 0, "Expected at least one job")
 	assert.Equal(t, *config.JobViewColumns, *data.Headers)

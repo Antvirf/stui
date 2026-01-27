@@ -471,6 +471,89 @@ func TestGetFieldType_Unknown(t *testing.T) {
 // Note: Divided columns are always treated as TypeString since they combine multiple values
 // (e.g., "0.0G / 15.6G" or "0.00 / 0 / 2")
 
+// ==================== TimestampValue Tests ====================
+
+func TestTimestampValue_ISO8601(t *testing.T) {
+	v := NewTimestampValue("2025-10-22T19:05:58")
+	assert.False(t, v.IsNull())
+	assert.Equal(t, "2025-10-22T19:05:58", v.Display())
+	assert.Equal(t, TypeTimestamp, v.Type())
+
+	ts, ok := v.Raw().(time.Time)
+	require.True(t, ok)
+	assert.Equal(t, 2025, ts.Year())
+	assert.Equal(t, time.October, ts.Month())
+	assert.Equal(t, 22, ts.Day())
+}
+
+func TestTimestampValue_Unknown(t *testing.T) {
+	v := NewTimestampValue("Unknown")
+	assert.True(t, v.IsNull())
+	assert.Equal(t, "N/A", v.Display())
+	assert.Nil(t, v.Raw())
+}
+
+func TestTimestampValue_None(t *testing.T) {
+	v := NewTimestampValue("None")
+	assert.True(t, v.IsNull())
+	assert.Equal(t, "N/A", v.Display())
+}
+
+func TestTimestampValue_Empty(t *testing.T) {
+	v := NewTimestampValue("")
+	assert.True(t, v.IsNull())
+}
+
+func TestTimestampValue_ExplicitNull(t *testing.T) {
+	v := NewTimestampValue("N/A")
+	assert.True(t, v.IsNull())
+}
+
+func TestTimestampValue_Compare(t *testing.T) {
+	v1 := NewTimestampValue("2025-01-01T00:00:00")
+	v2 := NewTimestampValue("2025-12-31T23:59:59")
+	vNull := NewTimestampValue("Unknown")
+
+	assert.Equal(t, -1, v1.Compare(v2)) // Earlier < Later
+	assert.Equal(t, 1, v2.Compare(v1))  // Later > Earlier
+	assert.Equal(t, 0, v1.Compare(NewTimestampValue("2025-01-01T00:00:00")))
+
+	// Null sorting
+	assert.Equal(t, 1, vNull.Compare(v1))
+	assert.Equal(t, -1, v1.Compare(vNull))
+}
+
+func TestTimestampValue_Sorting(t *testing.T) {
+	values := []CellValue{
+		NewTimestampValue("2025-10-22T19:05:58"),
+		NewTimestampValue("Unknown"),
+		NewTimestampValue("2025-01-01T00:00:00"),
+		NewTimestampValue("2025-12-31T23:59:59"),
+	}
+
+	sort.Slice(values, func(i, j int) bool {
+		return values[i].Compare(values[j]) < 0
+	})
+
+	// Should be: 2025-01-01, 2025-10-22, 2025-12-31, Unknown
+	assert.Equal(t, "2025-01-01T00:00:00", values[0].Display())
+	assert.Equal(t, "2025-10-22T19:05:58", values[1].Display())
+	assert.Equal(t, "2025-12-31T23:59:59", values[2].Display())
+	assert.True(t, values[3].IsNull())
+}
+
+func TestParseTypedValue_Timestamp(t *testing.T) {
+	v := parseTypedValue("2025-10-22T19:05:58", TypeTimestamp)
+	require.IsType(t, &TimestampValue{}, v)
+	assert.False(t, v.IsNull())
+}
+
+func TestGetFieldType_KnownTimestamp(t *testing.T) {
+	assert.Equal(t, TypeTimestamp, GetFieldType("SubmitTime"))
+	assert.Equal(t, TypeTimestamp, GetFieldType("StartTime"))
+	assert.Equal(t, TypeTimestamp, GetFieldType("EndTime"))
+}
+
 // ==================== Edge Cases ====================
 
 func TestIntegerValue_LargeNumber(t *testing.T) {
