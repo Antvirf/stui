@@ -32,6 +32,8 @@ const (
 	dropdownBackgroundColor    = tcell.Color240 // Medium gray
 	dropdownForegroundColor    = tcell.Color255 // White
 	searchboxLabelColor        = tcell.ColorOrange
+	searchHighlightBgColor     = tcell.ColorWhite
+	searchHighlightFgColor     = tcell.ColorBlack
 )
 
 func init() {

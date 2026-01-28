@@ -127,12 +127,14 @@ func (s *StuiView) Render() {
 
 	searchFilterTime := int64(0)
 	filteredRows := s.data.Rows
+	var searchPatternRegex *regexp.Regexp
 	if s.searchEnabled && *s.searchPattern != "" {
 		filteredCount = 0 // Will be updated in the filtering loop below
 		searchFilterStartTime := time.Now()
 		filteredRows = [][]model.CellValue{}
 
-		pattern, err := regexp.Compile("(?i)" + *s.searchPattern)
+		var err error
+		searchPatternRegex, err = regexp.Compile("(?i)" + *s.searchPattern)
 		if err != nil {
 			s.errorNotificationFunction(fmt.Sprintf("[red]Invalid search pattern: %v[white]", err))
 		} else {
@@ -141,7 +143,7 @@ func (s *StuiView) Render() {
 
 			for i, row := range s.data.Rows {
 				// Check the row as a single string - this allows for regex across columns
-				matched := pattern.MatchString(s.data.RowsAsSingleStrings[i])
+				matched := searchPatternRegex.MatchString(s.data.RowsAsSingleStrings[i])
 
 				if matched {
 					filteredRows = append(filteredRows, row)
@@ -215,6 +217,17 @@ func (s *StuiView) Render() {
 			colorizedColor, shouldColorizeRow = generalBackgroundColor, false
 		}
 
+		// Pre-calculate row-level search matches for efficiency
+		var matches [][]int
+		if s.searchEnabled && searchPatternRegex != nil && !config.DisableSearchHighlight {
+			rowString := ""
+			for _, c := range rowData {
+				rowString += c.Display()
+			}
+			matches = searchPatternRegex.FindAllStringIndex(rowString, -1)
+		}
+
+		currentOffset := 0
 		for col, cell := range rowData {
 			// Op 1: Text wrapping
 			colObject := (*s.data.Headers)[col]
@@ -224,6 +237,21 @@ func (s *StuiView) Render() {
 			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colObject.Width, cellText)).
 				SetAlign(tview.AlignLeft).
 				SetExpansion(1)
+
+			// Op 2: Highlight search results
+			isMatched := false
+			if len(matches) > 0 {
+				cellLen := len(cellText)
+				// Check if any match in the row overlaps with this cell
+				for _, match := range matches {
+					mStart, mEnd := match[0], match[1]
+					// Overlap if (mStart < cellOffset + cellLen) AND (mEnd > cellOffset)
+					if mStart < currentOffset+cellLen && mEnd > currentOffset {
+						isMatched = true
+						break
+					}
+				}
+			}
 
 			cellView.SetClickedFunc(func() bool {
 				s.cellClickFunction(cellText)
@@ -254,7 +282,14 @@ func (s *StuiView) Render() {
 				cellView.SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
 			}
 
+			if isMatched {
+				cellView.SetTextColor(searchHighlightFgColor).
+					SetBackgroundColor(searchHighlightBgColor).
+					SetAttributes(tcell.AttrBold)
+			}
+
 			s.Table.SetCell(row+1, col, cellView)
+			currentOffset += len(cellText)
 		}
 	}
 
