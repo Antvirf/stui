@@ -49,7 +49,7 @@ func checkIfClusterIsReachable() error {
 // Fetch scheduler info with a timeout. This used to be in fetchers,
 // but is a one-off call at initialization and makes more sense
 // in checks.
-func getSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clusterName, slurmVersion string) {
+func GetSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clusterName, slurmVersion string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx,
@@ -58,7 +58,7 @@ func getSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clus
 	)
 	out, err := cmd.Output()
 	if err != nil {
-		schedulerHostName = "(failed to fetch scheduler info)"
+		return "(failed to fetch scheduler info)", "unknown", "unknown", err
 	}
 
 	// Parse output for controller host
@@ -88,5 +88,5 @@ func getSchedulerInfoWithTimeout(timeout time.Duration) (schedulerHostName, clus
 			}
 		}
 	}
-	return host, clusterName, slurmVersion
+	return host, clusterName, slurmVersion, nil
 }

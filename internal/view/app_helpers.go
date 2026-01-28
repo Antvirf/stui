@@ -91,6 +91,10 @@ func (a *App) optionalRefreshAndRenderCurrentView(refresh bool) {
 }
 
 func (a *App) optionalRefreshAndRenderPage(pageName string, refresh bool) {
+	if refresh {
+		go a.RefreshClusterMetadata()
+	}
+
 	switch pageName {
 	case NODES_PAGE:
 		if refresh {

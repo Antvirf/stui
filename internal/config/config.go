@@ -219,7 +219,7 @@ func Configure() {
 	}
 
 	// Get scheduler info
-	SchedulerHostName, ClusterName, SchedulerSlurmVersion = getSchedulerInfoWithTimeout(RequestTimeout)
+	SchedulerHostName, ClusterName, SchedulerSlurmVersion, _ = GetSchedulerInfoWithTimeout(RequestTimeout)
 
 	checkIfSacctMgrIsAvailable()
 }

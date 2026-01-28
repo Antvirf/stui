@@ -207,11 +207,9 @@ func (a *App) SetupViews() {
 		AddItem(a.PagesContainer, 0, 1, true)
 
 	a.MainFlex.SetBorder(true).
-		SetBorderAttributes(tcell.AttrDim).
-		SetTitle(fmt.Sprintf(
-			" stui on [%s / %s / Slurm %s] ", config.ClusterName, config.SchedulerHostName, config.SchedulerSlurmVersion,
-		)).
-		SetTitleAlign(tview.AlignCenter)
+		SetBorderAttributes(tcell.AttrDim)
+	a.UpdateAppTitle()
+	a.MainFlex.SetTitleAlign(tview.AlignCenter)
 
 	{ // Nodes View
 		a.NodesView = NewStuiView(
@@ -295,6 +293,25 @@ func (a *App) SetupViews() {
 	}
 }
 
+func (a *App) RefreshClusterMetadata() {
+	h, c, v, err := config.GetSchedulerInfoWithTimeout(config.RequestTimeout)
+	a.App.QueueUpdateDraw(func() {
+		if err != nil {
+			a.MainFlex.SetTitle(" [red]DISCONNECTED FROM CLUSTER[white] ")
+			return
+		}
+		a.MainFlex.SetTitle(fmt.Sprintf(
+			" stui on [%s / %s / Slurm %s] ", c, h, v,
+		))
+	})
+}
+
+func (a *App) UpdateAppTitle() {
+	a.MainFlex.SetTitle(fmt.Sprintf(
+		" stui on [%s / %s / Slurm %s] ", config.ClusterName, config.SchedulerHostName, config.SchedulerSlurmVersion,
+	))
+}
+
 // Starts periodic background processes to refresh data
 func (a *App) StartRefresh() {
 	// Fetch and setup partitions list - static
@@ -333,6 +350,7 @@ func (a *App) StartRefresh() {
 		for {
 			select {
 			case <-fetchTicker.C:
+				go a.RefreshClusterMetadata()
 				a.App.QueueUpdateDraw(func() {
 					switch a.GetCurrentPageName() {
 					case NODES_PAGE:
