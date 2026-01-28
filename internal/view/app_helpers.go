@@ -139,9 +139,7 @@ func (a *App) ApplyHighlighting(text string) string {
 	// 1. Escape existing '['
 	escaped := strings.ReplaceAll(text, "[", "[[")
 
-	// Find matches in raw text, then build the tagged string.
-	// We escape '[' characters in both the matched and unmatched parts to prevent
-	// accidental tview color tag interpretation.
+	// Build tagged string with escapes for '[' to prevent accidental tag interpretation
 	matches := re.FindAllStringIndex(text, -1)
 	if len(matches) == 0 {
 		return escaped
@@ -156,9 +154,9 @@ func (a *App) ApplyHighlighting(text string) string {
 		result.WriteString(strings.ReplaceAll(text[lastIndex:start], "[", "[["))
 
 		// Add match with tags (escaped match content)
-		result.WriteString("[black:white:b]")
+		result.WriteString(searchHighlightTagStart)
 		result.WriteString(strings.ReplaceAll(text[start:end], "[", "[["))
-		result.WriteString("[-:-:-]")
+		result.WriteString(searchHighlightTagEnd)
 
 		lastIndex = end
 	}

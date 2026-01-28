@@ -220,37 +220,37 @@ func (s *StuiView) Render() {
 		// Pre-calculate row-level search matches for efficiency
 		var matches [][]int
 		if s.searchEnabled && searchPatternRegex != nil && !config.DisableSearchHighlight {
-			rowString := ""
+			var sb strings.Builder
 			for _, c := range rowData {
-				rowString += c.Display()
+				sb.WriteString(c.Display())
 			}
-			matches = searchPatternRegex.FindAllStringIndex(rowString, -1)
+			matches = searchPatternRegex.FindAllStringIndex(sb.String(), -1)
 		}
 
 		currentOffset := 0
+		matchIdx := 0
 		for col, cell := range rowData {
 			// Op 1: Text wrapping
 			colObject := (*s.data.Headers)[col]
 			cellText := cell.Display()
-			// We need to *pad* the text here, as tview does not support a 'minimum width' parameter for tables.
-			// That is why we need to then trim the spaces later during selecting/deselecting rows.
 			cellView := tview.NewTableCell(fmt.Sprintf("%-*s", colObject.Width, cellText)).
 				SetAlign(tview.AlignLeft).
 				SetExpansion(1)
 
 			// Op 2: Highlight search results
 			isMatched := false
-			if len(matches) > 0 {
-				cellLen := len(cellText)
-				// Check if any match in the row overlaps with this cell
-				for _, match := range matches {
-					mStart, mEnd := match[0], match[1]
-					// Overlap if (mStart < cellOffset + cellLen) AND (mEnd > cellOffset)
-					if mStart < currentOffset+cellLen && mEnd > currentOffset {
-						isMatched = true
-						break
-					}
+			cellEnd := currentOffset + len(cellText)
+			for i := matchIdx; i < len(matches); i++ {
+				m := matches[i]
+				if m[1] <= currentOffset {
+					matchIdx = i + 1
+					continue
 				}
+				if m[0] >= cellEnd {
+					break
+				}
+				isMatched = true
+				break
 			}
 
 			cellView.SetClickedFunc(func() bool {
@@ -265,31 +265,30 @@ func (s *StuiView) Render() {
 			}
 
 			// Highlight selected rows, or set color based on status
-			_, isSelected := s.Selection[rowData[0].Display()] // Check if it's IN the map, not the actual value.
+			_, isSelected := s.Selection[rowData[0].Display()]
 
 			if isSelected {
-				cellView.SetBackgroundColor(selectionColor)
-				cellView.SetTextColor(selectionTextColor)
-				cellView.SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
+				cellView.SetBackgroundColor(selectionColor).
+					SetTextColor(selectionTextColor).
+					SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
+				if isMatched {
+					cellView.SetAttributes(tcell.AttrBold)
+				}
+			} else if isMatched {
+				cellView.SetTextColor(searchHighlightFgColor).
+					SetBackgroundColor(searchHighlightBgColor).
+					SetAttributes(tcell.AttrBold).
+					SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
 			} else {
-				// Colorize text based on status
 				if shouldColorizeRow {
 					cellView.SetTextColor(colorizedColor)
 				}
-
-				// Other defaults
-				cellView.SetBackgroundColor(generalBackgroundColor) // Explicitly set default when not selected
-				cellView.SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
-			}
-
-			if isMatched {
-				cellView.SetTextColor(searchHighlightFgColor).
-					SetBackgroundColor(searchHighlightBgColor).
-					SetAttributes(tcell.AttrBold)
+				cellView.SetBackgroundColor(generalBackgroundColor).
+					SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
 			}
 
 			s.Table.SetCell(row+1, col, cellView)
-			currentOffset += len(cellText)
+			currentOffset = cellEnd
 		}
 	}
 

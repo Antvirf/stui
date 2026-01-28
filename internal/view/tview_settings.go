@@ -34,6 +34,8 @@ const (
 	searchboxLabelColor        = tcell.ColorOrange
 	searchHighlightBgColor     = tcell.ColorWhite
 	searchHighlightFgColor     = tcell.ColorBlack
+	searchHighlightTagStart    = "[black:white:b]"
+	searchHighlightTagEnd      = "[-:-:-]"
 )
 
 func init() {
