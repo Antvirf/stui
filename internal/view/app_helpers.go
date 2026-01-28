@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -124,29 +125,71 @@ func (a *App) optionalRefreshAndRenderPage(pageName string, refresh bool) {
 	go a.App.QueueUpdateDraw(func() {})
 }
 
+func (a *App) ApplyHighlighting(text string) string {
+	if text == "" || a.SearchPattern == "" || config.DisableSearchHighlight {
+		// Even if not highlighting, we must escape '[' for tview
+		return strings.ReplaceAll(text, "[", "[[")
+	}
+
+	re, err := regexp.Compile("(?i)" + a.SearchPattern)
+	if err != nil {
+		return strings.ReplaceAll(text, "[", "[[")
+	}
+
+	// 1. Escape existing '['
+	escaped := strings.ReplaceAll(text, "[", "[[")
+
+	// Find matches in raw text, then build the tagged string.
+	// We escape '[' characters in both the matched and unmatched parts to prevent
+	// accidental tview color tag interpretation.
+	matches := re.FindAllStringIndex(text, -1)
+	if len(matches) == 0 {
+		return escaped
+	}
+
+	var result strings.Builder
+	lastIndex := 0
+	for _, match := range matches {
+		start, end := match[0], match[1]
+
+		// Add part before match (escaped)
+		result.WriteString(strings.ReplaceAll(text[lastIndex:start], "[", "[["))
+
+		// Add match with tags (escaped match content)
+		result.WriteString("[black:white:b]")
+		result.WriteString(strings.ReplaceAll(text[start:end], "[", "[["))
+		result.WriteString("[-:-:-]")
+
+		lastIndex = end
+	}
+	// Add remaining part
+	result.WriteString(strings.ReplaceAll(text[lastIndex:], "[", "[["))
+
+	return result.String()
+}
+
 func (a *App) ShowModalPopupTable(title string, table *tview.Table) {
 	a.showModalPopup(title, table, 16, 10, 0)
 }
 
 func (a *App) ShowModalPopupString(title, details string) {
-	detailView := tview.NewTextView().
-		SetDynamicColors(true).
-		SetScrollable(true).
-		SetWrap(true). // Enable text wrapping
-		SetTextAlign(tview.AlignLeft)
-	detailView.SetText(details)
-
+	detailView := a.createTextViewWithHighlighting(details)
 	a.showModalPopup(title, detailView, 16, 10, 0)
 }
+
 func (a *App) ShowModalPopupMinimal(details string) {
-	detailView := tview.NewTextView().
+	detailView := a.createTextViewWithHighlighting(details)
+	a.showModalPopup("Full cell contents", detailView, 5, 10, 1)
+}
+
+func (a *App) createTextViewWithHighlighting(text string) *tview.TextView {
+	tv := tview.NewTextView().
 		SetDynamicColors(true).
 		SetScrollable(true).
-		SetWrap(true). // Enable text wrapping
+		SetWrap(true).
 		SetTextAlign(tview.AlignLeft)
-	detailView.SetText(details)
-
-	a.showModalPopup("Full cell contents", detailView, 5, 10, 1)
+	tv.SetText(a.ApplyHighlighting(text))
+	return tv
 }
 
 func (a *App) showModalPopup(title string, primitive tview.Primitive, width int, height int, verticalPadding int) {
@@ -262,9 +305,22 @@ func (a *App) ShowSacctJobDetails(jobID string) {
 	table.SetFixed(1, 1)
 	table.SetBorderPadding(0, 0, 1, 1)
 
+	var searchPatternRegex *regexp.Regexp
+	if a.SearchPattern != "" && !config.DisableSearchHighlight {
+		searchPatternRegex, _ = regexp.Compile("(?i)" + a.SearchPattern)
+	}
+
 	for i, line := range strings.Split(details, "\n") {
 		for j, cell := range strings.Split(line, model.SACCT_DELIMITER) {
 			tc := tview.NewTableCell(cell)
+
+			// Highlight if matched
+			if searchPatternRegex != nil && searchPatternRegex.MatchString(cell) {
+				tc.SetTextColor(searchHighlightFgColor).
+					SetBackgroundColor(searchHighlightBgColor).
+					SetAttributes(tcell.AttrBold)
+			}
+
 			if i == 0 {
 				tc.SetAlign(2) // Align the title column to the right
 				tc.SetAttributes(tcell.AttrBold)
