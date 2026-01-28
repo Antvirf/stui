@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-6539-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-6578-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E7M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -68,6 +68,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
           if true, only copy the first column of the table to clipboard when copying (default true)
       -disable-mouse
           disable mouse input
+      -disable-search-highlight
+          disable highlighting of regex search matches
       -job-columns-config string
           comma-separated list of scontrol fields to show in job view, use '//' to combine columns, '%%' for ratio/percentage columns, or '++' to extend columns to full width. 'JobId', 'Partitions' and 'JobState' are always shown. (default "UserId,JobName++,Comment,RunTime,NodeList,QOS,NumCPUs,Mem")
       -load-sacct-data-from duration
