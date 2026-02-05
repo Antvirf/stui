@@ -257,7 +257,6 @@ func (s *StuiView) Render() {
 				s.cellClickFunction(cellText)
 				return true
 			})
-			cellView.SetReference(isMatched)
 
 			if colObject.FullWidthColumn {
 				cellView.SetMaxWidth(0)
@@ -265,46 +264,8 @@ func (s *StuiView) Render() {
 				cellView.SetMaxWidth(colObject.Width)
 			}
 
-			// 1. Determine base colors based on status and selection
-			targetTextColor := generalTextColor
-			targetBgColor := generalBackgroundColor
 			_, isSelected := s.Selection[rowData[0].Display()]
-
-			if shouldColorizeRow {
-				targetTextColor = colorizedColor
-			}
-
-			if isSelected {
-				targetBgColor = selectionColor
-				if !shouldColorizeRow {
-					targetTextColor = selectionTextColor
-				}
-			}
-
-			// 2. Search highlights take precedence over normal text colors if matched
-			if isMatched {
-				targetTextColor = searchHighlightFgColor
-				targetBgColor = searchHighlightBgColor
-			}
-
-			cellView.SetTextColor(targetTextColor).SetBackgroundColor(targetBgColor)
-
-			// 3. Define selected style (cursor appearance)
-			cursorBgColor := rowCursorColorBackground
-			if isSelected {
-				cursorBgColor = selectionHighlightColor
-			}
-
-			// We want to keep the text color when highlighted if it's a state color
-			cursorTextColor := targetTextColor
-			if isMatched {
-				cursorTextColor = searchHighlightFgColor
-				cursorBgColor = searchHighlightHoverBgColor
-			}
-
-			cellView.SetSelectedStyle(tcell.StyleDefault.
-				Background(cursorBgColor).
-				Foreground(cursorTextColor))
+			colorizeTableCell(cellView, isSelected, isMatched, shouldColorizeRow, colorizedColor)
 
 			s.Table.SetCell(row+1, col, cellView)
 			currentOffset = cellEnd
@@ -371,6 +332,57 @@ func (s *StuiView) FetchIfStaleAndRender(since time.Duration) {
 func (s *StuiView) FetchAndRender() {
 	s.provider.Fetch()
 	s.Render()
+}
+
+// colorizeTableCell applies consistent color and style to a table cell based on its state
+func colorizeTableCell(
+	cell *tview.TableCell,
+	isSelected bool,
+	isSearchMatched bool,
+	shouldColorizeRow bool,
+	colorizedColor tcell.Color,
+) {
+	// 1. Determine base colors based on status and selection
+	targetTextColor := generalTextColor
+	targetBgColor := generalBackgroundColor
+
+	if shouldColorizeRow {
+		targetTextColor = colorizedColor
+	}
+
+	if isSelected {
+		targetBgColor = selectionColor
+		if !shouldColorizeRow {
+			targetTextColor = selectionTextColor
+		}
+	}
+
+	// 2. Search highlights take precedence over normal text colors if matched
+	if isSearchMatched {
+		targetTextColor = searchHighlightFgColor
+		targetBgColor = searchHighlightBgColor
+	}
+
+	cell.SetTextColor(targetTextColor).SetBackgroundColor(targetBgColor)
+	cell.SetReference(isSearchMatched)
+	cell.SetAttributes(tcell.AttrNone)
+
+	// 3. Define selected style (cursor appearance)
+	cursorBgColor := rowCursorColorBackground
+	if isSelected {
+		cursorBgColor = selectionHighlightColor
+	}
+
+	// We want to keep the text color when highlighted if it's a state color
+	cursorTextColor := targetTextColor
+	if isSearchMatched {
+		cursorTextColor = searchHighlightFgColor
+		cursorBgColor = searchHighlightHoverBgColor
+	}
+
+	cell.SetSelectedStyle(tcell.StyleDefault.
+		Background(cursorBgColor).
+		Foreground(cursorTextColor))
 }
 
 func GetStateColorMapping(text string) (color tcell.Color, hasMapping bool) {

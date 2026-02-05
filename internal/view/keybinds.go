@@ -448,27 +448,7 @@ func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bo
 				isSearchMatched = cell.GetReference().(bool)
 			}
 
-			targetTextColor := generalTextColor
-			if shouldColorizeRow {
-				targetTextColor = colorizedColor
-			}
-
-			if !isSearchMatched {
-				cell.SetBackgroundColor(generalBackgroundColor).
-					SetTextColor(targetTextColor).
-					SetAttributes(tcell.AttrNone)
-			}
-
-			cursorTextColor := targetTextColor
-			cursorBgColor := rowCursorColorBackground
-			if isSearchMatched {
-				cursorTextColor = searchHighlightFgColor
-				cursorBgColor = searchHighlightHoverBgColor
-			}
-
-			cell.SetSelectedStyle(tcell.StyleDefault.
-				Background(cursorBgColor).
-				Foreground(cursorTextColor))
+			colorizeTableCell(cell, false, isSearchMatched, shouldColorizeRow, colorizedColor)
 		}
 	} else {
 		(*selection)[entryName] = false // This boolean is NEVER used. Only presence in this map matters.
@@ -484,27 +464,7 @@ func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bo
 				isSearchMatched = cell.GetReference().(bool)
 			}
 
-			targetTextColor := selectionTextColor
-			if shouldColorizeRow {
-				targetTextColor = colorizedColor
-			}
-
-			if !isSearchMatched {
-				cell.SetBackgroundColor(selectionColor).
-					SetTextColor(targetTextColor).
-					SetAttributes(tcell.AttrNone)
-			}
-
-			cursorTextColor := targetTextColor
-			cursorBgColor := selectionHighlightColor
-			if isSearchMatched {
-				cursorTextColor = searchHighlightFgColor
-				cursorBgColor = searchHighlightHoverBgColor
-			}
-
-			cell.SetSelectedStyle(tcell.StyleDefault.
-				Background(cursorBgColor).
-				Foreground(cursorTextColor))
+			colorizeTableCell(cell, true, isSearchMatched, shouldColorizeRow, colorizedColor)
 		}
 	}
 }
