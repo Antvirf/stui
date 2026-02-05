@@ -319,18 +319,17 @@ func (a *App) ShowSacctJobDetails(jobID string) {
 			// Highlight if matched
 			if searchPatternRegex != nil && searchPatternRegex.MatchString(cell) {
 				tc.SetTextColor(searchHighlightFgColor).
-					SetBackgroundColor(searchHighlightBgColor).
-					SetAttributes(tcell.AttrBold)
+					SetBackgroundColor(searchHighlightBgColor)
 			}
 
 			if i == 0 {
 				tc.SetAlign(2) // Align the title column to the right
 				tc.SetAttributes(tcell.AttrBold)
-				tc.SetTextColor(selectionColor)
+				tc.SetTextColor(paneSelectorHighlightColor)
 			}
 			if j == 0 {
 				tc.SetAttributes(tcell.AttrBold)
-				tc.SetTextColor(selectionColor)
+				tc.SetTextColor(paneSelectorHighlightColor)
 			}
 			if i != 0 && j != 0 {
 				tc.SetClickedFunc(func() bool {
