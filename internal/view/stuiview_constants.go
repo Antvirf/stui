@@ -1,6 +1,16 @@
 package view
 
-import "github.com/gdamore/tcell/v2"
+import (
+	"regexp"
+
+	"github.com/gdamore/tcell/v2"
+)
+
+type StatePattern struct {
+	State  string
+	Color  tcell.Color
+	Regexp *regexp.Regexp
+}
 
 var (
 	BAD_STATE_COLOR      = tcell.ColorRed
@@ -54,4 +64,16 @@ var (
 		// 5. Success States (Green)
 		{"COMPLETED", SUCCESS_STATE_COLOR},
 	}
+
+	StatePatterns []StatePattern
 )
+
+func init() {
+	for _, entry := range StatePriorityList {
+		StatePatterns = append(StatePatterns, StatePattern{
+			State:  entry.State,
+			Color:  entry.Color,
+			Regexp: regexp.MustCompile(`\b` + regexp.QuoteMeta(entry.State) + `\b`),
+		})
+	}
+}

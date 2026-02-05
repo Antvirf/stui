@@ -390,13 +390,12 @@ func GetStateColorMapping(text string) (color tcell.Color, hasMapping bool) {
 	color = tcell.ColorWhite
 
 	// Process priority list. Earlier entries take precedence.
-	for _, entry := range StatePriorityList {
+	for _, pattern := range StatePatterns {
 		// We use word boundaries to ensure we don't match substrings.
 		// E.g. we don't want "DOWN" to match "POWERED_DOWN".
 		// Note: Slurm states can be combined with "+", which acts as a word boundary.
-		re := regexp.MustCompile(`\b` + regexp.QuoteMeta(entry.State) + `\b`)
-		if re.MatchString(text) {
-			color = entry.Color
+		if pattern.Regexp.MatchString(text) {
+			color = pattern.Color
 			hasMapping = true
 			return
 		}
