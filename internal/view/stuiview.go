@@ -264,28 +264,8 @@ func (s *StuiView) Render() {
 				cellView.SetMaxWidth(colObject.Width)
 			}
 
-			// Highlight selected rows, or set color based on status
 			_, isSelected := s.Selection[rowData[0].Display()]
-
-			if isSelected {
-				cellView.SetBackgroundColor(selectionColor).
-					SetTextColor(selectionTextColor).
-					SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
-				if isMatched {
-					cellView.SetAttributes(tcell.AttrBold)
-				}
-			} else if isMatched {
-				cellView.SetTextColor(searchHighlightFgColor).
-					SetBackgroundColor(searchHighlightBgColor).
-					SetAttributes(tcell.AttrBold).
-					SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
-			} else {
-				if shouldColorizeRow {
-					cellView.SetTextColor(colorizedColor)
-				}
-				cellView.SetBackgroundColor(generalBackgroundColor).
-					SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
-			}
+			colorizeTableCell(cellView, isSelected, isMatched, shouldColorizeRow, colorizedColor)
 
 			s.Table.SetCell(row+1, col, cellView)
 			currentOffset = cellEnd
@@ -354,26 +334,68 @@ func (s *StuiView) FetchAndRender() {
 	s.Render()
 }
 
+// colorizeTableCell applies consistent color and style to a table cell based on its state
+func colorizeTableCell(
+	cell *tview.TableCell,
+	isSelected bool,
+	isSearchMatched bool,
+	shouldColorizeRow bool,
+	colorizedColor tcell.Color,
+) {
+	// 1. Determine base colors based on status and selection
+	targetTextColor := generalTextColor
+	targetBgColor := generalBackgroundColor
+
+	if shouldColorizeRow {
+		targetTextColor = colorizedColor
+	}
+
+	if isSelected {
+		targetBgColor = selectionColor
+		if !shouldColorizeRow {
+			targetTextColor = selectionTextColor
+		}
+	}
+
+	// 2. Search highlights take precedence over normal text colors if matched
+	if isSearchMatched {
+		targetTextColor = searchHighlightFgColor
+		targetBgColor = searchHighlightBgColor
+	}
+
+	cell.SetTextColor(targetTextColor).SetBackgroundColor(targetBgColor)
+	cell.SetReference(isSearchMatched)
+	cell.SetAttributes(tcell.AttrNone)
+
+	// 3. Define selected style (cursor appearance)
+	cursorBgColor := rowCursorColorBackground
+	if isSelected {
+		cursorBgColor = selectionHighlightColor
+	}
+
+	// We want to keep the text color when highlighted if it's a state color
+	cursorTextColor := targetTextColor
+	if isSearchMatched {
+		cursorTextColor = searchHighlightFgColor
+		cursorBgColor = searchHighlightHoverBgColor
+	}
+
+	cell.SetSelectedStyle(tcell.StyleDefault.
+		Background(cursorBgColor).
+		Foreground(cursorTextColor))
+}
+
 func GetStateColorMapping(text string) (color tcell.Color, hasMapping bool) {
 	hasMapping = false
 	color = tcell.ColorWhite
 
-	// Process high priority mapping first
-	for state, mappedColor := range STATE_COLORS_MAP_HIGH_PRIORITY {
-		// We check using contains, as some states won't be an exact text match.
-		// E.g. `CANCELLED` is sometimes `CANCELLED BY $UID`
-		// E.g. `IDLE+DRAIN` is a valid node state, and should be interpreted as `DRAIN` for coloring.
-		if strings.Contains(text, state) {
-			color = mappedColor
-			hasMapping = true
-			return
-		}
-	}
-
-	// Lower priority second
-	for state, mappedColor := range STATE_COLORS_MAP {
-		if strings.Contains(text, state) {
-			color = mappedColor
+	// Process priority list. Earlier entries take precedence.
+	for _, pattern := range StatePatterns {
+		// We use word boundaries to ensure we don't match substrings.
+		// E.g. we don't want "DOWN" to match "POWERED_DOWN".
+		// Note: Slurm states can be combined with "+", which acts as a word boundary.
+		if pattern.Regexp.MatchString(text) {
+			color = pattern.Color
 			hasMapping = true
 			return
 		}

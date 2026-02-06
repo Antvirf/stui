@@ -443,22 +443,28 @@ func selectRow(a *App, view *tview.Table, rowIndex int, selection *map[string]bo
 
 		for col := 0; col < view.GetColumnCount(); col++ {
 			cell := view.GetCell(rowIndex, col)
-			cell.SetBackgroundColor(generalBackgroundColor).
-				SetSelectedStyle(tcell.StyleDefault.Background(rowCursorColorBackground))
-			if shouldColorizeRow {
-				cell.SetTextColor(colorizedColor)
-			} else {
-				cell.SetTextColor(generalTextColor)
+			isSearchMatched := false
+			if cell.GetReference() != nil {
+				isSearchMatched = cell.GetReference().(bool)
 			}
+
+			colorizeTableCell(cell, false, isSearchMatched, shouldColorizeRow, colorizedColor)
 		}
 	} else {
 		(*selection)[entryName] = false // This boolean is NEVER used. Only presence in this map matters.
 
+		// Check whether we should give this row a special color based on its state field
+		stateText := view.GetCell(rowIndex, config.NodeViewColumnsStateIndex).Text
+		colorizedColor, shouldColorizeRow := GetStateColorMapping(stateText)
+
 		for col := 0; col < view.GetColumnCount(); col++ {
-			view.GetCell(rowIndex, col).
-				SetBackgroundColor(selectionColor).
-				SetTextColor(selectionTextColor).
-				SetSelectedStyle(tcell.StyleDefault.Background(selectionHighlightColor))
+			cell := view.GetCell(rowIndex, col)
+			isSearchMatched := false
+			if cell.GetReference() != nil {
+				isSearchMatched = cell.GetReference().(bool)
+			}
+
+			colorizeTableCell(cell, true, isSearchMatched, shouldColorizeRow, colorizedColor)
 		}
 	}
 }

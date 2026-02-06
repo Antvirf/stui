@@ -19,23 +19,24 @@ const (
 	FFTH_COL = 4
 
 	// Color configs for the app
-	generalBackgroundColor     = tcell.ColorBlack
-	generalTextColor           = tcell.Color255
-	pagesBorderColor           = tcell.Color240 // Medium gray
-	rowCursorColorBackground   = tcell.Color240
-	rowCursorColorForeground   = tcell.ColorWhite
-	selectionTextColor         = tcell.ColorWhite
-	selectionColor             = tcell.ColorCadetBlue
-	selectionHighlightColor    = tcell.ColorDeepSkyBlue
-	paneSelectorHighlightColor = tcell.Color172 // Orange
-	modalBorderColor           = tcell.Color172 // Orange
-	dropdownBackgroundColor    = tcell.Color240 // Medium gray
-	dropdownForegroundColor    = tcell.Color255 // White
-	searchboxLabelColor        = tcell.ColorOrange
-	searchHighlightBgColor     = tcell.ColorWhite
-	searchHighlightFgColor     = tcell.ColorBlack
-	searchHighlightTagStart    = "[black:white:b]"
-	searchHighlightTagEnd      = "[-:-:-]"
+	generalBackgroundColor      = tcell.ColorBlack
+	generalTextColor            = tcell.Color255
+	pagesBorderColor            = tcell.Color240 // Medium gray
+	rowCursorColorBackground    = tcell.Color240 // Slightly brighter dark gray
+	rowCursorColorForeground    = tcell.ColorWhite
+	selectionTextColor          = tcell.ColorWhite
+	selectionColor              = tcell.Color18 // Dark Navy
+	selectionHighlightColor     = tcell.Color30 // Steel Blue
+	paneSelectorHighlightColor  = tcell.ColorCadetBlue
+	modalBorderColor            = tcell.ColorCadetBlue
+	dropdownBackgroundColor     = tcell.Color237 // Slightly brighter dark gray
+	dropdownForegroundColor     = tcell.Color255 // White
+	searchboxLabelColor         = tcell.ColorCadetBlue
+	searchHighlightBgColor      = tcell.ColorWhite
+	searchHighlightHoverBgColor = tcell.Color250 // Light gray for search match under cursor
+	searchHighlightFgColor      = tcell.ColorBlack
+	searchHighlightTagStart     = "[black:white:b]"
+	searchHighlightTagEnd       = "[-:-:-]"
 )
 
 func init() {
