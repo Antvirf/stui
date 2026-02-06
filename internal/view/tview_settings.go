@@ -22,11 +22,11 @@ const (
 	generalBackgroundColor      = tcell.ColorBlack
 	generalTextColor            = tcell.Color255
 	pagesBorderColor            = tcell.Color240 // Medium gray
-	rowCursorColorBackground    = tcell.Color237 // Slightly brighter dark gray
+	rowCursorColorBackground    = tcell.Color240 // Slightly brighter dark gray
 	rowCursorColorForeground    = tcell.ColorWhite
 	selectionTextColor          = tcell.ColorWhite
 	selectionColor              = tcell.Color18 // Dark Navy
-	selectionHighlightColor     = tcell.Color25 // Steel Blue
+	selectionHighlightColor     = tcell.Color30 // Steel Blue
 	paneSelectorHighlightColor  = tcell.ColorCadetBlue
 	modalBorderColor            = tcell.ColorCadetBlue
 	dropdownBackgroundColor     = tcell.Color237 // Slightly brighter dark gray
