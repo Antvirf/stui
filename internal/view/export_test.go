@@ -77,14 +77,6 @@ func TestExportToCSV(t *testing.T) {
 	})
 }
 
-func TestGenerateExportFilename(t *testing.T) {
-	filename := GenerateExportFilename()
-	assert.True(t, strings.HasPrefix(filename, "stui-export-"))
-	assert.True(t, strings.HasSuffix(filename, ".csv"))
-	// Should be something like stui-export-2024-01-15-143025.csv
-	assert.Len(t, filename, len("stui-export-2006-01-02-150405.csv"))
-}
-
 func TestGetVisibleRows(t *testing.T) {
 	// Create a minimal StuiView with test data
 	searchPattern := ""

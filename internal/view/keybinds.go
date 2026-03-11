@@ -34,7 +34,6 @@ func (a *App) SetupKeybinds() {
 			return event
 		}
 
-		// Ctrl+S for export - should work even when selectors are focused
 		if event.Key() == tcell.KeyCtrlS {
 			a.ShowExportPrompt()
 			return nil
