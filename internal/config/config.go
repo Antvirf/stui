@@ -75,6 +75,7 @@ Arrows   Scroll up/down/left/right in table view
 Ctrl+A   Select all currently filtered rows
 Ctrl+I   Invert selection within filtered rows
 Ctrl+R   Refresh currently visible data
+Ctrl+S   Export current view as CSV file
 Ctrl+C   Exit
 o        Sort table by column
 

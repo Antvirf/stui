@@ -34,6 +34,12 @@ func (a *App) SetupKeybinds() {
 			return event
 		}
 
+		// Ctrl+S for export - should work even when selectors are focused
+		if event.Key() == tcell.KeyCtrlS {
+			a.ShowExportPrompt()
+			return nil
+		}
+
 		// Don't allow pane switching when prompts are open or selectors are in focus
 		if a.CommandModalOpen ||
 			a.SearchBox.HasFocus() ||
