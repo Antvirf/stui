@@ -93,7 +93,7 @@ func (a *App) ShowExportPrompt() {
 	}
 
 	pageName := fmt.Sprintf("export-prompt-%d", time.Now().Unix())
-	defaultFilename := fmt.Sprintf("stui-export-%s.csv", time.Now().Format("2006-01-02-150405"))
+	defaultFilename := fmt.Sprintf("stui-export-%s-%s.csv", a.GetCurrentPageName(), time.Now().Format("2006-01-02-150405"))
 
 	input := tview.NewInputField().
 		SetLabel("Export filename: ").
