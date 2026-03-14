@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-6763-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-7072-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E7M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -116,6 +116,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     Ctrl+A   Select all currently filtered rows
     Ctrl+I   Invert selection within filtered rows
     Ctrl+R   Refresh currently visible data
+    Ctrl+S   Export current view as CSV file
     Ctrl+C   Exit
     o        Sort table by column
     
