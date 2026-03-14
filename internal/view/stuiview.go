@@ -114,6 +114,69 @@ func (s *StuiView) SetSearchEnabled(value bool) {
 	s.searchEnabled = value
 }
 
+// Apply regex filter to current data and return only the matching rows
+func (s *StuiView) ApplyRegexSearchFilterToRows() ([][]model.CellValue, int, int64) {
+	searchFilterStartTime := time.Now()
+	filteredCount := s.data.Length()
+	filteredRows := s.data.Rows
+	if s.searchEnabled && *s.searchPattern != "" {
+		if re, err := regexp.Compile("(?i)" + *s.searchPattern); err == nil {
+			filteredRows = make([][]model.CellValue, 0, len(s.data.Rows)/2)
+			for i, row := range s.data.Rows {
+				if re.MatchString(s.data.RowsAsSingleStrings[i]) {
+					filteredRows = append(filteredRows, row)
+					filteredCount++
+				}
+			}
+		} else {
+			s.errorNotificationFunction(fmt.Sprintf("[red]Invalid search pattern: %v[white]", err))
+		}
+	}
+	return filteredRows, filteredCount, time.Since(searchFilterStartTime).Milliseconds()
+}
+
+func (s *StuiView) ApplySortingToRows(rows *[][]model.CellValue) {
+	if s.sortColumn >= 0 && len(*rows) > 0 {
+		sort.Slice(*rows, func(i, j int) bool {
+			cmp := (*rows)[i][s.sortColumn].Compare((*rows)[j][s.sortColumn])
+			if s.sortDirection > 0 {
+				return cmp < 0
+			}
+			return cmp > 0
+		})
+	}
+}
+
+func (s *StuiView) GetHeadersAsText() []string {
+	rawHeaders := *s.data.Headers
+	headers := make([]string, len(rawHeaders))
+	for i, h := range rawHeaders {
+		headers[i] = h.DisplayName
+	}
+	return headers
+}
+
+// GetVisibleRowsAsText returns the currently visible rows (post-filter, search, sort).
+func (s *StuiView) GetVisibleRowsAsText() (rows [][]string) {
+	if s.data == nil {
+		return nil
+	}
+
+	filteredRows, _, _ := s.ApplyRegexSearchFilterToRows()
+	s.ApplySortingToRows(&filteredRows)
+
+	// .Display() for each cell to get nice formatting
+	rows = make([][]string, len(filteredRows))
+	for i, row := range filteredRows {
+		r := make([]string, len(row))
+		for j, cell := range row {
+			r[j] = cell.Display()
+		}
+		rows[i] = r
+	}
+	return
+}
+
 func (s *StuiView) Render() {
 	startTime := time.Now()
 	s.data = s.provider.FilteredData()
@@ -121,52 +184,10 @@ func (s *StuiView) Render() {
 
 	s.Table.Clear()
 
-	// Compute counts
 	totalCount := s.provider.Length()
-	filteredCount := s.data.Length()
-
 	searchFilterTime := int64(0)
-	filteredRows := s.data.Rows
-	var searchPatternRegex *regexp.Regexp
-	if s.searchEnabled && *s.searchPattern != "" {
-		filteredCount = 0 // Will be updated in the filtering loop below
-		searchFilterStartTime := time.Now()
-		filteredRows = [][]model.CellValue{}
-
-		var err error
-		searchPatternRegex, err = regexp.Compile("(?i)" + *s.searchPattern)
-		if err != nil {
-			s.errorNotificationFunction(fmt.Sprintf("[red]Invalid search pattern: %v[white]", err))
-		} else {
-			// Preallocate slice with reasonable capacity
-			filteredRows = make([][]model.CellValue, 0, len(s.data.Rows)/2)
-
-			for i, row := range s.data.Rows {
-				// Check the row as a single string - this allows for regex across columns
-				matched := searchPatternRegex.MatchString(s.data.RowsAsSingleStrings[i])
-
-				if matched {
-					filteredRows = append(filteredRows, row)
-					filteredCount++
-				}
-			}
-		}
-		searchFilterTime = time.Since(searchFilterStartTime).Milliseconds()
-	}
-
-	// Sort rows if sort column is set - using typed comparison
-	if s.sortColumn >= 0 && len(filteredRows) > 0 {
-		sort.Slice(filteredRows, func(i, j int) bool {
-			valI := filteredRows[i][s.sortColumn]
-			valJ := filteredRows[j][s.sortColumn]
-
-			comparison := valI.Compare(valJ)
-			if s.sortDirection > 0 {
-				return comparison < 0 // Ascending
-			}
-			return comparison > 0 // Descending
-		})
-	}
+	filteredRows, filteredCount, searchFilterTime := s.ApplyRegexSearchFilterToRows()
+	s.ApplySortingToRows(&filteredRows)
 
 	for col, header := range *s.data.Headers {
 		// If header is a divided type, clean it up
@@ -205,6 +226,11 @@ func (s *StuiView) Render() {
 		s.Table.SetCell(0, col, cell)
 	}
 
+	// TODO: Move the regex compilation to searchbox.go
+	// and add the app/stuiview links as pointers to the regex instead of string
+	var searchPatternRegex *regexp.Regexp
+	searchPatternRegex, _ = regexp.Compile("(?i)" + *s.searchPattern)
+
 	// Row and cell-level processing: Text wrapping, colorization, etc.
 	for row, rowData := range filteredRows {
 		var colorizedColor tcell.Color
@@ -217,9 +243,9 @@ func (s *StuiView) Render() {
 			colorizedColor, shouldColorizeRow = generalBackgroundColor, false
 		}
 
-		// Pre-calculate row-level search matches for efficiency
+		// Pre-calculate row-level search matches (used for highlights) for efficiency
 		var matches [][]int
-		if s.searchEnabled && searchPatternRegex != nil && !config.DisableSearchHighlight {
+		if s.searchEnabled && *s.searchPattern != "" && !config.DisableSearchHighlight {
 			var sb strings.Builder
 			for _, c := range rowData {
 				sb.WriteString(c.Display())

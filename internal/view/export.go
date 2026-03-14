@@ -4,58 +4,11 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
-	"regexp"
-	"sort"
 	"time"
 
-	"github.com/antvirf/stui/internal/model"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
-
-// GetVisibleRows returns the currently visible rows (post-filter, search, sort).
-func (s *StuiView) GetVisibleRows() (headers []string, rows [][]string) {
-	if s.data == nil {
-		return nil, nil
-	}
-
-	headers = make([]string, len(*s.data.Headers))
-	for i, h := range *s.data.Headers {
-		headers[i] = h.DisplayName
-	}
-
-	filteredRows := s.data.Rows
-	if s.searchEnabled && *s.searchPattern != "" {
-		if re, err := regexp.Compile("(?i)" + *s.searchPattern); err == nil {
-			filteredRows = make([][]model.CellValue, 0, len(s.data.Rows)/2)
-			for i, row := range s.data.Rows {
-				if re.MatchString(s.data.RowsAsSingleStrings[i]) {
-					filteredRows = append(filteredRows, row)
-				}
-			}
-		}
-	}
-
-	if s.sortColumn >= 0 && len(filteredRows) > 0 {
-		sort.Slice(filteredRows, func(i, j int) bool {
-			cmp := filteredRows[i][s.sortColumn].Compare(filteredRows[j][s.sortColumn])
-			if s.sortDirection > 0 {
-				return cmp < 0
-			}
-			return cmp > 0
-		})
-	}
-
-	rows = make([][]string, len(filteredRows))
-	for i, row := range filteredRows {
-		r := make([]string, len(row))
-		for j, cell := range row {
-			r[j] = cell.Display()
-		}
-		rows[i] = r
-	}
-	return
-}
 
 // ExportToCSV writes headers and rows to a CSV file at the specified path.
 func ExportToCSV(filepath string, headers []string, rows [][]string) error {
@@ -137,7 +90,10 @@ func (a *App) ShowExportPrompt() {
 			if filename == "" {
 				return nil
 			}
-			headers, rows := view.GetVisibleRows()
+
+			headers := view.GetHeadersAsText()
+			rows := view.GetVisibleRowsAsText()
+
 			closePrompt()
 			if headers == nil {
 				a.ShowNotification("[red]No data to export[white]", 2*time.Second)

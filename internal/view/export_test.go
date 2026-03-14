@@ -77,7 +77,7 @@ func TestExportToCSV(t *testing.T) {
 	})
 }
 
-func TestGetVisibleRows(t *testing.T) {
+func TestGetVisibleRowsAsText(t *testing.T) {
 	// Create a minimal StuiView with test data
 	searchPattern := ""
 	headers := &[]config.ColumnConfig{
@@ -102,7 +102,8 @@ func TestGetVisibleRows(t *testing.T) {
 	}
 
 	t.Run("no filters returns all rows", func(t *testing.T) {
-		hdrs, rows := view.GetVisibleRows()
+		hdrs := view.GetHeadersAsText()
+		rows := view.GetVisibleRowsAsText()
 		assert.Equal(t, []string{"Name", "State"}, hdrs)
 		assert.Len(t, rows, 3)
 		assert.Equal(t, "node01", rows[0][0])
@@ -112,7 +113,8 @@ func TestGetVisibleRows(t *testing.T) {
 		searchPattern = "DOWN"
 		view.searchEnabled = true
 
-		hdrs, rows := view.GetVisibleRows()
+		hdrs := view.GetHeadersAsText()
+		rows := view.GetVisibleRowsAsText()
 		assert.Equal(t, []string{"Name", "State"}, hdrs)
 		assert.Len(t, rows, 1)
 		assert.Equal(t, "node02", rows[0][0])
@@ -125,7 +127,8 @@ func TestGetVisibleRows(t *testing.T) {
 
 	t.Run("nil data returns nil", func(t *testing.T) {
 		nilView := &StuiView{data: nil}
-		hdrs, rows := nilView.GetVisibleRows()
+		hdrs := view.GetHeadersAsText()
+		rows := nilView.GetVisibleRowsAsText()
 		assert.Nil(t, hdrs)
 		assert.Nil(t, rows)
 	})
@@ -134,7 +137,7 @@ func TestGetVisibleRows(t *testing.T) {
 		view.sortColumn = 0
 		view.sortDirection = SORT_ASC
 
-		_, rows := view.GetVisibleRows()
+		rows := view.GetVisibleRowsAsText()
 		assert.Len(t, rows, 3)
 		assert.Equal(t, "node01", rows[0][0])
 		assert.Equal(t, "node02", rows[1][0])
@@ -148,7 +151,7 @@ func TestGetVisibleRows(t *testing.T) {
 		view.sortColumn = 0
 		view.sortDirection = SORT_DESC
 
-		_, rows := view.GetVisibleRows()
+		rows := view.GetVisibleRowsAsText()
 		assert.Len(t, rows, 3)
 		assert.Equal(t, "node03", rows[0][0])
 		assert.Equal(t, "node02", rows[1][0])
