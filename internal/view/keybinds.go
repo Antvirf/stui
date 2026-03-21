@@ -58,96 +58,19 @@ func (a *App) SetupKeybinds() {
 				),
 			)
 		case '1':
-			a.SwitchToPage(NODES_PAGE)
-			a.CurrentTableView = a.NodesView.Table
-			a.SetHeaderGridInnerContents(
-				a.PartitionSelector,
-				a.NodeStateSelector,
-				a.SortSelector,
-			)
-			if a.SearchPattern != "" {
-				a.ShowSearchBox(a.NodesView.Grid)
-			} else {
-				a.HideSearchBox()
-			}
-			a.App.SetFocus(a.NodesView.Table)
-			a.setupSortSelectorOptions(a.NodesProvider, a.NodesView.sortColumn)
-			a.PagesContainer.SetTitle(a.NodesView.completeTitle)
-			go a.App.QueueUpdateDraw(func() {
-				a.NodesView.FetchIfStaleAndRender(config.RefreshInterval)
-			})
+			a.ActivatePage(config.NODES_PAGE)
 			return nil
 		case '2':
-			a.SwitchToPage(JOBS_PAGE)
-			a.CurrentTableView = a.JobsView.Table
-			a.SetHeaderGridInnerContents(
-				a.PartitionSelector,
-				a.JobStateSelector,
-				a.SortSelector,
-			)
-			if a.SearchPattern != "" {
-				a.ShowSearchBox(a.JobsView.Grid)
-			} else {
-				a.HideSearchBox()
-			}
-			a.App.SetFocus(a.JobsView.Table)
-			a.setupSortSelectorOptions(a.JobsProvider, a.JobsView.sortColumn)
-			a.PagesContainer.SetTitle(a.JobsView.completeTitle)
-			go a.App.QueueUpdateDraw(func() {
-				a.JobsView.FetchIfStaleAndRender(config.RefreshInterval)
-			})
+			a.ActivatePage(config.JOBS_PAGE)
 			return nil
 		case '3':
-			if config.SacctEnabled {
-				a.SwitchToPage(SACCT_PAGE)
-				a.CurrentTableView = a.SacctView.Table
-				a.SetHeaderGridInnerContents(
-					a.PartitionSelector,
-					a.JobStateSelector,
-					a.SortSelector,
-				)
-				if a.SearchPattern != "" {
-					a.ShowSearchBox(a.SacctView.Grid)
-				} else {
-					a.HideSearchBox()
-				}
-				a.App.SetFocus(a.SacctView.Table)
-				a.setupSortSelectorOptions(a.SacctProvider, a.SacctView.sortColumn)
-				a.PagesContainer.SetTitle(a.SacctView.completeTitle)
-				go a.App.QueueUpdateDraw(func() {
-					a.SacctView.FetchIfStaleAndRender(config.RefreshInterval)
-				})
-			}
+			a.ActivatePage(config.SACCT_PAGE)
 			return nil
 		case '4':
-			if config.SacctEnabled {
-				a.SwitchToPage(SACCTMGR_PAGE)
-				a.CurrentTableView = a.SacctMgrView.Table
-				a.SetHeaderGridInnerContents(
-					a.SacctMgrEntitySelector,
-					a.SortSelector,
-				)
-				if a.SearchPattern != "" {
-					a.ShowSearchBox(a.SacctMgrView.Grid)
-				} else {
-					a.HideSearchBox()
-				}
-				a.App.SetFocus(a.SacctMgrView.Table)
-				a.setupSortSelectorOptions(a.SacctMgrProvider, a.SacctMgrView.sortColumn)
-				a.PagesContainer.SetTitle(a.SacctMgrView.completeTitle)
-				go a.App.QueueUpdateDraw(func() {
-					a.SacctMgrView.FetchIfStaleAndRender(config.RefreshInterval)
-				})
-			}
+			a.ActivatePage(config.SACCTMGR_PAGE)
 			return nil
 		case '5':
-			a.SwitchToPage(SDIAG_PAGE)
-			a.PagesContainer.SetTitle(" Scheduler status (sdiag) ")
-			a.CurrentTableView = nil
-			a.HideSearchBox()
-			a.SetHeaderGridInnerContents(tview.NewBox())
-			a.UpdateHeaderLineOne("")
-			a.UpdateHeaderLineTwo("")
+			a.ActivatePage(config.SDIAG_PAGE)
 			return nil
 		}
 		return event
@@ -237,27 +160,27 @@ func tableViewInputCapture(
 			)
 			return nil
 		case 'p':
-			if a.GetCurrentPageName() == JOBS_PAGE || a.GetCurrentPageName() == NODES_PAGE || a.GetCurrentPageName() == SACCT_PAGE {
+			if a.GetCurrentPageName() == config.JOBS_PAGE || a.GetCurrentPageName() == config.NODES_PAGE || a.GetCurrentPageName() == config.SACCT_PAGE {
 				a.App.SetFocus(a.PartitionSelector)
 			}
 		case 'e':
-			if a.GetCurrentPageName() == SACCTMGR_PAGE {
+			if a.GetCurrentPageName() == config.SACCTMGR_PAGE {
 				a.App.SetFocus(a.SacctMgrEntitySelector)
 			}
 		case 's':
 			switch a.GetCurrentPageName() {
-			case NODES_PAGE:
+			case config.NODES_PAGE:
 				a.App.SetFocus(a.NodeStateSelector)
-			case JOBS_PAGE:
+			case config.JOBS_PAGE:
 				a.App.SetFocus(a.JobStateSelector)
-			case SACCT_PAGE:
+			case config.SACCT_PAGE:
 				a.App.SetFocus(a.JobStateSelector)
 			}
 		case 'o':
-			if a.GetCurrentPageName() == NODES_PAGE ||
-				a.GetCurrentPageName() == JOBS_PAGE ||
-				a.GetCurrentPageName() == SACCT_PAGE ||
-				a.GetCurrentPageName() == SACCTMGR_PAGE {
+			if a.GetCurrentPageName() == config.NODES_PAGE ||
+				a.GetCurrentPageName() == config.JOBS_PAGE ||
+				a.GetCurrentPageName() == config.SACCT_PAGE ||
+				a.GetCurrentPageName() == config.SACCTMGR_PAGE {
 				a.App.SetFocus(a.SortSelector)
 			}
 			return nil

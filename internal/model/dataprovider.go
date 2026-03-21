@@ -15,6 +15,7 @@ type DataInterface[T any] interface {
 type DataProvider[T DataInterface[T]] interface {
 	Length() int
 	Fetch() error
+	FetchIfStale(time.Duration) error
 	Data() T
 	FilteredData() T
 	LastUpdated() time.Time
@@ -34,11 +35,6 @@ type BaseProvider[T DataInterface[T]] struct {
 // NewBaseProvider[T] creates a new BaseProvider[T]
 func NewBaseProvider[T DataInterface[T]]() BaseProvider[T] {
 	return BaseProvider[T]{}
-}
-
-// Fetch should be implemented by concrete providers
-func (p *BaseProvider[T]) Fetch() error {
-	return nil
 }
 
 // Returns length of data

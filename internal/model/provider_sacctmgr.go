@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/antvirf/stui/internal/config"
 )
@@ -11,13 +12,15 @@ type SacctMgrProvider struct {
 	BaseProvider[*TableData]
 }
 
-func NewSacctMgrProvider() *SacctMgrProvider {
+func NewSacctMgrProvider(loadData bool) *SacctMgrProvider {
 	p := SacctMgrProvider{
 		BaseProvider: BaseProvider[*TableData]{
 			data: EmptyTableData(),
 		},
 	}
-	p.Fetch()
+	if loadData {
+		p.Fetch()
+	}
 	return &p
 }
 
@@ -42,6 +45,13 @@ func (p *SacctMgrProvider) Fetch() error {
 		return err
 	}
 	return nil
+}
+
+func (p *SacctMgrProvider) FetchIfStale(since time.Duration) (err error) {
+	if time.Since(p.LastUpdated()) > since {
+		err = p.Fetch()
+	}
+	return err
 }
 
 // SacctMgrProvider data does not have any categorical filters, so this just returns the current data.

@@ -26,11 +26,13 @@ var (
 	ConfigDirPaths         string        = DEFAULT_CONFIG_LOCATIONS
 	MouseDisabled          bool          = false
 	DisableSearchHighlight bool          = false
+	Quickstart             bool          = false
 
 	// Raw config options are not exposed to other modules, but pre-parsed by the config module
 	rawNodeViewColumns  string = "CPULoad%%CPUAlloc,CPUAlloc%%CPUTot,AllocMem%%RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason"
 	rawJobViewColumns   string = "UserId,JobName++,Comment,RunTime,NodeList,QOS,NumCPUs,Mem"
 	rawSacctViewColumns string = "QOS,Account,User,JobName++,NodeList,ReqCPUS%%AllocCPUS,ReqMem,Elapsed,ExitCode,ReqTRES,AllocTRES++,Comment++,SubmitLine++"
+	startPane           int    = 1
 
 	NodeViewColumns  *[]ColumnConfig
 	JobViewColumns   *[]ColumnConfig
@@ -53,6 +55,7 @@ var (
 	ConfigFile                     Config = NewConfig()
 	AllSacctViewColumns            string // Used in sacct detail view
 	MaximumColumnWidth             int    = 30
+	StartPane                      string = ""
 
 	// Cluster information
 	ClusterName           string = "unknown"
@@ -117,6 +120,13 @@ e        Focus on Entity type selector, 'esc' to close
 	ALL_CATEGORIES_OPTION    = "(all)"
 	NO_SORT_OPTION           = "(no sort)"
 	DEFAULT_CONFIG_LOCATIONS = "/etc/stui.d/,/home/$USER/.config/stui.d/"
+
+	// Page names
+	NODES_PAGE    = "nodes"
+	JOBS_PAGE     = "jobs"
+	SACCTMGR_PAGE = "sacctmgr"
+	SACCT_PAGE    = "sacct"
+	SDIAG_PAGE    = "sdiag"
 )
 
 func Configure() {
@@ -137,6 +147,8 @@ func Configure() {
 	flag.DurationVar(&LoadSacctDataFrom, CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM, LoadSacctDataFrom, "load sacct data starting from this long ago, specify as a duration, e.g. '1h', '2h'. This can be very slow on busy clusters, so use with caution. Set to 0 to not load any data from sacct.")
 	flag.BoolVar(&MouseDisabled, "disable-mouse", MouseDisabled, "disable mouse input")
 	flag.BoolVar(&DisableSearchHighlight, "disable-search-highlight", DisableSearchHighlight, "disable highlighting of regex search matches")
+	flag.BoolVar(&Quickstart, "quickstart", Quickstart, "only load data for starting pane. Use 'start-pane' to change which pane is loaded at start time.")
+	flag.IntVar(&startPane, "start-pane", startPane, "what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag)")
 
 	// Config flags that have been deprecated from user config
 	// flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
@@ -213,6 +225,17 @@ func Configure() {
 		log.Fatalf("Invalid arguments: request timeout of '%d' is longer than refresh interval of '%d'", RequestTimeout, RefreshInterval)
 	}
 
+	if !slices.Contains([]int{1, 2, 3, 4, 5}, startPane) {
+		log.Fatalf("Invalid arguments: start-pane must be one of 1, 2, 3, 4, 5")
+	}
+	StartPane = map[int]string{
+		1: NODES_PAGE,
+		2: JOBS_PAGE,
+		3: SACCT_PAGE,
+		4: SACCTMGR_PAGE,
+		5: SDIAG_PAGE,
+	}[startPane]
+
 	ComputeConfigurations()
 
 	if err := checkIfClusterIsReachable(); err != nil {
@@ -223,6 +246,12 @@ func Configure() {
 	SchedulerHostName, ClusterName, SchedulerSlurmVersion, _ = GetSchedulerInfoWithTimeout(RequestTimeout)
 
 	checkIfSacctMgrIsAvailable()
+
+	// If sacct is not available but user wants to start on that pane, exit.
+	if !SacctEnabled && slices.Contains([]int{3, 4}, startPane) {
+		log.Fatalf("Invalid configuration requested: stui cannot start on pane %d when sacct/sacctmgr is unavailable", startPane)
+
+	}
 }
 
 func ComputeConfigurations() {

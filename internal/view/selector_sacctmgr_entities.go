@@ -35,6 +35,8 @@ func (a *App) SetupSacctMgrEntitySelector() {
 			a.applySacctMgrEntitySelector(entity),
 		)
 	}
+
+	// This line leads to a call being made to Sacctmgr during setup time
 	a.SacctMgrEntitySelector.SetCurrentOption(0)
 }
 

@@ -10,13 +10,15 @@ type SacctProvider struct {
 	BaseProvider[*TableData]
 }
 
-func NewSacctProvider() *SacctProvider {
+func NewSacctProvider(loadData bool) *SacctProvider {
 	p := SacctProvider{
 		BaseProvider: BaseProvider[*TableData]{
 			data: EmptyTableData(),
 		},
 	}
-	p.Fetch()
+	if loadData {
+		p.Fetch()
+	}
 	return &p
 }
 
@@ -43,6 +45,13 @@ func (p *SacctProvider) Fetch() error {
 		return err
 	}
 	return nil
+}
+
+func (p *SacctProvider) FetchIfStale(since time.Duration) (err error) {
+	if time.Since(p.LastUpdated()) > since {
+		err = p.Fetch()
+	}
+	return err
 }
 
 func (p *SacctProvider) FilteredData() *TableData {

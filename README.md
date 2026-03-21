@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-7072-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-7182-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E7M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -16,6 +16,7 @@
 - (if Slurm accounting is enabled) Explore `sacctmgr` tables, search across rows with regular expressions
 - Configure table views with specific columns/content of your choice
 - Optimized to minimize load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute after initial startup.
+- Export current (tabular) view to CSV
 
 `stui` requires no configuration - if you can talk to your Slurm cluster with `squeue`/`scontrol`, you can run `stui`. Several configuration options are available and detailed below.
 
@@ -80,6 +81,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
           comma-separated list of scontrol fields to show in node view, use '//' to combine columns, '%%' for ratio/percentage columns, or '++' to extend columns to full width. 'NodeName', 'Partition' and 'State' are always shown. (default "CPULoad%%CPUAlloc,CPUAlloc%%CPUTot,AllocMem%%RealMemory,CfgTRES++,ActiveFeatures++,Gres++,Reason")
       -partition string
           limit views to specific partition only, leave empty to show all partitions
+      -quickstart
+          only load data for starting pane. Use 'start-pane' to change which pane is loaded at start time.
       -refresh-interval duration
           interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
       -request-timeout duration
@@ -94,6 +97,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
           path where Slurm binaries like 'sinfo' and 'squeue' can be found, if not in $PATH
       -slurm-conf-location string
           path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set
+      -start-pane int
+          what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag) (default 1)
       -version
           print version information and exit
     ```

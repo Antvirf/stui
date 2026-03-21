@@ -43,14 +43,19 @@ func (a *App) ClearSelectionFromCurrentView() {
 
 func (a *App) GetProviderForPage(page string) model.DataProvider[*model.TableData] {
 	switch page {
-	case NODES_PAGE:
+	case config.NODES_PAGE:
 		return a.NodesProvider
-	case JOBS_PAGE:
+	case config.JOBS_PAGE:
 		return a.JobsProvider
-	case SACCT_PAGE:
+	case config.SACCT_PAGE:
 		return a.SacctProvider
-	case SACCTMGR_PAGE:
+	case config.SACCTMGR_PAGE:
 		return a.SacctMgrProvider
+	case config.SDIAG_PAGE:
+		// Force a segfault here, this function can't respond for SDIAG requests. Big brain coding.
+		var p *string
+		_ = *p
+		return nil
 	default:
 		return nil
 	}
@@ -96,30 +101,30 @@ func (a *App) optionalRefreshAndRenderPage(pageName string, refresh bool) {
 	}
 
 	switch pageName {
-	case NODES_PAGE:
+	case config.NODES_PAGE:
 		if refresh {
 			a.NodesProvider.Fetch()
 		}
 		a.NodesView.SetFilter(config.PartitionFilter)
 		a.NodesView.Render()
-	case JOBS_PAGE:
+	case config.JOBS_PAGE:
 		if refresh {
 			a.JobsProvider.Fetch()
 		}
 		a.JobsView.SetFilter(config.PartitionFilter)
 		a.JobsView.Render()
-	case SACCTMGR_PAGE:
+	case config.SACCTMGR_PAGE:
 		if refresh {
 			a.SacctMgrProvider.Fetch()
 		}
 		a.SacctMgrView.Render()
-	case SACCT_PAGE:
+	case config.SACCT_PAGE:
 		if refresh {
 			a.SacctProvider.Fetch()
 		}
 		a.SacctView.SetFilter(config.PartitionFilter)
 		a.SacctView.Render()
-	case SDIAG_PAGE:
+	case config.SDIAG_PAGE:
 		if refresh {
 			d := a.SdiagProvider.Data()
 			a.SchedView.SetText(d.Data)
@@ -266,15 +271,15 @@ func (a *App) setActiveTab(active string) {
 
 	// Set active color
 	switch active {
-	case NODES_PAGE:
+	case config.NODES_PAGE:
 		a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
-	case JOBS_PAGE:
+	case config.JOBS_PAGE:
 		a.TabJobsBox.SetBackgroundColor(paneSelectorHighlightColor)
-	case SDIAG_PAGE:
+	case config.SDIAG_PAGE:
 		a.TabSchedulerBox.SetBackgroundColor(paneSelectorHighlightColor)
-	case SACCTMGR_PAGE:
+	case config.SACCTMGR_PAGE:
 		a.TabAccountingMgrBox.SetBackgroundColor(paneSelectorHighlightColor)
-	case SACCT_PAGE:
+	case config.SACCT_PAGE:
 		a.TabAccountingBox.SetBackgroundColor(paneSelectorHighlightColor)
 	}
 }

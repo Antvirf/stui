@@ -10,7 +10,7 @@ import (
 )
 
 func TestNodesProvider(t *testing.T) {
-	provider := NewNodesProvider()
+	provider := NewNodesProvider(true)
 
 	tests := []struct {
 		name            string
@@ -50,7 +50,7 @@ func TestNodesProvider(t *testing.T) {
 }
 
 func TestJobsProvider(t *testing.T) {
-	provider := NewJobsProvider()
+	provider := NewJobsProvider(true)
 
 	config.PartitionFilter = config.ALL_CATEGORIES_OPTION
 	config.JobStateCurrentChoice = config.ALL_CATEGORIES_OPTION

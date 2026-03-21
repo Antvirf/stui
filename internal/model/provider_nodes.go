@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/antvirf/stui/internal/config"
 )
 
@@ -8,13 +10,15 @@ type NodesProvider struct {
 	BaseProvider[*TableData]
 }
 
-func NewNodesProvider() *NodesProvider {
+func NewNodesProvider(loadData bool) *NodesProvider {
 	p := NodesProvider{
 		BaseProvider: BaseProvider[*TableData]{
 			data: EmptyTableData(),
 		},
 	}
-	p.Fetch()
+	if loadData {
+		p.Fetch()
+	}
 	return &p
 }
 
@@ -38,6 +42,13 @@ func (p *NodesProvider) Fetch() error {
 
 	p.updateData(rawData)
 	return nil
+}
+
+func (p *NodesProvider) FetchIfStale(since time.Duration) (err error) {
+	if time.Since(p.LastUpdated()) > since {
+		err = p.Fetch()
+	}
+	return err
 }
 
 func (p *NodesProvider) FilteredData() *TableData {
