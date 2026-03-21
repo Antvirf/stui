@@ -127,7 +127,6 @@ e        Focus on Entity type selector, 'esc' to close
 	SACCTMGR_PAGE = "sacctmgr"
 	SACCT_PAGE    = "sacct"
 	SDIAG_PAGE    = "sdiag"
-	COMMAND_PAGE  = "command_modal"
 )
 
 func Configure() {
