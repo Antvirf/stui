@@ -347,11 +347,8 @@ func (s *StuiView) Render() {
 }
 
 func (s *StuiView) FetchIfStaleAndRender(since time.Duration) {
-	if time.Since(s.provider.LastUpdated()) > since {
-		s.FetchAndRender()
-	} else {
-		s.Render()
-	}
+	s.provider.FetchIfStale(since)
+	s.Render()
 }
 
 func (s *StuiView) FetchAndRender() {

@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/antvirf/stui/internal/config"
 )
@@ -44,6 +45,13 @@ func (p *SacctMgrProvider) Fetch() error {
 		return err
 	}
 	return nil
+}
+
+func (p *SacctMgrProvider) FetchIfStale(since time.Duration) (err error) {
+	if time.Since(p.LastUpdated()) > since {
+		err = p.Fetch()
+	}
+	return err
 }
 
 // SacctMgrProvider data does not have any categorical filters, so this just returns the current data.

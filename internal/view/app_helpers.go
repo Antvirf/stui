@@ -51,6 +51,11 @@ func (a *App) GetProviderForPage(page string) model.DataProvider[*model.TableDat
 		return a.SacctProvider
 	case config.SACCTMGR_PAGE:
 		return a.SacctMgrProvider
+	case config.SDIAG_PAGE:
+		// Force a segfault here, this function can't respond for SDIAG requests. Big brain coding.
+		var p *string
+		_ = *p
+		return nil
 	default:
 		return nil
 	}

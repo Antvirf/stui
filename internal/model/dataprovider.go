@@ -15,6 +15,7 @@ type DataInterface[T any] interface {
 type DataProvider[T DataInterface[T]] interface {
 	Length() int
 	Fetch() error
+	FetchIfStale(time.Duration) error
 	Data() T
 	FilteredData() T
 	LastUpdated() time.Time
@@ -38,6 +39,11 @@ func NewBaseProvider[T DataInterface[T]]() BaseProvider[T] {
 
 // Fetch should be implemented by concrete providers
 func (p *BaseProvider[T]) Fetch() error {
+	return nil
+}
+
+// FetchIfStale fetches data if last update is older than given duration
+func (p *BaseProvider[T]) FetchIfStale(since time.Duration) (err error) {
 	return nil
 }
 

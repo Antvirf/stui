@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/antvirf/stui/internal/config"
+	"time"
 )
 
 type JobsProvider struct {
@@ -40,6 +41,13 @@ func (p *JobsProvider) Fetch() error {
 
 	p.updateData(rawData)
 	return nil
+}
+
+func (p *JobsProvider) FetchIfStale(since time.Duration) (err error) {
+	if time.Since(p.LastUpdated()) > since {
+		err = p.Fetch()
+	}
+	return err
 }
 
 func (p *JobsProvider) FilteredData() *TableData {

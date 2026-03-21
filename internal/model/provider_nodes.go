@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/antvirf/stui/internal/config"
 )
 
@@ -40,6 +42,13 @@ func (p *NodesProvider) Fetch() error {
 
 	p.updateData(rawData)
 	return nil
+}
+
+func (p *NodesProvider) FetchIfStale(since time.Duration) (err error) {
+	if time.Since(p.LastUpdated()) > since {
+		err = p.Fetch()
+	}
+	return err
 }
 
 func (p *NodesProvider) FilteredData() *TableData {

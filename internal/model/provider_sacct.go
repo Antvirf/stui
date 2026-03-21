@@ -47,6 +47,13 @@ func (p *SacctProvider) Fetch() error {
 	return nil
 }
 
+func (p *SacctProvider) FetchIfStale(since time.Duration) (err error) {
+	if time.Since(p.LastUpdated()) > since {
+		err = p.Fetch()
+	}
+	return err
+}
+
 func (p *SacctProvider) FilteredData() *TableData {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
