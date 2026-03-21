@@ -16,6 +16,7 @@
 - (if Slurm accounting is enabled) Explore `sacctmgr` tables, search across rows with regular expressions
 - Configure table views with specific columns/content of your choice
 - Optimized to minimize load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute after initial startup.
+- Export current (tabular) view to CSV
 
 `stui` requires no configuration - if you can talk to your Slurm cluster with `squeue`/`scontrol`, you can run `stui`. Several configuration options are available and detailed below.
 
