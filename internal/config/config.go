@@ -147,7 +147,7 @@ func Configure() {
 	flag.DurationVar(&LoadSacctDataFrom, CONFIG_OPTION_NAME_LOAD_SACCT_DATA_FROM, LoadSacctDataFrom, "load sacct data starting from this long ago, specify as a duration, e.g. '1h', '2h'. This can be very slow on busy clusters, so use with caution. Set to 0 to not load any data from sacct.")
 	flag.BoolVar(&MouseDisabled, "disable-mouse", MouseDisabled, "disable mouse input")
 	flag.BoolVar(&DisableSearchHighlight, "disable-search-highlight", DisableSearchHighlight, "disable highlighting of regex search matches")
-	flag.BoolVar(&Quickstart, "quickstart", Quickstart, "only load data for starting pane")
+	flag.BoolVar(&Quickstart, "quickstart", Quickstart, "only load data for starting pane. Use 'start-pane' to change which pane is loaded at start time.")
 	flag.IntVar(&startPane, "start-pane", startPane, "what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag)")
 
 	// Config flags that have been deprecated from user config

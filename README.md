@@ -81,7 +81,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -partition string
           limit views to specific partition only, leave empty to show all partitions
       -quickstart
-          only load data for starting pane
+          only load data for starting pane. Use 'start-pane' to change which pane is loaded at start time.
       -refresh-interval duration
           interval when to refetch data, specify as a duration e.g. '300ms', '1s', '2m' (default 1m0s)
       -request-timeout duration
