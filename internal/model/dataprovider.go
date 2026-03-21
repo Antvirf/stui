@@ -37,16 +37,6 @@ func NewBaseProvider[T DataInterface[T]]() BaseProvider[T] {
 	return BaseProvider[T]{}
 }
 
-// Fetch should be implemented by concrete providers
-func (p *BaseProvider[T]) Fetch() error {
-	return nil
-}
-
-// FetchIfStale fetches data if last update is older than given duration
-func (p *BaseProvider[T]) FetchIfStale(since time.Duration) (err error) {
-	return nil
-}
-
 // Returns length of data
 func (p *BaseProvider[T]) Length() int {
 	return p.length

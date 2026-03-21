@@ -327,7 +327,7 @@ func (a *App) StartRefresh() {
 	}
 
 	// Set periodic refreshes running. To make this very light on the scheduler, we:
-	// 1. Do a full fetch of all sources once, at the start (when providers are instantiated)
+	// 1. Do a full fetch of all sources at provider instantiation time, depending on configured quickstart/start-pane options.
 	// 2. After that, only fetch data periodically for the active pane (this bit)
 	// 3. On switching panes, if the data is older than refresh interval, we trigger a background refresh
 	//    this happens in the key binds file. (keybinds.go)
