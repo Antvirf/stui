@@ -56,18 +56,18 @@ func (a *App) ShowSearchBox(grid *tview.Grid) {
 	pageName, _ := a.Pages.GetFrontPage()
 	var table *tview.Table
 	switch pageName {
-	case SDIAG_PAGE:
+	case config.SDIAG_PAGE:
 		return // No search on sdiag
-	case NODES_PAGE:
+	case config.NODES_PAGE:
 		a.NodesView.SetSearchEnabled(true)
 		table = a.NodesView.Table
-	case JOBS_PAGE:
+	case config.JOBS_PAGE:
 		a.JobsView.SetSearchEnabled(true)
 		table = a.JobsView.Table
-	case SACCTMGR_PAGE:
+	case config.SACCTMGR_PAGE:
 		a.SacctMgrView.SetSearchEnabled(true)
 		table = a.SacctMgrView.Table
-	case SACCT_PAGE:
+	case config.SACCT_PAGE:
 		a.SacctView.SetSearchEnabled(true)
 		table = a.SacctView.Table
 	}
@@ -86,21 +86,21 @@ func (a *App) HideSearchBox() {
 	var grid *tview.Grid
 	var table *tview.Table
 	switch pageName {
-	case SDIAG_PAGE:
+	case config.SDIAG_PAGE:
 		return // No search on sdiag
-	case NODES_PAGE:
+	case config.NODES_PAGE:
 		a.NodesView.SetSearchEnabled(false)
 		grid = a.NodesView.Grid
 		table = a.NodesView.Table
-	case JOBS_PAGE:
+	case config.JOBS_PAGE:
 		a.JobsView.SetSearchEnabled(false)
 		grid = a.JobsView.Grid
 		table = a.JobsView.Table
-	case SACCTMGR_PAGE:
+	case config.SACCTMGR_PAGE:
 		a.SacctMgrView.SetSearchEnabled(false)
 		grid = a.SacctMgrView.Grid
 		table = a.SacctMgrView.Table
-	case SACCT_PAGE:
+	case config.SACCT_PAGE:
 		a.SacctView.SetSearchEnabled(false)
 		grid = a.SacctView.Grid
 		table = a.SacctView.Table

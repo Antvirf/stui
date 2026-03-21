@@ -8,13 +8,15 @@ type NodesProvider struct {
 	BaseProvider[*TableData]
 }
 
-func NewNodesProvider() *NodesProvider {
+func NewNodesProvider(loadData bool) *NodesProvider {
 	p := NodesProvider{
 		BaseProvider: BaseProvider[*TableData]{
 			data: EmptyTableData(),
 		},
 	}
-	p.Fetch()
+	if loadData {
+		p.Fetch()
+	}
 	return &p
 }
 

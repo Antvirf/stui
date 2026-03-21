@@ -4,8 +4,10 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
+	"github.com/antvirf/stui/internal/config"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -36,7 +38,7 @@ func ExportToCSV(filepath string, headers []string, rows [][]string) error {
 // Export is only supported on table-based panes (nodes, jobs, sacct, sacctmgr).
 func (a *App) ShowExportPrompt() {
 	currentPage := a.GetCurrentPageName()
-	if currentPage != NODES_PAGE && currentPage != JOBS_PAGE && currentPage != SACCT_PAGE && currentPage != SACCTMGR_PAGE {
+	if !slices.Contains([]string{config.NODES_PAGE, config.JOBS_PAGE, config.SACCT_PAGE, config.SACCTMGR_PAGE}, currentPage) {
 		return
 	}
 

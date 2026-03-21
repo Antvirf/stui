@@ -8,11 +8,15 @@ type SdiagProvider struct {
 	BaseProvider[*TextData]
 }
 
-func NewSdiagProvider() *SdiagProvider {
+func NewSdiagProvider(loadData bool) *SdiagProvider {
 	p := SdiagProvider{
 		BaseProvider: BaseProvider[*TextData]{},
 	}
-	p.Fetch()
+	if loadData {
+		p.Fetch()
+	} else {
+		p.data = &TextData{Data: ""}
+	}
 	return &p
 }
 

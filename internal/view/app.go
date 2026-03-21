@@ -13,12 +13,7 @@ import (
 )
 
 const (
-	NODES_PAGE    = "nodes"
-	JOBS_PAGE     = "jobs"
-	SACCTMGR_PAGE = "sacctmgr"
-	SACCT_PAGE    = "sacct"
-	SDIAG_PAGE    = "sdiag"
-	COMMAND_PAGE  = "command_modal"
+	COMMAND_PAGE = "command_modal"
 )
 
 type App struct {
@@ -90,7 +85,10 @@ func InitializeApplication() *App {
 		FirstRenderComplete:     false,
 	}
 
-	// Init data providers at start - in parallel, as they all do their first fetch on initialization
+	// Init data providers at start - in parallel, as they all do their first fetch on initialization.
+	// Bools set whether to load data at startup. We load data if quickstart is false, OR
+	// if the startup pane is that particular pane's provider.
+
 	start := time.Now()
 	var wg sync.WaitGroup
 	wg.Add(6)
@@ -100,23 +98,23 @@ func InitializeApplication() *App {
 	}()
 	go func() {
 		defer wg.Done()
-		application.NodesProvider = model.NewNodesProvider()
+		application.NodesProvider = model.NewNodesProvider(!config.Quickstart || config.StartPane == config.NODES_PAGE)
 	}()
 	go func() {
 		defer wg.Done()
-		application.JobsProvider = model.NewJobsProvider()
+		application.JobsProvider = model.NewJobsProvider(!config.Quickstart || config.StartPane == config.JOBS_PAGE)
 	}()
 	go func() {
 		defer wg.Done()
-		application.SdiagProvider = model.NewSdiagProvider()
+		application.SacctProvider = model.NewSacctProvider(!config.Quickstart || config.StartPane == config.SACCT_PAGE)
 	}()
 	go func() {
 		defer wg.Done()
-		application.SacctProvider = model.NewSacctProvider()
+		application.SacctMgrProvider = model.NewSacctMgrProvider(!config.Quickstart || config.StartPane == config.SACCTMGR_PAGE)
 	}()
 	go func() {
 		defer wg.Done()
-		application.SacctMgrProvider = model.NewSacctMgrProvider()
+		application.SdiagProvider = model.NewSdiagProvider(!config.Quickstart || config.StartPane == config.SDIAG_PAGE)
 	}()
 	wg.Wait()
 	logger.Printf("START: Initial data load from scheduler took %d ms", time.Since(start).Milliseconds())
@@ -165,9 +163,6 @@ func (a *App) SetupViews() {
 			a.TabAccountingBox.SetText("")
 			a.TabAccountingMgrBox.SetText("")
 		}
-
-		// Initial selection - nodes
-		a.TabNodesBox.SetBackgroundColor(paneSelectorHighlightColor)
 	}
 
 	// Create a grid for the tabs
@@ -222,7 +217,7 @@ func (a *App) SetupViews() {
 			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
 			&a.SearchPattern,                // pointer to search string
 		)
-		a.Pages.AddPage(NODES_PAGE, a.NodesView.Grid, true, true)
+		a.Pages.AddPage(config.NODES_PAGE, a.NodesView.Grid, true, true)
 	}
 
 	{ // Jobs View
@@ -236,7 +231,7 @@ func (a *App) SetupViews() {
 			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
 			&a.SearchPattern,                // pointer to search string
 		)
-		a.Pages.AddPage(JOBS_PAGE, a.JobsView.Grid, true, false)
+		a.Pages.AddPage(config.JOBS_PAGE, a.JobsView.Grid, true, false)
 	}
 
 	{
@@ -254,7 +249,7 @@ func (a *App) SetupViews() {
 			a.SortSelector.SetCurrentOption, // func to run when a header row is clicked
 			&a.SearchPattern,                // pointer to search string
 		)
-		a.Pages.AddPage(SACCTMGR_PAGE, a.SacctMgrView.Grid, true, false)
+		a.Pages.AddPage(config.SACCTMGR_PAGE, a.SacctMgrView.Grid, true, false)
 
 		a.SacctView = NewStuiView(
 			"Jobs Accounting",
@@ -267,7 +262,7 @@ func (a *App) SetupViews() {
 			&a.SearchPattern,                // pointer to search string
 		)
 
-		a.Pages.AddPage(SACCT_PAGE, a.SacctView.Grid, true, false)
+		a.Pages.AddPage(config.SACCT_PAGE, a.SacctView.Grid, true, false)
 	}
 
 	{ // Scheduler View
@@ -278,18 +273,11 @@ func (a *App) SetupViews() {
 			SetWrap(false).
 			SetTitleAlign(tview.AlignLeft).
 			SetBorderPadding(1, 1, 1, 1) // Top, right, bottom, left padding
-		a.Pages.AddPage(SDIAG_PAGE, a.SchedView, true, false)
+		a.Pages.AddPage(config.SDIAG_PAGE, a.SchedView, true, false)
 	}
 
 	{ // Starting position
-		a.CurrentTableView = a.NodesView.Table
-		a.SetHeaderGridInnerContents(
-			a.PartitionSelector,
-			a.NodeStateSelector,
-			a.SortSelector,
-		)
-		// Set up sort selector for first view
-		a.setupSortSelectorOptions(a.NodesProvider, a.NodesView.sortColumn)
+		a.ActivatePage(config.StartPane)
 	}
 }
 
@@ -353,15 +341,15 @@ func (a *App) StartRefresh() {
 				go a.RefreshClusterMetadata()
 				a.App.QueueUpdateDraw(func() {
 					switch a.GetCurrentPageName() {
-					case NODES_PAGE:
+					case config.NODES_PAGE:
 						a.NodesView.FetchAndRender()
-					case JOBS_PAGE:
+					case config.JOBS_PAGE:
 						a.JobsView.FetchAndRender()
-					case SACCTMGR_PAGE:
+					case config.SACCTMGR_PAGE:
 						a.SacctMgrView.FetchAndRender()
-					case SACCT_PAGE:
+					case config.SACCT_PAGE:
 						a.SacctView.FetchAndRender()
-					case SDIAG_PAGE:
+					case config.SDIAG_PAGE:
 						a.SdiagProvider.Fetch()
 						a.SchedView.SetText(a.SdiagProvider.Data().Data)
 					}

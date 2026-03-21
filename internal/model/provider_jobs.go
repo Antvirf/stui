@@ -8,13 +8,15 @@ type JobsProvider struct {
 	BaseProvider[*TableData]
 }
 
-func NewJobsProvider() *JobsProvider {
+func NewJobsProvider(loadData bool) *JobsProvider {
 	p := JobsProvider{
 		BaseProvider: BaseProvider[*TableData]{
 			data: EmptyTableData(),
 		},
 	}
-	p.Fetch()
+	if loadData {
+		p.Fetch()
+	}
 	return &p
 }
 

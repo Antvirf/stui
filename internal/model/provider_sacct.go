@@ -10,13 +10,15 @@ type SacctProvider struct {
 	BaseProvider[*TableData]
 }
 
-func NewSacctProvider() *SacctProvider {
+func NewSacctProvider(loadData bool) *SacctProvider {
 	p := SacctProvider{
 		BaseProvider: BaseProvider[*TableData]{
 			data: EmptyTableData(),
 		},
 	}
-	p.Fetch()
+	if loadData {
+		p.Fetch()
+	}
 	return &p
 }
 
