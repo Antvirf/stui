@@ -272,17 +272,16 @@ func tableViewInputCapture(
 			a.ShowNotification("[green]Ctrl+R: Manual data refresh[white]", 2*time.Second)
 		case tcell.KeyCtrlE:
 			row, _ := view.GetSelection()
-			if row == 0 { // Skip if user is on header row / there is on data
+			if row == 0 { // Skip if user is on header row / there is no data
 				return nil
 			}
-			// The below is an ugly way to check that we're in the jobs view
-			if strings.Contains(commandModalFilter, "JobId") {
+			if a.GetCurrentPageName() == config.JOBS_PAGE {
 				REQUEUE_COMMAND := "scontrol requeue "
 				// If user has a selection, use the selection
 				if len(*selection) > 0 {
 					a.ShowStandardCommandModal(REQUEUE_COMMAND, *selection, a.GetCurrentPageName())
 				} else {
-					// Otherwise, try to use the current node under the cursor, if any
+					// Otherwise, try to use the current row under the cursor, if any
 					if row > 0 {
 						entryName := strings.TrimSpace(view.GetCell(row, 0).Text)
 						if entryName != "" {
@@ -299,17 +298,16 @@ func tableViewInputCapture(
 
 		case tcell.KeyCtrlD:
 			row, _ := view.GetSelection()
-			if row == 0 { // Skip if user is on header row / there is on data
+			if row == 0 { // Skip if user is on header row / there is no data
 				return nil
 			}
-			// The below is an ugly way to check that we're in the jobs view
-			if strings.Contains(commandModalFilter, "JobId") {
+			if a.GetCurrentPageName() == config.JOBS_PAGE {
 				SCANCEL_COMMAND := "scancel "
 				// If user has a selection, use the selection
 				if len(*selection) > 0 {
 					a.ShowStandardCommandModal(SCANCEL_COMMAND, *selection, a.GetCurrentPageName())
 				} else {
-					// Otherwise, try to use the current node under the cursor, if any
+					// Otherwise, try to use the current row under the cursor, if any
 					if row > 0 {
 						entryName := strings.TrimSpace(view.GetCell(row, 0).Text)
 						if entryName != "" {
