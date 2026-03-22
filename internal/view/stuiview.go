@@ -120,6 +120,7 @@ func (s *StuiView) ApplyRegexSearchFilterToRows() ([][]model.CellValue, int, int
 	filteredCount := s.data.Length()
 	filteredRows := s.data.Rows
 	if s.searchEnabled && *s.searchPattern != "" {
+		filteredCount = 0
 		if re, err := regexp.Compile("(?i)" + *s.searchPattern); err == nil {
 			filteredRows = make([][]model.CellValue, 0, len(s.data.Rows)/2)
 			for i, row := range s.data.Rows {
