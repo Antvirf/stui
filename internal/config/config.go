@@ -94,6 +94,7 @@ Esc      Close modal
 
 ADDITIONAL SHORTCUTS IN JOBS VIEW (SCONTROL)
 Ctrl+D   Open 'scancel' prompt for selected jobs, or current row if no selection
+Ctrl+E   Open 'scontrol requeue' prompt for selected jobs, or current row if no selection
 
 ADDITIONAL SHORTCUTS IN ACCOUNTING MANAGER VIEW (SACCTMGR)
 e        Focus on Entity type selector, 'esc' to close
