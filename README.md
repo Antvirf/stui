@@ -1,8 +1,8 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-7208-blue)
-![size](https://img.shields.io/badge/binary%20size-5%2E7M-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-7339-blue)
+![size](https://img.shields.io/badge/binary%20size-5%2E8M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
 
@@ -99,6 +99,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
           path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set
       -start-pane int
           what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag) (default 1)
+      -state-dir string
+          path to a directory where stui state will be stored. If left blank, no state is stored. Recommended value is '~/.cache/stui'
       -version
           print version information and exit
     ```

@@ -31,6 +31,7 @@ func (a *App) SetupSearchBox() {
 			})
 		})
 	a.SearchBox.SetBorder(false)
+	a.SearchBox.SetText(a.SearchPattern)
 
 	// Set up input capture for search box
 	a.SearchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {

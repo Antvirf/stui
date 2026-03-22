@@ -24,6 +24,7 @@ var (
 	LogLevel               int           = 2
 	ShowAllColumns         bool          = false
 	ConfigDirPaths         string        = DEFAULT_CONFIG_LOCATIONS
+	StateDirPath           string        = DEFAULT_STATE_LOCATION
 	MouseDisabled          bool          = false
 	DisableSearchHighlight bool          = false
 	Quickstart             bool          = false
@@ -121,6 +122,7 @@ e        Focus on Entity type selector, 'esc' to close
 	ALL_CATEGORIES_OPTION    = "(all)"
 	NO_SORT_OPTION           = "(no sort)"
 	DEFAULT_CONFIG_LOCATIONS = "/etc/stui.d/,/home/$USER/.config/stui.d/"
+	DEFAULT_STATE_LOCATION   = "" // ~/.cache/stui/ is a good value
 
 	// Page names
 	NODES_PAGE    = "nodes"
@@ -141,6 +143,7 @@ func Configure() {
 	flag.StringVar(&rawSacctViewColumns, "sacct-columns-config", rawSacctViewColumns, "comma-separated list of sacct fields to show in job view, use '//' to combine columns, '%%' for ratio/percentage columns, or '++' to extend columns to full width. 'JobIDRaw', 'Partitions' and 'State' are always shown.")
 	flag.StringVar(&PartitionFilter, "partition", PartitionFilter, "limit views to specific partition only, leave empty to show all partitions")
 	flag.StringVar(&ConfigDirPaths, "config-dirs", ConfigDirPaths, "comma-separated list of paths to directories with stui config files")
+	flag.StringVar(&StateDirPath, "state-dir", StateDirPath, "path to a directory where stui state will be stored. If left blank, no state is stored. Recommended value is '~/.cache/stui'")
 	flag.BoolVar(&CopyFirstColumnOnly, "copy-first-column-only", CopyFirstColumnOnly, "if true, only copy the first column of the table to clipboard when copying")
 	flag.BoolVar(&ShowAllColumns, "show-all-columns", ShowAllColumns, "if set, shows all columns for Nodes, Jobs and Accounting view Jobs, overriding other specific config")
 	flag.IntVar(&LogLevel, "log-level", LogLevel, "log level, 0=none, 1=error, 2=info, 3=debug")
