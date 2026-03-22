@@ -270,6 +270,33 @@ func tableViewInputCapture(
 			// Manual refresh of currently visible view
 			a.optionalRefreshAndRenderCurrentView(true)
 			a.ShowNotification("[green]Ctrl+R: Manual data refresh[white]", 2*time.Second)
+		case tcell.KeyCtrlE:
+			row, _ := view.GetSelection()
+			if row == 0 { // Skip if user is on header row / there is on data
+				return nil
+			}
+			// The below is an ugly way to check that we're in the jobs view
+			if strings.Contains(commandModalFilter, "JobId") {
+				REQUEUE_COMMAND := "scontrol requeue "
+				// If user has a selection, use the selection
+				if len(*selection) > 0 {
+					a.ShowStandardCommandModal(REQUEUE_COMMAND, *selection, a.GetCurrentPageName())
+				} else {
+					// Otherwise, try to use the current node under the cursor, if any
+					if row > 0 {
+						entryName := strings.TrimSpace(view.GetCell(row, 0).Text)
+						if entryName != "" {
+							a.ShowStandardCommandModal(REQUEUE_COMMAND, map[string]bool{
+								entryName: true,
+							},
+								a.GetCurrentPageName(),
+							)
+						}
+					}
+				}
+			}
+			return nil
+
 		case tcell.KeyCtrlD:
 			row, _ := view.GetSelection()
 			if row == 0 { // Skip if user is on header row / there is on data
