@@ -272,7 +272,8 @@ func tableViewInputCapture(
 			a.ShowNotification("[green]Ctrl+R: Manual data refresh[white]", 2*time.Second)
 		case tcell.KeyCtrlE:
 			row, _ := view.GetSelection()
-			if row == 0 { // Skip if user is on header row / there is on data
+			// Skip only if user is on header row and there is no active selection
+			if row == 0 && len(*selection) == 0 {
 				return nil
 			}
 			// The below is an ugly way to check that we're in the jobs view
