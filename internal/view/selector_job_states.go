@@ -7,7 +7,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func (a *App) SetupJobStateSelector() {
+func (a *App) SetupJobStateSelector(storedSelectorValue string) {
 	a.JobStateSelector = tview.NewDropDown().
 		SetLabel(PadSelectorTitle("(s) State:")).
 		SetLabelStyle(tcell.StyleDefault.Foreground(dropdownForegroundColor)).
@@ -29,13 +29,23 @@ func (a *App) SetupJobStateSelector() {
 		return event
 	})
 
-	for _, entity := range model.SCONTROL_JOB_STATES {
+	for index, entity := range model.SCONTROL_JOB_STATES {
 		a.JobStateSelector.AddOption(
 			entity,
 			a.applyJobStateSelector(entity),
 		)
+
+		// By default, show all states - index 0
+		if index == 0 {
+			a.JobStateSelector.SetCurrentOption(0)
+		}
+
+		// If storedSelectorValue matches anything, use that.
+		if entity == storedSelectorValue {
+			a.JobStateSelector.SetCurrentOption(index)
+		}
+
 	}
-	a.JobStateSelector.SetCurrentOption(0)
 }
 
 func (a *App) applyJobStateSelector(entity string) func() {

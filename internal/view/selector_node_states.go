@@ -7,7 +7,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func (a *App) SetupNodeStateSelector() {
+func (a *App) SetupNodeStateSelector(storedSelectorValue string) {
 	a.NodeStateSelector = tview.NewDropDown().
 		SetLabel(PadSelectorTitle("(s) State:")).
 		SetLabelStyle(tcell.StyleDefault.Foreground(dropdownForegroundColor)).
@@ -29,13 +29,22 @@ func (a *App) SetupNodeStateSelector() {
 		return event
 	})
 
-	for _, entity := range model.SCONTROL_NODE_STATES {
+	for index, entity := range model.SCONTROL_NODE_STATES {
 		a.NodeStateSelector.AddOption(
 			entity,
 			a.applyNodeStateSelector(entity),
 		)
+
+		// By default, show all states - index 0
+		if index == 0 {
+			a.NodeStateSelector.SetCurrentOption(0)
+		}
+
+		// If storedSelectorValue matches anything, use that.
+		if entity == storedSelectorValue {
+			a.NodeStateSelector.SetCurrentOption(index)
+		}
 	}
-	a.NodeStateSelector.SetCurrentOption(0)
 }
 
 func (a *App) applyNodeStateSelector(entity string) func() {

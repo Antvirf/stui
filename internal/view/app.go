@@ -131,8 +131,8 @@ func (a *App) SetupViews() {
 	a.SetupSearchBox()
 	a.SetupSortSelector()
 	a.SetupPartitionSelector()
-	a.SetupNodeStateSelector()
-	a.SetupJobStateSelector()
+	a.SetupNodeStateSelector(a.StateStore.State.NodesPane.StateFilter)
+	a.SetupJobStateSelector(a.StateStore.State.JobsPane.StateFilter)
 	a.SetupSacctMgrEntitySelector()
 
 	{ // Header lines
@@ -324,7 +324,7 @@ func (a *App) StartRefresh() {
 	a.FirstRenderComplete = true
 
 	// Other one-off actions that can only take place post first render
-	a.setupPartitionSelectorOptions()
+	a.setupPartitionSelectorOptions(a.StateStore.State.PartitionFilter)
 	a.NodesView.Table.ScrollToBeginning()
 	a.JobsView.Table.ScrollToBeginning()
 	if config.SacctEnabled {

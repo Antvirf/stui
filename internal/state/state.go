@@ -11,9 +11,30 @@ import (
 )
 
 type StuiState struct {
-	statePath string
-	state     map[string]string
 	active    bool
+	statePath string
+	State     StuiStateStruct
+}
+
+type StuiStateStruct struct {
+	SearchFilter    string            `json:"searchFilter"`
+	PartitionFilter string            `json:"partitionFilter"`
+	NodesPane       NodesPaneState    `json:"nodesPane"`
+	JobsPane        JobsPaneState     `json:"jobsPane"`
+	SacctmgrPane    SacctmgrPaneState `json:"sacctmgrPane"`
+}
+
+type NodesPaneState struct {
+	StateFilter string `json:"stateFilter"`
+	SortBy      string `json:"sortBy"`
+}
+type JobsPaneState struct {
+	StateFilter string `json:"stateFilter"`
+	SortBy      string `json:"sortBy"`
+}
+type SacctmgrPaneState struct {
+	EntityFilter string `json:"entityFilter"`
+	SortBy       string `json:"sortBy"`
 }
 
 // Sets up state file and parent directories if they don't yet exist.
@@ -21,8 +42,13 @@ type StuiState struct {
 func InitializeStuiState(basePath string) (*StuiState, error) {
 	StateStore := &StuiState{
 		statePath: path.Join(basePath, "stui-state.json"),
-		state:     make(map[string]string),
-		active:    basePath != "",
+		State: StuiStateStruct{
+			SearchFilter: "",
+			NodesPane:    NodesPaneState{},
+			JobsPane:     JobsPaneState{},
+			SacctmgrPane: SacctmgrPaneState{},
+		},
+		active: basePath != "",
 	}
 
 	if !StateStore.active {
@@ -56,15 +82,6 @@ func InitializeStuiState(basePath string) (*StuiState, error) {
 	return StateStore, nil
 }
 
-func (s StuiState) GetStateKey(key string) (string, bool) {
-	val, found := s.state[key]
-	return val, found
-}
-
-func (s *StuiState) SetStateKey(k, v string) {
-	s.state[k] = v
-}
-
 func (s *StuiState) SaveState() error {
 	if !s.active {
 		logger.Debugf("state store: path is null, state not active, no state saved")
@@ -80,7 +97,7 @@ func (s *StuiState) SaveState() error {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 
-	if err := encoder.Encode(s.state); err != nil {
+	if err := encoder.Encode(s.State); err != nil {
 		return fmt.Errorf("failed to encode state to JSON: %w", err)
 	}
 	return nil
@@ -91,10 +108,10 @@ func (s *StuiState) LoadState() error {
 	if err != nil {
 		return fmt.Errorf("store: failed to read state file: %w", err)
 	}
-	var state map[string]string
+	var state StuiStateStruct
 	if err := json.Unmarshal(data, &state); err != nil {
 		return fmt.Errorf("failed to parse state JSON: %w", err)
 	}
-	s.state = state
+	s.State = state
 	return nil
 }
