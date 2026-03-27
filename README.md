@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-7425-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-7435-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E8M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -98,7 +98,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
       -slurm-conf-location string
           path to slurm.conf for the desired cluster, if not set, fall back to SLURM_CONF env var or configless lookup if not set
       -start-pane int
-          what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag) (default 1)
+          what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag). Can also be provided as the only positional argument. (default 1)
       -state-dir string
           path to a directory where stui state will be stored. If left blank, no state is stored. Recommended value is '~/.cache/stui'
       -version
@@ -161,6 +161,8 @@ sudo mv ~/go/bin/stui /usr/local/bin
       refresh-interval: 60s
       request-timeout: 10s
       log-level: 4 # debug logs
+      state-dir: "/home/user/.cache/stui"
+      quickstart: true
     
     plugins:
       - name: Sstat a job
@@ -188,6 +190,14 @@ sudo mv ~/go/bin/stui /usr/local/bin
         command: ssh {{.NodeName}} 'df -h /'
     ```
     <!-- REPLACE_CONFIG_EXAMPLE_END -->
+
+## Examples of usage
+
+- Launch directly on jobs pane: `stui 2` or `stui -start-pane 2`
+- Launch directly on sacct pane and only load that data: `stui -quickstart 3` or `stui -quickstart -start-pane 3`
+- Save filter/search states: `stui -state-dir ~/.cache/stui`
+
+All arguments can be provided via a configuration file. This is the recommended way to configure more involved configurations such as `-state-dir` and various column configs.
 
 ## Developing `stui`
 

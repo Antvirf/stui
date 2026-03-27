@@ -2,6 +2,8 @@ argumentOptions:
   refresh-interval: 60s
   request-timeout: 10s
   log-level: 4 # debug logs
+  state-dir: "/home/user/.cache/stui"
+  quickstart: true
 
 plugins:
   - name: Sstat a job

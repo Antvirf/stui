@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 	"slices"
+	"strconv"
 	"time"
 )
 
@@ -152,7 +153,7 @@ func Configure() {
 	flag.BoolVar(&MouseDisabled, "disable-mouse", MouseDisabled, "disable mouse input")
 	flag.BoolVar(&DisableSearchHighlight, "disable-search-highlight", DisableSearchHighlight, "disable highlighting of regex search matches")
 	flag.BoolVar(&Quickstart, "quickstart", Quickstart, "only load data for starting pane. Use 'start-pane' to change which pane is loaded at start time.")
-	flag.IntVar(&startPane, "start-pane", startPane, "what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag)")
+	flag.IntVar(&startPane, "start-pane", startPane, "what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag). Can also be provided as the only positional argument.")
 
 	// Config flags that have been deprecated from user config
 	// flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
@@ -162,6 +163,15 @@ func Configure() {
 	keyboardShortcutsFlag := flag.Bool("show-keyboard-shortcuts", false, "print keyboard shortcuts and exit")
 
 	flag.Parse()
+
+	// Handling positional args
+	if flag.NArg() == 1 {
+		parsedStartPane, err := strconv.Atoi(flag.Args()[0])
+		if err != nil {
+			log.Fatalf("the first (and only) positional argument to stui is interpreted as 'startpane' and must be an integer")
+		}
+		startPane = parsedStartPane
+	}
 
 	// Load config file if it exists
 	if ConfigDirPaths == DEFAULT_CONFIG_LOCATIONS {
