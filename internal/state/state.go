@@ -21,20 +21,28 @@ type StuiStateStruct struct {
 	PartitionFilter string            `json:"partitionFilter"`
 	NodesPane       NodesPaneState    `json:"nodesPane"`
 	JobsPane        JobsPaneState     `json:"jobsPane"`
+	SacctPane       SacctPaneState    `json:"sacctPane"`
 	SacctmgrPane    SacctmgrPaneState `json:"sacctmgrPane"`
 }
 
 type NodesPaneState struct {
 	StateFilter string `json:"stateFilter"`
-	SortBy      string `json:"sortBy"`
+	//SortByColumn  int    `json:"sortByColumn"`
+	//SortDirection int    `json:"sortDirection"`
 }
 type JobsPaneState struct {
 	StateFilter string `json:"stateFilter"`
-	SortBy      string `json:"sortBy"`
+	//SortByColumn  int    `json:"sortByColumn"`
+	//SortDirection int    `json:"sortDirection"`
+}
+type SacctPaneState struct {
+	//SortByColumn  int `json:"sortByColumn"`
+	//SortDirection int `json:"sortDirection"`
 }
 type SacctmgrPaneState struct {
 	EntityFilter string `json:"entityFilter"`
-	SortBy       string `json:"sortBy"`
+	//SortByColumn  int    `json:"sortByColumn"`
+	//SortDirection int    `json:"sortDirection"`
 }
 
 // Sets up state file and parent directories if they don't yet exist.
@@ -46,6 +54,7 @@ func InitializeStuiState(basePath string) (*StuiState, error) {
 			SearchFilter: "",
 			NodesPane:    NodesPaneState{},
 			JobsPane:     JobsPaneState{},
+			SacctPane:    SacctPaneState{},
 			SacctmgrPane: SacctmgrPaneState{},
 		},
 		active: basePath != "",

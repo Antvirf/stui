@@ -44,7 +44,6 @@ func (a *App) SetupJobStateSelector(storedSelectorValue string) {
 		if entity == storedSelectorValue {
 			a.JobStateSelector.SetCurrentOption(index)
 		}
-
 	}
 }
 

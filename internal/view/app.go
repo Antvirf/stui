@@ -133,7 +133,7 @@ func (a *App) SetupViews() {
 	a.SetupPartitionSelector()
 	a.SetupNodeStateSelector(a.StateStore.State.NodesPane.StateFilter)
 	a.SetupJobStateSelector(a.StateStore.State.JobsPane.StateFilter)
-	a.SetupSacctMgrEntitySelector()
+	a.SetupSacctMgrEntitySelector(a.StateStore.State.SacctmgrPane.EntityFilter)
 
 	{ // Header lines
 		a.HeaderLineOne = tview.NewTextView().
