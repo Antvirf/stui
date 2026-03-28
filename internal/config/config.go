@@ -164,15 +164,6 @@ func Configure() {
 
 	flag.Parse()
 
-	// Handling positional args
-	if flag.NArg() == 1 {
-		parsedStartPane, err := strconv.Atoi(flag.Args()[0])
-		if err != nil {
-			log.Fatalf("the first (and only) positional argument to stui is interpreted as 'startpane' and must be an integer")
-		}
-		startPane = parsedStartPane
-	}
-
 	// Load config file if it exists
 	if ConfigDirPaths == DEFAULT_CONFIG_LOCATIONS {
 		user, err := user.Current()
@@ -237,6 +228,15 @@ func Configure() {
 	// Validate input and configs
 	if RequestTimeout > RefreshInterval {
 		log.Fatalf("Invalid arguments: request timeout of '%d' is longer than refresh interval of '%d'", RequestTimeout, RefreshInterval)
+	}
+
+	// Handling positional args
+	if flag.NArg() == 1 {
+		parsedStartPane, err := strconv.Atoi(flag.Args()[0])
+		if err != nil {
+			log.Fatalf("the first (and only) positional argument to stui is interpreted as 'startpane' and must be an integer")
+		}
+		startPane = parsedStartPane
 	}
 
 	if !slices.Contains([]int{1, 2, 3, 4, 5}, startPane) {

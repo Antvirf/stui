@@ -1,9 +1,5 @@
 package view
 
-const (
-	STATE_KEY_SEARCH_FILTER = "SEARCH_FILTER"
-)
-
 func (a *App) LoadStateFromStateStore() {
 	a.SearchPattern = a.StateStore.State.SearchFilter
 }
