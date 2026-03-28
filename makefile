@@ -25,7 +25,8 @@ run:
 		-log-level=4 \
 		-refresh-interval 15s \
 		-request-timeout 2s \
-		-load-sacct-data-from 1000h
+		-load-sacct-data-from 1000h \
+		-state-dir /home/$$USER/.cache/stui
 
 run-with-all-columns:
 	go run main.go -show-all-columns

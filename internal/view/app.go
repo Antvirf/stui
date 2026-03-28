@@ -8,6 +8,7 @@ import (
 	"github.com/antvirf/stui/internal/config"
 	"github.com/antvirf/stui/internal/logger"
 	"github.com/antvirf/stui/internal/model"
+	"github.com/antvirf/stui/internal/state"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -23,6 +24,7 @@ type App struct {
 	startTime           time.Time    // Start time of the application
 	CurrentTableView    *tview.Table // Points to current table view
 	FirstRenderComplete bool
+	StateStore          *state.StuiState // State of filter(s) for caching
 
 	// Base app components
 	HeaderGrid              *tview.Grid
@@ -76,14 +78,18 @@ type App struct {
 }
 
 // Initializes a `stui` instance tview Application using the config module
-func InitializeApplication() *App {
+func InitializeApplication(stateStore *state.StuiState) *App {
 	application := App{
 		startTime:               time.Now(),
 		App:                     tview.NewApplication(),
 		Pages:                   tview.NewPages(),
 		HeaderGridInnerContents: tview.NewGrid(),
 		FirstRenderComplete:     false,
+		StateStore:              stateStore,
 	}
+
+	// Load previous/saved of saerch pattern state from state store
+	application.SearchPattern = application.StateStore.State.SearchFilter
 
 	// Init data providers at start - in parallel, as they all do their first fetch on initialization.
 	// Bools set whether to load data at startup. We load data if quickstart is false, OR
@@ -125,9 +131,9 @@ func (a *App) SetupViews() {
 	a.SetupSearchBox()
 	a.SetupSortSelector()
 	a.SetupPartitionSelector()
-	a.SetupNodeStateSelector()
-	a.SetupJobStateSelector()
-	a.SetupSacctMgrEntitySelector()
+	a.SetupNodeStateSelector(a.StateStore.State.NodesPane.StateFilter)
+	a.SetupJobStateSelector(a.StateStore.State.JobsPane.StateFilter)
+	a.SetupSacctMgrEntitySelector(a.StateStore.State.SacctmgrPane.EntityFilter)
 
 	{ // Header lines
 		a.HeaderLineOne = tview.NewTextView().
@@ -318,7 +324,7 @@ func (a *App) StartRefresh() {
 	a.FirstRenderComplete = true
 
 	// Other one-off actions that can only take place post first render
-	a.setupPartitionSelectorOptions()
+	a.setupPartitionSelectorOptions(a.StateStore.State.PartitionFilter)
 	a.NodesView.Table.ScrollToBeginning()
 	a.JobsView.Table.ScrollToBeginning()
 	if config.SacctEnabled {

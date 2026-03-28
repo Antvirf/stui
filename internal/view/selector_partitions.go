@@ -33,7 +33,10 @@ func (a *App) SetupPartitionSelector() {
 	})
 }
 
-func (a *App) setupPartitionSelectorOptions() {
+func (a *App) setupPartitionSelectorOptions(storedSelectorValue string) {
+	if storedSelectorValue == "" { // If empty, treat it equal to '(all)'
+		storedSelectorValue = config.ALL_CATEGORIES_OPTION
+	}
 	for index, partition := range a.PartitionsData.Rows {
 		if index == 0 {
 			a.PartitionSelector.AddOption(
@@ -49,26 +52,39 @@ func (a *App) setupPartitionSelectorOptions() {
 		)
 	}
 
-	// Set selected option at start
-	if config.PartitionFilter == config.ALL_CATEGORIES_OPTION {
+	if config.PartitionFilter == config.ALL_CATEGORIES_OPTION && storedSelectorValue == config.ALL_CATEGORIES_OPTION {
 		a.PartitionSelector.SetCurrentOption(0)
+		return
+	}
+
+	// Loop through partitions options, if user has given a commmand-line arg,
+	// use that first, otherwise revert to stored state if available.
+	storedSelectorIndex := 0
+	requestedSelectorIndex := 0
+	for index, partition := range a.PartitionsData.Rows {
+		if partition[0].Display() == config.PartitionFilter {
+			requestedSelectorIndex = index + 1
+			break // no need to go further
+		}
+		if partition[0].Display() == storedSelectorValue {
+			storedSelectorIndex = index + 1
+		}
+	}
+
+	// If requested available, use it.
+	// Alternatively, if stored was available, use it
+	// Otherwise, set to (all).
+	if requestedSelectorIndex != 0 {
+		a.PartitionSelector.SetCurrentOption(requestedSelectorIndex)
+	} else if storedSelectorIndex != 0 {
+		a.PartitionSelector.SetCurrentOption(storedSelectorIndex)
 	} else {
-		found := false
-		for index, partition := range a.PartitionsData.Rows {
-			if partition[0].Display() == config.PartitionFilter {
-				a.PartitionSelector.SetCurrentOption(index + 1)
-				found = true
-				break
-			}
-		}
-		if !found {
-			a.ShowNotification(
-				fmt.Sprintf("[red]Requested partition '%s' does not exist, using no filter instead[white]", config.PartitionFilter),
-				2*time.Second,
-			)
-			a.PartitionSelector.SetCurrentOption(0)
-			config.PartitionFilter = config.ALL_CATEGORIES_OPTION
-		}
+		a.ShowNotification(
+			fmt.Sprintf("[red]Requested partition '%s' does not exist, no partition filter applied[white]", config.PartitionFilter),
+			2*time.Second,
+		)
+		a.PartitionSelector.SetCurrentOption(0)
+		config.PartitionFilter = config.ALL_CATEGORIES_OPTION
 	}
 }
 

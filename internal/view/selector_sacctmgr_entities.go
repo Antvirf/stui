@@ -7,7 +7,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-func (a *App) SetupSacctMgrEntitySelector() {
+func (a *App) SetupSacctMgrEntitySelector(storedSelectorValue string) {
 	a.SacctMgrEntitySelector = tview.NewDropDown().
 		SetLabel(PadSelectorTitle("(e) Entity:")).
 		SetLabelStyle(tcell.StyleDefault.Foreground(dropdownForegroundColor)).
@@ -29,15 +29,23 @@ func (a *App) SetupSacctMgrEntitySelector() {
 		return event
 	})
 
-	for _, entity := range model.SACCTMGR_TABLE_ENTITIES {
+	for index, entity := range model.SACCTMGR_TABLE_ENTITIES {
 		a.SacctMgrEntitySelector.AddOption(
 			entity,
 			a.applySacctMgrEntitySelector(entity),
 		)
-	}
 
-	// This line leads to a call being made to Sacctmgr during setup time
-	a.SacctMgrEntitySelector.SetCurrentOption(0)
+		// By default, show 0 index
+		if index == 0 {
+			// This line leads to a call being made to Sacctmgr during setup time
+			a.SacctMgrEntitySelector.SetCurrentOption(0)
+		}
+
+		// If storedSelectorValue matches anything, use that.
+		if entity == storedSelectorValue {
+			a.SacctMgrEntitySelector.SetCurrentOption(index)
+		}
+	}
 }
 
 func (a *App) applySacctMgrEntitySelector(entity string) func() {
