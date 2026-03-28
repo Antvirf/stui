@@ -14,24 +14,21 @@ func (a *App) SetupSearchBox() {
 		SetLabel("  Regex search (case-insensitive): ").
 		SetLabelColor(searchboxLabelColor).
 		SetFieldBackgroundColor(dropdownBackgroundColor).
-		SetFieldWidth(0).
-		SetChangedFunc(func(text string) {
-			a.SearchPattern = strings.TrimSpace(text)
+		SetFieldWidth(0)
+	a.SearchBox.SetBorder(false)
+	a.SearchBox.SetText(a.SearchPattern) // Set initial value
 
-			// Cancel any pending updates
-			if a.searchTimer != nil {
-				a.searchTimer.Stop()
-			}
-
-			// Schedule new update after delay
-			a.searchTimer = time.AfterFunc(config.SearchDebounceInterval, func() {
-				a.App.QueueUpdateDraw(func() {
-					a.RenderCurrentView()
-				})
+	a.SearchBox.SetChangedFunc(func(text string) {
+		a.SearchPattern = strings.TrimSpace(text)
+		if a.searchTimer != nil {
+			a.searchTimer.Stop()
+		}
+		a.searchTimer = time.AfterFunc(config.SearchDebounceInterval, func() {
+			a.App.QueueUpdateDraw(func() {
+				a.RenderCurrentView()
 			})
 		})
-	a.SearchBox.SetBorder(false)
-	a.SearchBox.SetText(a.SearchPattern)
+	})
 
 	// Set up input capture for search box
 	a.SearchBox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {

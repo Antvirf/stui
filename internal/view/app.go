@@ -321,7 +321,6 @@ func (a *App) StartRefresh() {
 		d := a.SdiagProvider.Data()
 		a.SchedView.SetText(d.Data)
 	}
-	a.FirstRenderComplete = true
 
 	// Other one-off actions that can only take place post first render
 	a.setupPartitionSelectorOptions(a.StateStore.State.PartitionFilter)
@@ -331,6 +330,8 @@ func (a *App) StartRefresh() {
 		a.SacctMgrView.Table.ScrollToBeginning()
 		a.SacctView.Table.ScrollToBeginning()
 	}
+
+	a.FirstRenderComplete = true
 
 	// Set periodic refreshes running. To make this very light on the scheduler, we:
 	// 1. Do a full fetch of all sources at provider instantiation time, depending on configured quickstart/start-pane options.
@@ -385,9 +386,11 @@ func (a *App) ActivatePage(page string) {
 			a.App.SetFocus(a.NodesView.Table)
 			a.setupSortSelectorOptions(a.NodesProvider, a.NodesView.sortColumn)
 			a.PagesContainer.SetTitle(a.NodesView.completeTitle)
-			go a.App.QueueUpdateDraw(func() {
-				a.NodesView.FetchIfStaleAndRender(config.RefreshInterval)
-			})
+			if a.FirstRenderComplete {
+				go a.App.QueueUpdateDraw(func() {
+					a.NodesView.FetchIfStaleAndRender(config.RefreshInterval)
+				})
+			}
 		}
 	case config.JOBS_PAGE:
 		{
@@ -406,9 +409,11 @@ func (a *App) ActivatePage(page string) {
 			a.App.SetFocus(a.JobsView.Table)
 			a.setupSortSelectorOptions(a.JobsProvider, a.JobsView.sortColumn)
 			a.PagesContainer.SetTitle(a.JobsView.completeTitle)
-			go a.App.QueueUpdateDraw(func() {
-				a.JobsView.FetchIfStaleAndRender(config.RefreshInterval)
-			})
+			if a.FirstRenderComplete {
+				go a.App.QueueUpdateDraw(func() {
+					a.JobsView.FetchIfStaleAndRender(config.RefreshInterval)
+				})
+			}
 		}
 	case config.SACCT_PAGE:
 		{
@@ -428,9 +433,11 @@ func (a *App) ActivatePage(page string) {
 				a.App.SetFocus(a.SacctView.Table)
 				a.setupSortSelectorOptions(a.SacctProvider, a.SacctView.sortColumn)
 				a.PagesContainer.SetTitle(a.SacctView.completeTitle)
-				go a.App.QueueUpdateDraw(func() {
-					a.SacctView.FetchIfStaleAndRender(config.RefreshInterval)
-				})
+				if a.FirstRenderComplete {
+					go a.App.QueueUpdateDraw(func() {
+						a.SacctView.FetchIfStaleAndRender(config.RefreshInterval)
+					})
+				}
 			}
 		}
 	case config.SACCTMGR_PAGE:
@@ -450,9 +457,11 @@ func (a *App) ActivatePage(page string) {
 				a.App.SetFocus(a.SacctMgrView.Table)
 				a.setupSortSelectorOptions(a.SacctMgrProvider, a.SacctMgrView.sortColumn)
 				a.PagesContainer.SetTitle(a.SacctMgrView.completeTitle)
-				go a.App.QueueUpdateDraw(func() {
-					a.SacctMgrView.FetchIfStaleAndRender(config.RefreshInterval)
-				})
+				if a.FirstRenderComplete {
+					go a.App.QueueUpdateDraw(func() {
+						a.SacctMgrView.FetchIfStaleAndRender(config.RefreshInterval)
+					})
+				}
 			}
 		}
 	case config.SDIAG_PAGE:
@@ -466,10 +475,12 @@ func (a *App) ActivatePage(page string) {
 			a.UpdateHeaderLineTwo("")
 			a.App.SetFocus(a.SchedView)
 			//a.SdiagProvider.Fetch()
-			go a.App.QueueUpdateDraw(func() {
-				a.SdiagProvider.FetchIfStale(config.RefreshInterval)
-				a.SchedView.SetText(a.SdiagProvider.Data().Data) // This has no "render" function, we set it manually
-			})
+			if a.FirstRenderComplete {
+				go a.App.QueueUpdateDraw(func() {
+					a.SdiagProvider.FetchIfStale(config.RefreshInterval)
+					a.SchedView.SetText(a.SdiagProvider.Data().Data) // This has no "render" function, we set it manually
+				})
+			}
 		}
 	}
 }
