@@ -1,9 +1,5 @@
 package view
 
-func (a *App) LoadStateFromStateStore() {
-	a.SearchPattern = a.StateStore.State.SearchFilter
-}
-
 func (a *App) SaveState() {
 	a.StateStore.State.SearchFilter = a.SearchPattern
 	_, a.StateStore.State.PartitionFilter = a.PartitionSelector.GetCurrentOption()

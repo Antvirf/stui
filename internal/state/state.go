@@ -76,7 +76,11 @@ func InitializeStuiState(basePath string) (*StuiState, error) {
 			}
 		}
 
-		file, _ := os.Create(StateStore.statePath)
+		file, err := os.Create(StateStore.statePath)
+		defer file.Close()
+		if err != nil {
+			return StateStore, fmt.Errorf("failed to write empty state: %w", err)
+		}
 		emptyState := make(map[string]string)
 		encoder := json.NewEncoder(file)
 		encoder.SetIndent("", "  ")
@@ -87,8 +91,8 @@ func InitializeStuiState(basePath string) (*StuiState, error) {
 		return StateStore, nil
 	}
 
-	StateStore.LoadState()
-	return StateStore, nil
+	err := StateStore.LoadState()
+	return StateStore, err
 }
 
 func (s *StuiState) SaveState() error {
@@ -119,7 +123,7 @@ func (s *StuiState) LoadState() error {
 	}
 	var state StuiStateStruct
 	if err := json.Unmarshal(data, &state); err != nil {
-		return fmt.Errorf("failed to parse state JSON: %w", err)
+		return fmt.Errorf("ignoring existing state file, failed to parse state JSON: %w", err)
 	}
 	s.State = state
 	return nil

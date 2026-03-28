@@ -88,8 +88,8 @@ func InitializeApplication(stateStore *state.StuiState) *App {
 		StateStore:              stateStore,
 	}
 
-	// Load previous/saved state from state store
-	application.LoadStateFromStateStore()
+	// Load previous/saved of saerch pattern state from state store
+	application.SearchPattern = application.StateStore.State.SearchFilter
 
 	// Init data providers at start - in parallel, as they all do their first fetch on initialization.
 	// Bools set whether to load data at startup. We load data if quickstart is false, OR

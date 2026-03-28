@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-7433-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-7431-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E8M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -195,7 +195,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
 
 - Launch directly on jobs pane: `stui 2` or `stui -start-pane 2`
 - Launch directly on sacct pane and only load that data: `stui -quickstart 3` or `stui -quickstart -start-pane 3`
-- Save filter/search states: `stui -state-dir ~/.cache/stui`
+- Save filter/search states: `stui -state-dir /home/$USER/.cache/stui`
 
 All arguments can be provided via a configuration file. This is the recommended way to configure more involved configurations such as `-state-dir` and various column configs.
 
