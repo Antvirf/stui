@@ -380,8 +380,8 @@ func colorizeTableCell(
 		}
 	}
 
-	// 2. Search highlights take precedence over normal text colors if matched
-	if isSearchMatched {
+	// 2. Search highlights take precedence over normal text colors if matched (unless row is selected!)
+	if isSearchMatched && !isSelected {
 		targetTextColor = searchHighlightFgColor
 		targetBgColor = searchHighlightBgColor
 	}
@@ -398,7 +398,7 @@ func colorizeTableCell(
 
 	// We want to keep the text color when highlighted if it's a state color
 	cursorTextColor := targetTextColor
-	if isSearchMatched {
+	if isSearchMatched && !isSelected {
 		cursorTextColor = searchHighlightFgColor
 		cursorBgColor = searchHighlightHoverBgColor
 	}
