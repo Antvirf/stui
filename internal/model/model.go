@@ -26,6 +26,14 @@ func EmptyTableData() *TableData {
 	}
 }
 
+func EmptyTableDataWithColumns(columns *[]config.ColumnConfig) *TableData {
+	return &TableData{
+		Headers:             columns,
+		Rows:                [][]CellValue{},
+		RowsAsSingleStrings: []string{},
+	}
+}
+
 func convertRowsToRowsAsSingleStrings(rows [][]CellValue) []string {
 	rowsAsStrings := []string{}
 	for _, row := range rows {

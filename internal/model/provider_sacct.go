@@ -13,7 +13,7 @@ type SacctProvider struct {
 func NewSacctProvider(loadData bool) *SacctProvider {
 	p := SacctProvider{
 		BaseProvider: BaseProvider[*TableData]{
-			data: EmptyTableData(),
+			data: EmptyTableDataWithColumns(config.SacctViewColumns),
 		},
 	}
 	if loadData {
