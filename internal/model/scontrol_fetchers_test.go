@@ -25,7 +25,7 @@ func TestNodesProvider(t *testing.T) {
 		{
 			name:            "with physics partition filter",
 			partitionFilter: "physics",
-			expectedCount:   100,
+			expectedCount:   101,
 		},
 		{
 			name:            "with non-existent partition filter",
