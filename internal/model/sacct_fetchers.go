@@ -40,10 +40,10 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			logger.Debugf("sacct: timed out after %dms (its timeout setting is %d times the standard request timeout): %s", execTime, config.SacctTimeoutMultiplier, fullCommand)
-			return EmptyTableData(), fmt.Errorf("timeout after %v", timeout)
+			return EmptyTableDataWithColumns(columns), fmt.Errorf("timeout after %v", timeout)
 		}
 		logger.Debugf("sacct: failed out after %dms: %s", execTime, fullCommand)
-		return EmptyTableData(), fmt.Errorf("%v", timeout)
+		return EmptyTableDataWithColumns(columns), fmt.Errorf("%v", err)
 	}
 
 	logger.Debugf("sacct: completed in %dms: %s", execTime, fullCommand)
@@ -52,7 +52,7 @@ func getSacctDataSinceWithTimeout(since time.Duration, columns *[]config.ColumnC
 func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, computeColumnWidths bool) (*TableData, error) {
 	rawRows := parseSacctOutput(output, SACCT_DELIMITER)
 	if len(rawRows) == 0 {
-		return EmptyTableData(), nil
+		return EmptyTableDataWithColumns(columns), nil
 	}
 
 	var rows [][]CellValue

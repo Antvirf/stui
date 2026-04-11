@@ -13,7 +13,7 @@ type NodesProvider struct {
 func NewNodesProvider(loadData bool) *NodesProvider {
 	p := NodesProvider{
 		BaseProvider: BaseProvider[*TableData]{
-			data: EmptyTableData(),
+			data: EmptyTableDataWithColumns(config.NodeViewColumns),
 		},
 	}
 	if loadData {

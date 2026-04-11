@@ -12,7 +12,7 @@ type JobsProvider struct {
 func NewJobsProvider(loadData bool) *JobsProvider {
 	p := JobsProvider{
 		BaseProvider: BaseProvider[*TableData]{
-			data: EmptyTableData(),
+			data: EmptyTableDataWithColumns(config.JobViewColumns),
 		},
 	}
 	if loadData {
