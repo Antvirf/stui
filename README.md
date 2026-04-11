@@ -121,7 +121,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     Arrows   Scroll up/down/left/right in table view
     ?        Show this help
     Ctrl+A   Select all currently filtered rows
-    Ctrl+I   Invert selection within filtered rows
+    Ctrl+N   Invert selection within filtered rows
     Ctrl+R   Refresh currently visible data
     Ctrl+S   Export current view as CSV file
     Ctrl+C   Exit

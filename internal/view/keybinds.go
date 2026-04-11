@@ -247,7 +247,7 @@ func tableViewInputCapture(
 			)
 
 			return nil
-		case tcell.KeyCtrlI:
+		case tcell.KeyCtrlN:
 			rows := view.GetRowCount()
 			for rowIndex := 1; rowIndex < rows; rowIndex++ {
 				selectRow(a, view, rowIndex, selection, data.Length(), false)
@@ -256,7 +256,7 @@ func tableViewInputCapture(
 			a.PagesContainer.SetTitle(
 				hackyUpdateTitleWithSelectionCount(a.PagesContainer.GetTitle(), selection),
 			)
-			a.ShowNotification("[green]Ctrl+I: Invert selection[white]", 2*time.Second)
+			a.ShowNotification("[green]Ctrl+N: Invert selection[white]", 2*time.Second)
 		case tcell.KeyEnter:
 			row, _ := view.GetSelection()
 			if row > 0 { // Skip header row
