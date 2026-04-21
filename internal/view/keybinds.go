@@ -247,6 +247,7 @@ func tableViewInputCapture(
 			)
 
 			return nil
+
 		case tcell.KeyCtrlN:
 			rows := view.GetRowCount()
 			for rowIndex := 1; rowIndex < rows; rowIndex++ {
@@ -257,6 +258,45 @@ func tableViewInputCapture(
 				hackyUpdateTitleWithSelectionCount(a.PagesContainer.GetTitle(), selection),
 			)
 			a.ShowNotification("[green]Ctrl+N: Invert selection[white]", 2*time.Second)
+
+		case tcell.KeyCtrlW:
+			row, _ := view.GetSelection()
+			if row == 0 || len(*selection) == 0 { // Skip if user is on header row / there is no data
+				return nil
+			}
+
+			// TODO: Does NodeList on jobs side always show single node only? otherwise this will break
+			// on nodes page
+			if a.GetCurrentPageName() == config.NODES_PAGE {
+				nodesFilterForSwapping := []string{}
+				for entryName := range *selection {
+					// TODO: duplicates?
+					nodesFilterForSwapping = append(nodesFilterForSwapping, entryName)
+					logger.Debugf("entry is %s", entryName)
+				}
+				// TODO repetition fixes?
+				a.SearchPattern = strings.Join(nodesFilterForSwapping, "|")
+				a.SearchBox.SetText(a.SearchPattern)
+				a.ShowSearchBox(a.NodesView.Grid)
+			}
+
+			// On jobs page, select nodes from nodelist? may need to expand, if on multi node?
+			if a.GetCurrentPageName() == config.JOBS_PAGE {
+				nodesFilterForSwapping := []string{}
+				data := a.JobsProvider.Data()
+				for entryName := range *selection {
+					// TODO, is this efficient at all?
+					// TODO: duplicates?
+					row, _ := data.GetRowAsMapById(entryName)
+					nodesFilterForSwapping = append(nodesFilterForSwapping, row["NodeList"])
+					logger.Debugf("entry is %s", entryName)
+				}
+				a.SearchPattern = strings.Join(nodesFilterForSwapping, "|")
+				a.SearchBox.SetText(a.SearchPattern)
+				a.ShowSearchBox(a.NodesView.Grid)
+			}
+			return nil
+
 		case tcell.KeyEnter:
 			row, _ := view.GetSelection()
 			if row > 0 { // Skip header row

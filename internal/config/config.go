@@ -91,6 +91,7 @@ s        Focus on state selector, 'esc' to close
 Space    Select/deselect row
 y        Copy selected content (either rows, or currently open details) to clipboard
 c        Open 'scontrol' prompt for selected items, or current row if no selection (opens prompt)
+Ctrl+W   Replace current filter with the nodenames of current selection of jobs/nodes
 Enter    Show details for selected row
 Esc      Close modal
 

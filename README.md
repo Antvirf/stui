@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-7440-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-7481-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E8M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -134,6 +134,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     Space    Select/deselect row
     y        Copy selected content (either rows, or currently open details) to clipboard
     c        Open 'scontrol' prompt for selected items, or current row if no selection (opens prompt)
+    Ctrl+W   Replace current filter with the nodenames of current selection of jobs/nodes
     Enter    Show details for selected row
     Esc      Close modal
     
