@@ -1,7 +1,7 @@
 # `stui` - Slurm Terminal User Interface for managing clusters
 
 ![go report](https://goreportcard.com/badge/github.com/antvirf/stui)
-![loc](https://img.shields.io/badge/lines%20of%20code-7440-blue)
+![loc](https://img.shields.io/badge/lines%20of%20code-7487-blue)
 ![size](https://img.shields.io/badge/binary%20size-5%2E8M-blue)
 
 *Like [k9s](https://k9scli.io/), but for Slurm clusters.* `stui` makes interacting with Slurm clusters intuitive and fast for everyone, without getting in the way of more experienced users.
@@ -15,7 +15,7 @@
 - (if Slurm accounting is enabled) Explore historical job accounting from `sacct` tables, search across rows with regular expressions, filtering by partition and state. View individual job details (`sacct -j` equivalent, with all available columns)
 - (if Slurm accounting is enabled) Explore `sacctmgr` tables, search across rows with regular expressions
 - Configure table views with specific columns/content of your choice
-- Optimized to minimize load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute after initial startup.
+- Optimized to minimize load on the Slurm scheduler by only fetching the data user is looking at. Default configs make ~1 request per minute after initial startup. Further optimisations are available with the `-quickstart` option to only load data for the starting view
 - Export current (tabular) view to CSV
 
 `stui` requires no configuration - if you can talk to your Slurm cluster with `squeue`/`scontrol`, you can run `stui`. Several configuration options are available and detailed below.
@@ -134,6 +134,7 @@ sudo mv ~/go/bin/stui /usr/local/bin
     Space    Select/deselect row
     y        Copy selected content (either rows, or currently open details) to clipboard
     c        Open 'scontrol' prompt for selected items, or current row if no selection (opens prompt)
+    Ctrl+G   Replace current filter with the node names of current selection of jobs/nodes
     Enter    Show details for selected row
     Esc      Close modal
     
