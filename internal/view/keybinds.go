@@ -247,6 +247,7 @@ func tableViewInputCapture(
 			)
 
 			return nil
+
 		case tcell.KeyCtrlN:
 			rows := view.GetRowCount()
 			for rowIndex := 1; rowIndex < rows; rowIndex++ {
@@ -257,6 +258,51 @@ func tableViewInputCapture(
 				hackyUpdateTitleWithSelectionCount(a.PagesContainer.GetTitle(), selection),
 			)
 			a.ShowNotification("[green]Ctrl+N: Invert selection[white]", 2*time.Second)
+
+		case tcell.KeyCtrlG:
+			if len(*selection) == 0 { // Skip if there is no selected rows
+				return nil
+			}
+
+			if a.GetCurrentPageName() == config.NODES_PAGE {
+				nodesFilterForSwapping := []string{}
+				for entryName := range *selection {
+					nodesFilterForSwapping = append(nodesFilterForSwapping, entryName)
+				}
+				slices.Sort(nodesFilterForSwapping)
+				a.SearchPattern = strings.Join(nodesFilterForSwapping, "|")
+				a.ShowSearchBox(a.NodesView.Grid)
+				a.SearchBox.SetText(a.SearchPattern)
+				a.ClearSelectionFromCurrentView()
+				a.ShowNotification("[green]Ctrl+G: Selection converted to node list filter[white]", 2*time.Second)
+			} else if a.GetCurrentPageName() == config.JOBS_PAGE || a.GetCurrentPageName() == config.SACCT_PAGE {
+				// Jobs page - get NodeList entry if it exists
+				nodesFilterForSwapping := []string{}
+				for entryName := range *selection {
+					dataRow, _ := data.GetRowAsMapById(entryName)
+					// This approach only works if (a) NodeList column is available; (b) each value is a single node name
+					nodeListEntry := strings.TrimSpace(dataRow["NodeList"])
+					if nodeListEntry != "" {
+						nodesFilterForSwapping = append(nodesFilterForSwapping, nodeListEntry)
+					}
+				}
+
+				// Gets rid of duplicate entries
+				slices.Sort(nodesFilterForSwapping)
+				nodesFilterForSwapping = slices.Compact(nodesFilterForSwapping)
+				if len(nodesFilterForSwapping) == 0 {
+					a.ShowNotification("[red]Ctrl+G: Failed, selection has no NodeList field data[white]", 2*time.Second)
+					return nil
+				} else {
+					a.SearchPattern = strings.Join(nodesFilterForSwapping, "|")
+				}
+				a.ShowSearchBox(a.GetCurrentStuiView().Grid)
+				a.SearchBox.SetText(a.SearchPattern)
+				a.ClearSelectionFromCurrentView()
+				a.ShowNotification("[green]Ctrl+G: Selection converted to node list filter[white]", 2*time.Second)
+			}
+			return nil
+
 		case tcell.KeyEnter:
 			row, _ := view.GetSelection()
 			if row > 0 { // Skip header row
