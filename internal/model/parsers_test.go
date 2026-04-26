@@ -19,7 +19,7 @@ func TestParseScontrolOutput_Nodes(t *testing.T) {
 	assert.Len(t, entries, 8888, "unexpected node count")
 	assert.Len(t, node, 32, "unexpected field count")
 
-	assert.Equal(t, "linux1", node["NodeName"])
+	assert.Equal(t, "linux0001", node["NodeName"])
 	assert.Equal(t, "ALLOCATED", node["State"])
 	assert.Equal(t, "64", node["CPUTot"])
 

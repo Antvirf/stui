@@ -77,9 +77,9 @@ func TestPartitionsProvider(t *testing.T) {
 }
 
 func TestGetNodeDetailsWithTimeout(t *testing.T) {
-	details, err := GetNodeDetailsWithTimeout("linux1", 1*time.Second)
+	details, err := GetNodeDetailsWithTimeout("linux0001", 1*time.Second)
 	require.NoError(t, err)
-	assert.Contains(t, details, "NodeName=linux1")
+	assert.Contains(t, details, "NodeName=linux0001")
 	assert.Contains(t, details, "CPUTot=2") // Actual value from test cluster
 }
 
