@@ -127,7 +127,7 @@ func TestGetVisibleRowsAsText(t *testing.T) {
 
 	t.Run("nil data returns nil", func(t *testing.T) {
 		nilView := &StuiView{data: nil}
-		hdrs := view.GetHeadersAsText()
+		hdrs := nilView.GetHeadersAsText()
 		rows := nilView.GetVisibleRowsAsText()
 		assert.Nil(t, hdrs)
 		assert.Nil(t, rows)

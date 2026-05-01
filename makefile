@@ -138,6 +138,31 @@ stop-cluster:
 mock: config-cluster run-cluster setup-sacct launch-jobs
 
 
+## PERFORMANCE BENCHMARKS
+
+BENCH_RESULTS_DIR := testing/perf-results
+
+.PHONY: perf-tests perf-compare
+
+perf-tests:
+	mkdir -p $(BENCH_RESULTS_DIR)
+	go test -bench=. -benchmem -benchtime=3s -count=3 \
+		./internal/model/... ./internal/view/... \
+		| tee $(BENCH_RESULTS_DIR)/bench-$$(date +%Y%m%d-%H%M%S).txt
+	@echo "Results saved to $(BENCH_RESULTS_DIR)/. Run 'make perf-compare' to diff against previous run."
+
+perf-compare:
+	@FILES=$$(ls -t $(BENCH_RESULTS_DIR)/*.txt 2>/dev/null); \
+	COUNT=$$(echo "$$FILES" | wc -w); \
+	if [ "$$COUNT" -lt 2 ]; then \
+		echo "Need at least 2 result files to compare. Run 'make perf-tests' twice."; \
+	else \
+		PREV=$$(echo "$$FILES" | sed -n '2p'); \
+		CURR=$$(echo "$$FILES" | sed -n '1p'); \
+		echo "Comparing $$PREV vs $$CURR"; \
+		go run golang.org/x/perf/cmd/benchstat@latest "$$PREV" "$$CURR"; \
+	fi
+
 ## TESTING UTILITIES
 
 generate-test-data:

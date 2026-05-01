@@ -149,6 +149,9 @@ func (s *StuiView) ApplySortingToRows(rows *[][]model.CellValue) {
 }
 
 func (s *StuiView) GetHeadersAsText() []string {
+	if s.data == nil {
+		return nil
+	}
 	rawHeaders := *s.data.Headers
 	headers := make([]string, len(rawHeaders))
 	for i, h := range rawHeaders {
