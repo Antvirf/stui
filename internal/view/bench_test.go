@@ -94,13 +94,32 @@ func newBenchStuiView(td *model.TableData, searchPattern *string) *StuiView {
 	return sv
 }
 
-// BenchmarkStuiViewRender_Nodes measures a full Render() pass over 8 888 node rows.
+// BenchmarkStuiViewRender_Nodes measures Render() when state is unchanged (no-op path).
+// This is the common case in a running cluster between data refreshes.
 func BenchmarkStuiViewRender_Nodes(b *testing.B) {
 	td := buildSyntheticTableData(8888)
 	searchPattern := ""
 	sv := newBenchStuiView(td, &searchPattern)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		sv.Render()
+	}
+}
+
+// BenchmarkStuiViewRender_Nodes_Dirty measures a full Render() rebuild on every iteration
+// by toggling the sort direction so the render key always changes.
+func BenchmarkStuiViewRender_Nodes_Dirty(b *testing.B) {
+	td := buildSyntheticTableData(8888)
+	searchPattern := ""
+	sv := newBenchStuiView(td, &searchPattern)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// Alternate sort direction each iteration so the key is always different.
+		if i%2 == 0 {
+			sv.sortDirection = SORT_ASC
+		} else {
+			sv.sortDirection = SORT_DESC
+		}
 		sv.Render()
 	}
 }

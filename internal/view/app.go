@@ -60,6 +60,11 @@ type App struct {
 	// Command modal state
 	CommandModalOpen bool
 
+	// settingUpSortOptions is set true while setupSortSelectorOptions is populating
+	// the sort dropdown. This prevents applySortSelector's SetCurrentOption callback
+	// from flipping sortDirection or triggering a render during programmatic setup.
+	settingUpSortOptions bool
+
 	// Data  and providers
 	PartitionsData     *model.TableData
 	PartitionsProvider model.DataProvider[*model.TableData]
@@ -224,6 +229,11 @@ func (a *App) SetupViews() {
 			&a.SearchPattern,                // pointer to search string
 		)
 		a.Pages.AddPage(config.NODES_PAGE, a.NodesView.Grid, true, true)
+		a.NodesView.checkVisible = func() bool {
+			name, _ := a.Pages.GetFrontPage()
+			return name == config.NODES_PAGE
+		}
+		a.NodesView.stateChoiceFunc = func() string { return config.NodeStateCurrentChoice }
 	}
 
 	{ // Jobs View
@@ -238,6 +248,11 @@ func (a *App) SetupViews() {
 			&a.SearchPattern,                // pointer to search string
 		)
 		a.Pages.AddPage(config.JOBS_PAGE, a.JobsView.Grid, true, false)
+		a.JobsView.checkVisible = func() bool {
+			name, _ := a.Pages.GetFrontPage()
+			return name == config.JOBS_PAGE
+		}
+		a.JobsView.stateChoiceFunc = func() string { return config.JobStateCurrentChoice }
 	}
 
 	{
@@ -256,6 +271,10 @@ func (a *App) SetupViews() {
 			&a.SearchPattern,                // pointer to search string
 		)
 		a.Pages.AddPage(config.SACCTMGR_PAGE, a.SacctMgrView.Grid, true, false)
+		a.SacctMgrView.checkVisible = func() bool {
+			name, _ := a.Pages.GetFrontPage()
+			return name == config.SACCTMGR_PAGE
+		}
 
 		a.SacctView = NewStuiView(
 			"Jobs Accounting",
@@ -269,6 +288,11 @@ func (a *App) SetupViews() {
 		)
 
 		a.Pages.AddPage(config.SACCT_PAGE, a.SacctView.Grid, true, false)
+		a.SacctView.checkVisible = func() bool {
+			name, _ := a.Pages.GetFrontPage()
+			return name == config.SACCT_PAGE
+		}
+		a.SacctView.stateChoiceFunc = func() string { return config.JobStateCurrentChoice }
 	}
 
 	{ // Scheduler View
