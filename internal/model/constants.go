@@ -22,6 +22,7 @@ var (
 		"MIX",
 		"MIXED",
 		"NO_RESPOND",
+		"NOT_RESPONDING",
 		"NPC",
 		"PERFCTRS",
 		"PLANNED",
