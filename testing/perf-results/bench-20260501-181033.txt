@@ -1,0 +1,42 @@
+goos: linux
+goarch: amd64
+pkg: github.com/antvirf/stui/internal/model
+cpu: 11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz
+BenchmarkParseScontrolOutput_Nodes-8    	      93	  34959669 ns/op	44755808 B/op	   88905 allocs/op
+BenchmarkParseScontrolOutput_Nodes-8    	     104	  35632028 ns/op	44755804 B/op	   88905 allocs/op
+BenchmarkParseScontrolOutput_Nodes-8    	     103	  34452102 ns/op	44755800 B/op	   88905 allocs/op
+BenchmarkParseScontrolOutput_Jobs-8     	     668	   5353217 ns/op	 7219991 B/op	    8207 allocs/op
+BenchmarkParseScontrolOutput_Jobs-8     	     662	   5385162 ns/op	 7219994 B/op	    8207 allocs/op
+BenchmarkParseScontrolOutput_Jobs-8     	     669	   5366000 ns/op	 7219999 B/op	    8207 allocs/op
+BenchmarkApplyFilters_Nodes-8           	     201	  17627443 ns/op	10664562 B/op	  206002 allocs/op
+BenchmarkApplyFilters_Nodes-8           	     201	  18131186 ns/op	10664555 B/op	  206002 allocs/op
+BenchmarkApplyFilters_Nodes-8           	     200	  17781660 ns/op	10664553 B/op	  206002 allocs/op
+BenchmarkConvertRowsToSingleStrings-8   	     446	   8207030 ns/op	 4021651 B/op	   98544 allocs/op
+BenchmarkConvertRowsToSingleStrings-8   	     444	   8165839 ns/op	 4021665 B/op	   98544 allocs/op
+BenchmarkConvertRowsToSingleStrings-8   	     440	   8299744 ns/op	 4021663 B/op	   98544 allocs/op
+BenchmarkDeepCopy_Nodes-8               	     408	   8940758 ns/op	 5665882 B/op	  107437 allocs/op
+BenchmarkDeepCopy_Nodes-8               	     402	   9048995 ns/op	 5665904 B/op	  107437 allocs/op
+BenchmarkDeepCopy_Nodes-8               	     398	   8955011 ns/op	 5665904 B/op	  107437 allocs/op
+BenchmarkApplyRegexSearchFilter-8       	     783	   4451726 ns/op	  674996 B/op	      18 allocs/op
+BenchmarkApplyRegexSearchFilter-8       	     802	   4500096 ns/op	  674351 B/op	      18 allocs/op
+BenchmarkApplyRegexSearchFilter-8       	     775	   4520235 ns/op	  674395 B/op	      18 allocs/op
+PASS
+ok  	github.com/antvirf/stui/internal/model	86.987s
+goos: linux
+goarch: amd64
+pkg: github.com/antvirf/stui/internal/view
+cpu: 11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz
+BenchmarkStuiViewRender_Nodes-8        	      91	  39198788 ns/op	33600316 B/op	  400057 allocs/op
+BenchmarkStuiViewRender_Nodes-8        	      79	  38377074 ns/op	33600480 B/op	  400058 allocs/op
+BenchmarkStuiViewRender_Nodes-8        	      90	  41769637 ns/op	33606145 B/op	  400059 allocs/op
+BenchmarkStuiViewRender_WithSearch-8   	     222	  16813794 ns/op	 7491826 B/op	   89009 allocs/op
+BenchmarkStuiViewRender_WithSearch-8   	     183	  18990956 ns/op	 7486393 B/op	   89008 allocs/op
+BenchmarkStuiViewRender_WithSearch-8   	     234	  13820351 ns/op	 7491411 B/op	   89009 allocs/op
+BenchmarkApplySortingToRows-8          	   23286	    156993 ns/op	  221283 B/op	       4 allocs/op
+BenchmarkApplySortingToRows-8          	   23126	    177995 ns/op	  221282 B/op	       4 allocs/op
+BenchmarkApplySortingToRows-8          	   21942	    183313 ns/op	  221283 B/op	       4 allocs/op
+BenchmarkColorizeTableCell-8           	23132082	       132.8 ns/op	       0 B/op	       0 allocs/op
+BenchmarkColorizeTableCell-8           	27859099	       130.7 ns/op	       0 B/op	       0 allocs/op
+BenchmarkColorizeTableCell-8           	25889275	       139.0 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/antvirf/stui/internal/view	56.450s
