@@ -118,8 +118,9 @@ var filterSplitRe = regexp.MustCompile("[,+]")
 // Applies a list of given filters to the data
 func (t *TableData) ApplyFilters(filters map[int]string) *TableData {
 	rows := make([][]CellValue, 0, len(t.Rows))
+	rowsAsSingleStrings := make([]string, 0, len(t.Rows))
 rowLoop:
-	for _, row := range t.Rows {
+	for i, row := range t.Rows {
 		for filterKey, filterValue := range filters {
 			if filterValue != config.ALL_CATEGORIES_OPTION {
 
@@ -132,12 +133,13 @@ rowLoop:
 			}
 		}
 		rows = append(rows, row)
+		rowsAsSingleStrings = append(rowsAsSingleStrings, t.RowsAsSingleStrings[i])
 	}
 
 	return &TableData{
 		Headers:             t.Headers,
 		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		RowsAsSingleStrings: rowsAsSingleStrings,
 	}
 }
 
