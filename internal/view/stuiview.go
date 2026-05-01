@@ -249,7 +249,7 @@ func (s *StuiView) Render() {
 
 		// Pre-calculate row-level search matches (used for highlights) for efficiency
 		var matches [][]int
-		if s.searchEnabled && *s.searchPattern != "" && !config.DisableSearchHighlight {
+		if s.searchEnabled && *s.searchPattern != "" && !config.DisableSearchHighlight && searchPatternRegex != nil {
 			var sb strings.Builder
 			for _, c := range rowData {
 				sb.WriteString(c.Display())
