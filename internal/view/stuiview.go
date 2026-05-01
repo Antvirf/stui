@@ -14,6 +14,37 @@ import (
 	"github.com/rivo/tview"
 )
 
+// renderStateKey captures everything that determines what Render() would draw.
+// If it matches the previous render's key, the rebuild can be skipped entirely.
+// All fields are O(1) to compute - no hashing of row data.
+type renderStateKey struct {
+	dataLastUpdated  time.Time
+	filteredRowCount int
+	filter           string // partition / entity filter applied to this view
+	hasError         bool
+	searchEnabled    bool
+	searchPattern    string
+	sortColumn       int
+	sortDirection    int
+	selectionLen     int
+	stateChoice      string // categorical state filter (node/job state selector)
+}
+
+func computeRenderKey(lastUpdated time.Time, filteredRowCount int, filter string, hasError, searchEnabled bool, searchPattern string, sortColumn, sortDirection, selectionLen int, stateChoice string) renderStateKey {
+	return renderStateKey{
+		dataLastUpdated:  lastUpdated,
+		filteredRowCount: filteredRowCount,
+		filter:           filter,
+		hasError:         hasError,
+		searchEnabled:    searchEnabled,
+		searchPattern:    searchPattern,
+		sortColumn:       sortColumn,
+		sortDirection:    sortDirection,
+		selectionLen:     selectionLen,
+		stateChoice:      stateChoice,
+	}
+}
+
 func NewStuiView(
 	title string,
 	provider model.DataProvider[*model.TableData],
@@ -97,9 +128,31 @@ type StuiView struct {
 	headerClickFunction           func(int) *tview.DropDown
 
 	// Data components
-	provider model.DataProvider[*model.TableData]
-	data     *model.TableData
-	filter   string
+	provider      model.DataProvider[*model.TableData]
+	data          *model.TableData
+	filter        string
+	lastRenderKey renderStateKey
+
+	// checkVisible, if set, is called at the start of Render(). When it returns
+	// false the method returns immediately without rebuilding the tview table.
+	// lastRenderKey is NOT updated, so the next Render() call after the page
+	// becomes visible will detect any stale state and do a full rebuild then.
+	checkVisible func() bool
+
+	// stateChoiceFunc, if set, returns the categorical state-filter value for
+	// this view (e.g. config.NodeStateCurrentChoice for the nodes view). Using
+	// a per-view func avoids cross-view cache invalidation: changing the job
+	// state selector will not force a re-render of the nodes view and vice versa.
+	stateChoiceFunc func() string
+}
+
+// stateChoice returns the current categorical state-filter value for this view,
+// or an empty string if no state filter applies.
+func (s *StuiView) stateChoice() string {
+	if s.stateChoiceFunc == nil {
+		return ""
+	}
+	return s.stateChoiceFunc()
 }
 
 func (s *StuiView) SetFilter(filter string) {
@@ -182,9 +235,22 @@ func (s *StuiView) GetVisibleRowsAsText() (rows [][]string) {
 }
 
 func (s *StuiView) Render() {
+	// Skip the expensive tview table rebuild when this page is not visible.
+	// lastRenderKey is intentionally NOT updated here so that the first
+	// Render() after the page becomes active will detect any pending changes.
+	if s.checkVisible != nil && !s.checkVisible() {
+		return
+	}
+
 	startTime := time.Now()
 	s.data = s.provider.FilteredData()
 	filterDataTime := time.Since(startTime).Milliseconds()
+
+	key := computeRenderKey(s.provider.LastUpdated(), s.data.Length(), s.filter, s.provider.LastError() != nil, s.searchEnabled, *s.searchPattern, s.sortColumn, s.sortDirection, len(s.Selection), s.stateChoice())
+	if key == s.lastRenderKey {
+		return
+	}
+	s.lastRenderKey = key
 
 	s.Table.Clear()
 

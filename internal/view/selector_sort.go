@@ -31,6 +31,9 @@ func (a *App) SetupSortSelector() {
 }
 
 func (a *App) setupSortSelectorOptions(provider model.DataProvider[*model.TableData], selectedColumn int) {
+	a.settingUpSortOptions = true
+	defer func() { a.settingUpSortOptions = false }()
+
 	a.SortSelector.SetCurrentOption(selectedColumn)
 	a.SortSelector.SetOptions([]string{}, nil)
 	columns := provider.Data().Headers
@@ -56,6 +59,11 @@ func (a *App) setupSortSelectorOptions(provider model.DataProvider[*model.TableD
 
 func (a *App) applySortSelector(column int) func() {
 	return func() {
+		// Ignore programmatic SetCurrentOption calls during sort selector setup.
+		if a.settingUpSortOptions {
+			return
+		}
+
 		view := a.GetCurrentStuiView()
 		if view == nil {
 			return
