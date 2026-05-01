@@ -112,19 +112,20 @@ func init() {
 	FetchCounter.increment()
 }
 
+// filterSplitRe splits state/partition fields on "+" or "," delimiters.
+var filterSplitRe = regexp.MustCompile("[,+]")
+
 // Applies a list of given filters to the data
 func (t *TableData) ApplyFilters(filters map[int]string) *TableData {
-	data := t.DeepCopy()
-
-	var rows [][]CellValue
+	rows := make([][]CellValue, 0, len(t.Rows))
 rowLoop:
-	for _, row := range data.Rows {
+	for _, row := range t.Rows {
 		for filterKey, filterValue := range filters {
 			if filterValue != config.ALL_CATEGORIES_OPTION {
 
 				// The filters we have are either by state (+-separated) or by partition (comma-separated). We split by both.
 				// Use Display() to get string representation for filtering
-				valuesInRowField := regexp.MustCompile("[,+]").Split(row[filterKey].Display(), -1)
+				valuesInRowField := filterSplitRe.Split(row[filterKey].Display(), -1)
 				if !slices.Contains(valuesInRowField, filterValue) {
 					continue rowLoop
 				}
@@ -134,7 +135,7 @@ rowLoop:
 	}
 
 	return &TableData{
-		Headers:             data.Headers,
+		Headers:             t.Headers,
 		Rows:                rows,
 		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
 	}
