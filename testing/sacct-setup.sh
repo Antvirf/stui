@@ -26,6 +26,10 @@ sacm add qos sparecapacity=5
 cat testing/mock-cluster-slurmconf.conf  | grep PartitionName | cut -d= -f2 | cut -d' ' -f1 | \
         xargs -I{} sacm create account name={} parent=science 
 
+sacm create user name=johndoe cluster=stui-test-cluster account=mathematics
+sacm create user name=jimdoe cluster=stui-test-cluster account=mathematics
+sacm create user name=janedoe cluster=stui-test-cluster account=chemistry
+
 # account for John Doe in each department
 cat testing/mock-cluster-slurmconf.conf  | grep PartitionName | cut -d= -f2 | cut -d' ' -f1 | \
         xargs -I{} sacm create user name=johndoe cluster=stui-test-cluster account={} 

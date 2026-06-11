@@ -31,8 +31,15 @@ func (p *SacctMgrProvider) Fetch() error {
 		columns = append(columns, config.ColumnConfig{RawName: key, DisplayName: key})
 	}
 
+	extraCommandOptions, extraCommandExists := SACCTMGR_ENTITY_EXTRA_COMMAND_OPTIONS[config.SacctMgrCurrentEntity]
+	if extraCommandExists {
+		extraCommandOptions = fmt.Sprintf(" %s", extraCommandOptions)
+	} else {
+		extraCommandOptions = ""
+	}
+
 	rawData, err := getSacctMgrDataWithTimeout(
-		fmt.Sprintf("show %s --parsable2", config.SacctMgrCurrentEntity),
+		fmt.Sprintf("show %s%s --parsable2", config.SacctMgrCurrentEntity, extraCommandOptions),
 		config.RequestTimeout,
 		&columns,
 		false, // For sacctmgr we don't compute column widths for now.
