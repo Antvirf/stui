@@ -86,10 +86,10 @@ var (
 
 	// https://slurm.schedmd.com/sacctmgr.html
 	SACCTMGR_ENTITY_COLUMN_CONFIGS = map[string]string{
-		"Account":                "Account,Org,Descr",
+		"Account":                "Account,Org,Descr,Coord Accounts",
 		"Association":            "Cluster,Account,User,Partition,Share,QOS,Def QOS,Priority,GrpJobs,GrpTRES,GrpSubmit,GrpWall,GrpTRESMins,MaxJobs,MaxTRES,MaxTRESPerNode,MaxSubmit,MaxWall,MaxTRESMins,GrpTRESRunMins",
 		"Association tree":       "Cluster,Account,User,Partition,Share,QOS,Def QOS,Priority,GrpJobs,GrpTRES,GrpSubmit,GrpWall,GrpTRESMins,MaxJobs,MaxTRES,MaxTRESPerNode,MaxSubmit,MaxWall,MaxTRESMins,GrpTRESRunMins",
-		"Cluster":                "Cluster,ControlHost,ControlPort,RPC,Share,QOS,Def QOS,GrpJobs,GrpTRES,GrpSubmit,MaxJobs,MaxTRES,MaxSubmit,MaxWall",
+		"Cluster":                "Cluster,ControlHost,ControlPort,RPC,Share,QOS,Def QOS,GrpJobs,GrpTRES,GrpSubmit,MaxJobs,MaxTRES,MaxSubmit,MaxWall,Federation,ID,Features,FedState",
 		"Event":                  "Cluster,NodeName,TimeStart,TimeEnd,State,Reason,User",
 		"Federation":             "ID,Federation,Cluster,Features,FedState",
 		"Problem":                "Cluster,Account,User,Problem",
@@ -97,9 +97,16 @@ var (
 		"Resource":               "Name,Server,Type,Count,LastConsumed,Allocated,ServerType,Flags",
 		"Reservation":            "Name,Cluster,TRES,TimeStart,TimeEnd,UnusedWall",
 		SACCT_RUNAWAYJOBS_ENTITY: "ID,Name,State,Partition,Cluster,TimeEnd,TimeStart",
-		"Transaction":            "Time,Action,Actor,Where,Info",
+		"Transaction":            "Time,Action,Actor,Where,User,Account,Cluster,Info",
 		"TRES":                   "ID,Type,Name",
-		"User":                   "User,Def Acct,Def WCKey,Admin",
+		"User":                   "User,Def Acct,Def WCKey,Admin,Coord Accounts",
+	}
+
+	SACCTMGR_ENTITY_EXTRA_COMMAND_OPTIONS = map[string]string{
+		"Account":     "WithCoord",
+		"Cluster":     "WithFed",
+		"Transaction": "WithAssoc",
+		"User":        "WithCoord",
 	}
 
 	SACCTMGR_ENTITY_TABLES_WITH_NO_CLEAR_ID = []string{
