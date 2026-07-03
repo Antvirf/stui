@@ -31,7 +31,7 @@ func TestTableData_WithTypedValues(t *testing.T) {
 	td := &TableData{
 		Headers:             &headers,
 		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows, nil),
 	}
 
 	assert.Equal(t, 2, td.Length())
@@ -52,7 +52,7 @@ func TestTableData_DeepCopy(t *testing.T) {
 	td := &TableData{
 		Headers:             &headers,
 		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows, nil),
 	}
 
 	copy := td.DeepCopy()
@@ -79,7 +79,7 @@ func TestTableData_ApplyFilters(t *testing.T) {
 	td := &TableData{
 		Headers:             &headers,
 		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows, nil),
 	}
 
 	// Filter by State = IDLE (assuming index 1 is state column)
@@ -125,7 +125,7 @@ func TestTableData_GetRowAsMapById(t *testing.T) {
 	td := &TableData{
 		Headers:             &headers,
 		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows, nil),
 	}
 
 	rowMap, err := td.GetRowAsMapById("node2")
@@ -143,7 +143,7 @@ func TestConvertRowsToRowsAsSingleStrings(t *testing.T) {
 		{NewStringValue("node2"), NewIntegerValue("32")},
 	}
 
-	result := convertRowsToRowsAsSingleStrings(rows)
+	result := convertRowsToRowsAsSingleStrings(rows, nil)
 
 	assert.Equal(t, 2, len(result))
 	assert.Equal(t, "node164", result[0])
@@ -164,7 +164,7 @@ func TestTableData_WithNullValues(t *testing.T) {
 	td := &TableData{
 		Headers:             &headers,
 		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows, nil),
 	}
 
 	assert.False(t, td.Rows[0][1].IsNull())

@@ -121,7 +121,7 @@ func parseSacctOutputToTableData(output string, columns *[]config.ColumnConfig, 
 	return &TableData{
 		Headers:             columns,
 		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows, columns),
 	}, nil
 }
 

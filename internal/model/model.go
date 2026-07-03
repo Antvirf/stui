@@ -34,14 +34,37 @@ func EmptyTableDataWithColumns(columns *[]config.ColumnConfig) *TableData {
 	}
 }
 
-func convertRowsToRowsAsSingleStrings(rows [][]CellValue) []string {
+func convertRowsToRowsAsSingleStrings(rows [][]CellValue, headers *[]config.ColumnConfig) []string {
+	// Identify NodeList column indices for expansion
+	var nodeListIndices []int
+	if headers != nil {
+		for i, col := range *headers {
+			if col.DisplayName == "NodeList" {
+				nodeListIndices = append(nodeListIndices, i)
+			}
+		}
+	}
+
 	rowsAsStrings := []string{}
 	for _, row := range rows {
 		cells := make([]string, len(row))
 		for i, cell := range row {
 			cells[i] = cell.Display()
 		}
-		rowsAsStrings = append(rowsAsStrings, strings.Join(cells, ""))
+		rowStr := strings.Join(cells, "")
+
+		// Append expanded node lists for searchability
+		for _, idx := range nodeListIndices {
+			if idx < len(row) {
+				display := row[idx].Display()
+				if strings.Contains(display, "[") {
+					expanded := ExpandNodeList(display)
+					rowStr += expanded
+				}
+			}
+		}
+
+		rowsAsStrings = append(rowsAsStrings, rowStr)
 	}
 	return rowsAsStrings
 }
@@ -67,7 +90,7 @@ func (t *TableData) DeepCopy() *TableData {
 	return &TableData{
 		Headers:             copiedHeaders,
 		Rows:                rowsCopy,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rowsCopy),
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rowsCopy, copiedHeaders),
 	}
 }
 
