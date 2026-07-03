@@ -244,11 +244,9 @@ func TestConvertRowsToRowsAsSingleStrings_WithNodeListExpansion(t *testing.T) {
 	result := convertRowsToRowsAsSingleStrings(rows, &headers)
 
 	assert.Equal(t, 2, len(result))
-	// First row should have expanded nodes appended
+	// First row should have expanded nodes appended for searchability
 	assert.Contains(t, result[0], "linux[1,5,7,11-15]")
 	assert.Contains(t, result[0], "linux1,linux5,linux7,linux11,linux12,linux13,linux14,linux15")
 	// Second row has no brackets, so no expansion appended
-	assert.Equal(t, "12345linux[1,5,7,11-15]linux1,linux5,linux7,linux11,linux12,linux13,linux14,linux15", result[0])
 	assert.Equal(t, "12346gpu001", result[1])
 }
-

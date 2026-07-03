@@ -39,7 +39,7 @@ func convertRowsToRowsAsSingleStrings(rows [][]CellValue, headers *[]config.Colu
 	var nodeListIndices []int
 	if headers != nil {
 		for i, col := range *headers {
-			if col.DisplayName == "NodeList" {
+			if col.RawName == "NodeList" {
 				nodeListIndices = append(nodeListIndices, i)
 			}
 		}
