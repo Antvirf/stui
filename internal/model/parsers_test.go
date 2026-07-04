@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/antvirf/stui/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -151,4 +152,101 @@ func readTestData(t *testing.T, filename string) string {
 	data, err := os.ReadFile(filepath.Join("testdata", filename))
 	require.NoError(t, err, "failed to read test data file")
 	return string(data)
+}
+
+func TestExpandNodeList(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "simple node name",
+			input:    "linux1",
+			expected: "linux1",
+		},
+		{
+			name:     "single bracket list",
+			input:    "linux[1,5,7]",
+			expected: "linux1,linux5,linux7",
+		},
+		{
+			name:     "range expansion",
+			input:    "linux[1-5]",
+			expected: "linux1,linux2,linux3,linux4,linux5",
+		},
+		{
+			name:     "mixed single and range",
+			input:    "linux[1,5,7,11-15]",
+			expected: "linux1,linux5,linux7,linux11,linux12,linux13,linux14,linux15",
+		},
+		{
+			name:     "zero-padded range",
+			input:    "node[01-03]",
+			expected: "node01,node02,node03",
+		},
+		{
+			name:     "multiple node groups",
+			input:    "node[1-3],gpu[1-2]",
+			expected: "node1,node2,node3,gpu1,gpu2",
+		},
+		{
+			name:     "empty string",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "N/A value",
+			input:    "N/A",
+			expected: "N/A",
+		},
+		{
+			name:     "null value",
+			input:    "(null)",
+			expected: "(null)",
+		},
+		{
+			name:     "single node no brackets",
+			input:    "compute-node-001",
+			expected: "compute-node-001",
+		},
+		{
+			name:     "multiple simple nodes comma separated",
+			input:    "node1,node2,node3",
+			expected: "node1,node2,node3",
+		},
+		{
+			name:     "zero-padded mixed",
+			input:    "gpu[001,005,010-012]",
+			expected: "gpu001,gpu005,gpu010,gpu011,gpu012",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := ExpandNodeList(tt.input)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestConvertRowsToRowsAsSingleStrings_WithNodeListExpansion(t *testing.T) {
+	headers := []config.ColumnConfig{
+		{RawName: "JobId", DisplayName: "JobId"},
+		{RawName: "NodeList", DisplayName: "NodeList"},
+	}
+
+	rows := [][]CellValue{
+		{NewStringValue("12345"), NewStringValue("linux[1,5,7,11-15]")},
+		{NewStringValue("12346"), NewStringValue("gpu001")},
+	}
+
+	result := convertRowsToRowsAsSingleStrings(rows, &headers)
+
+	assert.Equal(t, 2, len(result))
+	// First row should have expanded nodes appended for searchability
+	assert.Contains(t, result[0], "linux[1,5,7,11-15]")
+	assert.Contains(t, result[0], "linux1,linux5,linux7,linux11,linux12,linux13,linux14,linux15")
+	// Second row has no brackets, so no expansion appended
+	assert.Equal(t, "12346gpu001", result[1])
 }

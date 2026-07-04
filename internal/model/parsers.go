@@ -1,7 +1,9 @@
 package model
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/antvirf/stui/internal/logger"
@@ -213,4 +215,117 @@ func parseSacctMgrRunawayJobsOutput(output string) (entries []map[string]string)
 		entries = append(entries, currentEntry)
 	}
 	return entries
+}
+
+// ExpandNodeList expands a Slurm compressed node list notation into individual node names.
+// Examples:
+//   - "linux1" → "linux1"
+//   - "linux[1,5,7]" → "linux1,linux5,linux7"
+//   - "linux[1-5]" → "linux1,linux2,linux3,linux4,linux5"
+//   - "linux[1,5,7,11-15]" → "linux1,linux5,linux7,linux11,linux12,linux13,linux14,linux15"
+//   - "node[01-03]" → "node01,node02,node03" (preserves zero-padding)
+//   - "node[1-3],gpu[1-2]" → "node1,node2,node3,gpu1,gpu2" (multiple groups)
+func ExpandNodeList(nodeList string) string {
+	nodeList = strings.TrimSpace(nodeList)
+	if nodeList == "" || nodeList == "N/A" || nodeList == "(null)" {
+		return nodeList
+	}
+
+	// Handle multiple comma-separated node groups (e.g., "node[1-3],gpu[1-2]")
+	// We need to be careful: commas inside brackets are part of the range spec
+	var results []string
+	for _, group := range splitNodeGroups(nodeList) {
+		results = append(results, expandSingleNodeGroup(group)...)
+	}
+
+	return strings.Join(results, ",")
+}
+
+// splitNodeGroups splits a node list into individual groups, respecting brackets.
+// e.g., "node[1,3],gpu[1-2]" → ["node[1,3]", "gpu[1-2]"]
+func splitNodeGroups(nodeList string) []string {
+	var groups []string
+	depth := 0
+	start := 0
+
+	for i, ch := range nodeList {
+		switch ch {
+		case '[':
+			depth++
+		case ']':
+			depth--
+		case ',':
+			if depth == 0 {
+				groups = append(groups, nodeList[start:i])
+				start = i + 1
+			}
+		}
+	}
+	// Add the last group
+	groups = append(groups, nodeList[start:])
+	return groups
+}
+
+// expandSingleNodeGroup expands a single node group like "linux[1,5,7,11-15]"
+func expandSingleNodeGroup(group string) []string {
+	group = strings.TrimSpace(group)
+	if group == "" {
+		return nil
+	}
+
+	// Find bracket positions
+	bracketStart := strings.Index(group, "[")
+	bracketEnd := strings.LastIndex(group, "]")
+
+	// No brackets - it's a simple node name
+	if bracketStart == -1 || bracketEnd == -1 || bracketEnd <= bracketStart {
+		return []string{group}
+	}
+
+	prefix := group[:bracketStart]
+	suffix := ""
+	if bracketEnd < len(group)-1 {
+		suffix = group[bracketEnd+1:]
+	}
+	rangeSpec := group[bracketStart+1 : bracketEnd]
+
+	// Parse the range specification (comma-separated items, each may be a range)
+	var nodes []string
+	for _, part := range strings.Split(rangeSpec, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		if strings.Contains(part, "-") {
+			// Range like "11-15" or "01-05"
+			rangeParts := strings.SplitN(part, "-", 2)
+			if len(rangeParts) != 2 {
+				nodes = append(nodes, prefix+part+suffix)
+				continue
+			}
+
+			startStr := rangeParts[0]
+			endStr := rangeParts[1]
+
+			startNum, err1 := strconv.Atoi(startStr)
+			endNum, err2 := strconv.Atoi(endStr)
+			if err1 != nil || err2 != nil {
+				nodes = append(nodes, prefix+part+suffix)
+				continue
+			}
+
+			// Determine padding width from the original string
+			padWidth := len(startStr)
+
+			for n := startNum; n <= endNum; n++ {
+				nodes = append(nodes, prefix+fmt.Sprintf("%0*d", padWidth, n)+suffix)
+			}
+		} else {
+			// Single number like "5" or "05"
+			nodes = append(nodes, prefix+part+suffix)
+		}
+	}
+
+	return nodes
 }
