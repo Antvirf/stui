@@ -50,7 +50,7 @@ func buildTableDataFromScontrolOutput(output string, columns *[]config.ColumnCon
 	return &TableData{
 		Headers:             columns,
 		Rows:                rows,
-		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows),
+		RowsAsSingleStrings: convertRowsToRowsAsSingleStrings(rows, nil),
 	}
 }
 
@@ -107,7 +107,7 @@ func BenchmarkConvertRowsToSingleStrings(b *testing.B) {
 	td := buildTableDataFromScontrolOutput(string(raw), config.NodeViewColumns)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = convertRowsToRowsAsSingleStrings(td.Rows)
+		_ = convertRowsToRowsAsSingleStrings(td.Rows, nil)
 	}
 }
 
