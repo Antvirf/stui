@@ -146,6 +146,21 @@ func tableViewInputCapture(
 			grid = a.SacctView.Grid
 		}
 		switch event.Rune() {
+		case 'P':
+			if view == a.NodesView.Table {
+				if len(*selection) > 0 {
+					a.ShowNodePowerMenu(*selection)
+				} else {
+					row, _ := view.GetSelection()
+					if row > 0 {
+						entryName := strings.TrimSpace(view.GetCell(row, 0).Text)
+						if entryName != "" {
+							a.ShowNodePowerMenu(map[string]bool{entryName: true})
+						}
+					}
+				}
+				return nil
+			}
 		case '/':
 			a.ShowSearchBox(grid)
 			a.RenderCurrentView()
