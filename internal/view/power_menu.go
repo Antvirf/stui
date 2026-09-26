@@ -4,23 +4,33 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"unicode"
 
 	"github.com/antvirf/stui/internal/config"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-var nodePowerStates = []string{"POWER_UP", "POWER_DOWN"}
+type nodePowerOption struct {
+	state       string
+	shortcut    rune
+	description string
+}
+
+var nodePowerOptions = []nodePowerOption{
+	{"POWER_UP", 'u', "Run ResumeProgram to leave power-saving mode."},
+	{"POWER_DOWN", 'd', "Run SuspendProgram to enter power-saving mode."},
+	{"POWER_DOWN_ASAP", 'a', "Drain node; power down after running jobs finish."},
+	{"POWER_DOWN_FORCE", 'f', "Cancel jobs, power down, then reset to IDLE."},
+}
 
 func nodePowerStateIndex(shortcut rune) int {
-	switch shortcut {
-	case 'u', 'U':
-		return 0
-	case 'd', 'D':
-		return 1
-	default:
-		return -1
+	for index, option := range nodePowerOptions {
+		if unicode.ToLower(shortcut) == option.shortcut {
+			return index
+		}
 	}
+	return -1
 }
 
 func nodePowerCommand(nodes map[string]bool, state string) string {
@@ -38,20 +48,24 @@ func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
 	}
 
 	list := tview.NewList().
-		ShowSecondaryText(false).
+		ShowSecondaryText(true).
 		SetHighlightFullLine(true)
-	for _, state := range nodePowerStates {
-		state := state
-		shortcut := []rune(strings.ToLower(state))[len("power_")]
-		list.AddItem(fmt.Sprintf("(%c) %s", shortcut, state), "", 0, func() {
-			a.Pages.RemovePage("node-power-menu")
-			a.ShowCommandModal(
-				nodePowerCommand(nodes, state),
-				config.NODES_PAGE,
-				false,
-				false,
-			)
-		})
+	for _, option := range nodePowerOptions {
+		option := option
+		list.AddItem(
+			fmt.Sprintf("(%c) %s", option.shortcut, option.state),
+			option.description,
+			0,
+			func() {
+				a.Pages.RemovePage("node-power-menu")
+				a.ShowCommandModal(
+					nodePowerCommand(nodes, option.state),
+					config.NODES_PAGE,
+					false,
+					false,
+				)
+			},
+		)
 	}
 
 	previousFocus := a.App.GetFocus()
@@ -74,7 +88,7 @@ func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
 		SetDirection(tview.FlexRow).
 		AddItem(tview.NewTextView().
 			SetTextAlign(tview.AlignCenter).
-			SetText(" Node Power (U/D to select, Enter to confirm, ESC to cancel) "),
+			SetText(" Node Power (U/D/A/F to select, Enter to confirm, ESC to cancel) "),
 			1, 0, false).
 		AddItem(list, 0, 1, true)
 	modal.SetBorder(true).
@@ -84,11 +98,11 @@ func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
 	verticallyCentered := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(nil, 0, 1, false).
-		AddItem(modal, 7, 0, true).
+		AddItem(modal, 11, 0, true).
 		AddItem(nil, 0, 1, false)
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
-		AddItem(verticallyCentered, 46, 0, true).
+		AddItem(verticallyCentered, 70, 0, true).
 		AddItem(nil, 0, 1, false)
 
 	a.Pages.AddPage("node-power-menu", centered, true, true)

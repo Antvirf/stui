@@ -27,12 +27,38 @@ func TestNodePowerStateIndex(t *testing.T) {
 		{'U', 0},
 		{'d', 1},
 		{'D', 1},
+		{'a', 2},
+		{'A', 2},
+		{'f', 3},
+		{'F', 3},
 		{'x', -1},
 	}
 
 	for _, tt := range tests {
 		if got := nodePowerStateIndex(tt.shortcut); got != tt.want {
 			t.Errorf("nodePowerStateIndex(%q) = %d, want %d", tt.shortcut, got, tt.want)
+		}
+	}
+}
+
+func TestNodePowerOptions(t *testing.T) {
+	states := []string{
+		"POWER_UP",
+		"POWER_DOWN",
+		"POWER_DOWN_ASAP",
+		"POWER_DOWN_FORCE",
+	}
+
+	if len(nodePowerOptions) != len(states) {
+		t.Fatalf("nodePowerOptions has %d entries, want %d", len(nodePowerOptions), len(states))
+	}
+	for index, state := range states {
+		option := nodePowerOptions[index]
+		if option.state != state {
+			t.Errorf("option %d state = %q, want %q", index, option.state, state)
+		}
+		if option.description == "" {
+			t.Errorf("option %q has no description", state)
 		}
 	}
 }
