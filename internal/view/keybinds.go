@@ -72,6 +72,9 @@ func (a *App) SetupKeybinds() {
 		case '5':
 			a.ActivatePage(config.SDIAG_PAGE)
 			return nil
+		case '6':
+			a.ActivatePage(config.ASSOC_MGR_PAGE)
+			return nil
 		}
 		return event
 	})
@@ -116,6 +119,15 @@ func (a *App) SetupKeybinds() {
 			a.ShowJobDetails,
 		),
 	)
+	a.AssocMgrView.Table.SetInputCapture(
+		tableViewInputCapture(
+			a,
+			a.AssocMgrView.Table,
+			&a.AssocMgrView.Selection,
+			"",
+			func(string) {},
+		),
+	)
 }
 
 // Handles all inputs for table views (nodes and jobs)
@@ -144,6 +156,9 @@ func tableViewInputCapture(
 		case a.SacctView.Table:
 			data = a.SacctProvider.Data()
 			grid = a.SacctView.Grid
+		case a.AssocMgrView.Table:
+			data = a.AssocMgrProvider.Data()
+			grid = a.AssocMgrView.Grid
 		}
 		switch event.Rune() {
 		case 'P':
@@ -195,7 +210,8 @@ func tableViewInputCapture(
 			if a.GetCurrentPageName() == config.NODES_PAGE ||
 				a.GetCurrentPageName() == config.JOBS_PAGE ||
 				a.GetCurrentPageName() == config.SACCT_PAGE ||
-				a.GetCurrentPageName() == config.SACCTMGR_PAGE {
+				a.GetCurrentPageName() == config.SACCTMGR_PAGE ||
+				a.GetCurrentPageName() == config.ASSOC_MGR_PAGE {
 				a.App.SetFocus(a.SortSelector)
 			}
 			return nil

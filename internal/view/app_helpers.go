@@ -56,6 +56,8 @@ func (a *App) GetProviderForPage(page string) model.DataProvider[*model.TableDat
 		var p *string
 		_ = *p
 		return nil
+	case config.ASSOC_MGR_PAGE:
+		return a.AssocMgrProvider
 	default:
 		return nil
 	}
@@ -130,6 +132,11 @@ func (a *App) optionalRefreshAndRenderPage(pageName string, refresh bool) {
 			a.SchedView.SetText(d.Data)
 		}
 		// No rendering operation needed, TextView just gets its data set periodically
+	case config.ASSOC_MGR_PAGE:
+		if refresh {
+			a.AssocMgrProvider.Fetch()
+		}
+		a.AssocMgrView.Render()
 	}
 	go a.App.QueueUpdateDraw(func() {})
 }
@@ -268,6 +275,7 @@ func (a *App) setActiveTab(active string) {
 	a.TabSchedulerBox.SetBackgroundColor(generalBackgroundColor)
 	a.TabAccountingMgrBox.SetBackgroundColor(generalBackgroundColor)
 	a.TabAccountingBox.SetBackgroundColor(generalBackgroundColor)
+	a.TabAssocMgrBox.SetBackgroundColor(generalBackgroundColor)
 
 	// Set active color
 	switch active {
@@ -281,6 +289,8 @@ func (a *App) setActiveTab(active string) {
 		a.TabAccountingMgrBox.SetBackgroundColor(paneSelectorHighlightColor)
 	case config.SACCT_PAGE:
 		a.TabAccountingBox.SetBackgroundColor(paneSelectorHighlightColor)
+	case config.ASSOC_MGR_PAGE:
+		a.TabAssocMgrBox.SetBackgroundColor(paneSelectorHighlightColor)
 	}
 }
 

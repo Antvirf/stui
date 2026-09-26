@@ -84,8 +84,8 @@ func getScontrolDataWithTimeout(command string, columns *[]config.ColumnConfig, 
 
 			} else {
 				// Normal single column
-				rawValue := safeGetFromMap(rawRow, col.DisplayName)
-				fieldType := GetFieldType(col.DisplayName)
+				rawValue := safeGetFromMap(rawRow, col.RawName)
+				fieldType := GetFieldType(col.RawName)
 				row[j] = parseTypedValue(rawValue, fieldType)
 			}
 

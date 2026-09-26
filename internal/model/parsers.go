@@ -57,6 +57,26 @@ func parseScontrolOutput(output string) (entries []map[string]string) {
 	return entries
 }
 
+// parseAssocMgrOutput groups each multi-line association record into one table row.
+func parseAssocMgrOutput(output string) (entries []map[string]string) {
+	var record []string
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "ClusterName=") {
+			if len(record) > 0 {
+				entries = append(entries, parseScontrolOutput(strings.Join(record, " "))[0])
+			}
+			record = []string{line}
+		} else if len(record) > 0 && line != "" {
+			record = append(record, line)
+		}
+	}
+	if len(record) > 0 {
+		entries = append(entries, parseScontrolOutput(strings.Join(record, " "))[0])
+	}
+	return entries
+}
+
 // parseScontrolJobsOutput parses the scontrol show job output into a slice of maps
 func parseScontrolJobsOutput(output string) (jobs []map[string]string) {
 	for _, job := range strings.Split(output, "\n\n") {

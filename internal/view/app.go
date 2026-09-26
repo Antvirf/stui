@@ -43,6 +43,7 @@ type App struct {
 	TabSchedulerBox     *tview.TextView
 	TabAccountingMgrBox *tview.TextView
 	TabAccountingBox    *tview.TextView
+	TabAssocMgrBox      *tview.TextView
 
 	// Dropdown selectors
 	PartitionSelector      *tview.DropDown
@@ -73,6 +74,7 @@ type App struct {
 	SacctMgrProvider   model.DataProvider[*model.TableData]
 	SacctProvider      model.DataProvider[*model.TableData]
 	SdiagProvider      model.DataProvider[*model.TextData]
+	AssocMgrProvider   model.DataProvider[*model.TableData]
 
 	// New style views
 	NodesView    *StuiView
@@ -80,6 +82,7 @@ type App struct {
 	SacctMgrView *StuiView
 	SacctView    *StuiView
 	SchedView    *tview.TextView // Special case, text only
+	AssocMgrView *StuiView
 }
 
 // Initializes a `stui` instance tview Application using the config module
@@ -102,7 +105,7 @@ func InitializeApplication(stateStore *state.StuiState) *App {
 
 	start := time.Now()
 	var wg sync.WaitGroup
-	wg.Add(6)
+	wg.Add(7)
 	go func() {
 		defer wg.Done()
 		application.PartitionsProvider = model.NewPartitionsProvider()
@@ -126,6 +129,10 @@ func InitializeApplication(stateStore *state.StuiState) *App {
 	go func() {
 		defer wg.Done()
 		application.SdiagProvider = model.NewSdiagProvider(!config.Quickstart || config.StartPane == config.SDIAG_PAGE)
+	}()
+	go func() {
+		defer wg.Done()
+		application.AssocMgrProvider = model.NewAssocMgrProvider(!config.Quickstart || config.StartPane == config.ASSOC_MGR_PAGE)
 	}()
 	wg.Wait()
 	logger.Printf("START: Initial data load from scheduler took %d ms", time.Since(start).Milliseconds())
@@ -168,6 +175,8 @@ func (a *App) SetupViews() {
 			SetText("(4) Accounting manager [sacctmgr]")
 		a.TabSchedulerBox = tview.NewTextView().
 			SetText("(5) Scheduler          [sdiag]")
+		a.TabAssocMgrBox = tview.NewTextView().
+			SetText("(6) Association limits [scontrol]")
 
 		// If sacct disabled, blank out those rows
 		if !config.SacctEnabled {
@@ -182,7 +191,8 @@ func (a *App) SetupViews() {
 		AddItem(a.TabJobsBox, SCND_ROW, FRST_COL, 1, 1, 1, 0, false).
 		AddItem(a.TabAccountingBox, THRD_ROW, FRST_COL, 1, 1, 1, 0, false).
 		AddItem(a.TabAccountingMgrBox, FRTH_ROW, FRST_COL, 1, 1, 1, 0, false).
-		AddItem(a.TabSchedulerBox, FFTH_ROW, FRST_COL, 1, 1, 1, 0, false)
+		AddItem(a.TabSchedulerBox, FFTH_ROW, FRST_COL, 1, 1, 1, 0, false).
+		AddItem(a.TabAssocMgrBox, 5, FRST_COL, 1, 1, 1, 0, false)
 
 	a.HeaderGrid = tview.NewGrid().
 		SetColumns(-1, -2, -1).
@@ -306,6 +316,24 @@ func (a *App) SetupViews() {
 		a.Pages.AddPage(config.SDIAG_PAGE, a.SchedView, true, false)
 	}
 
+	{ // Association limits view
+		a.AssocMgrView = NewStuiView(
+			"Association Limits",
+			a.AssocMgrProvider,
+			a.PagesContainer.SetTitle,
+			a.UpdateHeaderLineTwo,
+			a.UpdateHeaderLineOne,
+			a.copyCellToClipBoard,
+			a.SortSelector.SetCurrentOption,
+			&a.SearchPattern,
+		)
+		a.Pages.AddPage(config.ASSOC_MGR_PAGE, a.AssocMgrView.Grid, true, false)
+		a.AssocMgrView.checkVisible = func() bool {
+			name, _ := a.Pages.GetFrontPage()
+			return name == config.ASSOC_MGR_PAGE
+		}
+	}
+
 	{ // Starting position
 		a.ActivatePage(config.StartPane)
 	}
@@ -341,6 +369,7 @@ func (a *App) StartRefresh() {
 	a.JobsView.Render()
 	a.SacctView.Render()
 	a.SacctMgrView.Render()
+	a.AssocMgrView.Render()
 	{ // Render sdiag
 		d := a.SdiagProvider.Data()
 		a.SchedView.SetText(d.Data)
@@ -351,6 +380,7 @@ func (a *App) StartRefresh() {
 	a.setupPartitionSelectorOptions(a.StateStore.State.PartitionFilter)
 	a.NodesView.Table.ScrollToBeginning()
 	a.JobsView.Table.ScrollToBeginning()
+	a.AssocMgrView.Table.ScrollToBeginning()
 	if config.SacctEnabled {
 		a.SacctMgrView.Table.ScrollToBeginning()
 		a.SacctView.Table.ScrollToBeginning()
@@ -382,6 +412,8 @@ func (a *App) StartRefresh() {
 					case config.SDIAG_PAGE:
 						a.SdiagProvider.Fetch()
 						a.SchedView.SetText(a.SdiagProvider.Data().Data)
+					case config.ASSOC_MGR_PAGE:
+						a.AssocMgrView.FetchAndRender()
 					}
 				})
 			}
@@ -493,6 +525,23 @@ func (a *App) ActivatePage(page string) {
 			go a.App.QueueUpdateDraw(func() {
 				a.SdiagProvider.FetchIfStale(config.RefreshInterval)
 				a.SchedView.SetText(a.SdiagProvider.Data().Data) // This has no "render" function, we set it manually
+			})
+		}
+	case config.ASSOC_MGR_PAGE:
+		{
+			a.SwitchToPage(config.ASSOC_MGR_PAGE)
+			a.CurrentTableView = a.AssocMgrView.Table
+			a.SetHeaderGridInnerContents(a.SortSelector)
+			if a.SearchPattern != "" {
+				a.ShowSearchBox(a.AssocMgrView.Grid)
+			} else {
+				a.HideSearchBox()
+			}
+			a.App.SetFocus(a.AssocMgrView.Table)
+			a.setupSortSelectorOptions(a.AssocMgrProvider, a.AssocMgrView.sortColumn)
+			a.PagesContainer.SetTitle(a.AssocMgrView.completeTitle)
+			go a.App.QueueUpdateDraw(func() {
+				a.AssocMgrView.FetchIfStaleAndRender(config.RefreshInterval)
 			})
 		}
 	}
