@@ -20,17 +20,19 @@ func TestNodePowerCommand(t *testing.T) {
 
 func TestNodePowerStateIndex(t *testing.T) {
 	tests := []struct {
-		prefix string
-		want   int
+		shortcut rune
+		want     int
 	}{
-		{"POWER_U", 0},
-		{"POWER_D", 1},
-		{"INVALID", -1},
+		{'u', 0},
+		{'U', 0},
+		{'d', 1},
+		{'D', 1},
+		{'x', -1},
 	}
 
 	for _, tt := range tests {
-		if got := nodePowerStateIndex(tt.prefix); got != tt.want {
-			t.Errorf("nodePowerStateIndex(%q) = %d, want %d", tt.prefix, got, tt.want)
+		if got := nodePowerStateIndex(tt.shortcut); got != tt.want {
+			t.Errorf("nodePowerStateIndex(%q) = %d, want %d", tt.shortcut, got, tt.want)
 		}
 	}
 }
