@@ -73,6 +73,7 @@ const (
 3        Switch to Jobs accounting view (sacct)
 4        Switch to Accounting Manager view (sacctmgr)
 5        Switch to Scheduler view (sdiag)
+6        Switch to Association Limits view (scontrol)
 k/j      Move selection up/down in table view
 h/l      Scroll left/right in table view
 Arrows   Scroll up/down/left/right in table view
@@ -128,11 +129,12 @@ e        Focus on Entity type selector, 'esc' to close
 	DEFAULT_STATE_LOCATION   = "" // ~/.cache/stui/ is a good value
 
 	// Page names
-	NODES_PAGE    = "nodes"
-	JOBS_PAGE     = "jobs"
-	SACCTMGR_PAGE = "sacctmgr"
-	SACCT_PAGE    = "sacct"
-	SDIAG_PAGE    = "sdiag"
+	NODES_PAGE     = "nodes"
+	JOBS_PAGE      = "jobs"
+	SACCTMGR_PAGE  = "sacctmgr"
+	SACCT_PAGE     = "sacct"
+	SDIAG_PAGE     = "sdiag"
+	ASSOC_MGR_PAGE = "assoc_mgr"
 )
 
 func Configure() {
@@ -155,7 +157,7 @@ func Configure() {
 	flag.BoolVar(&MouseDisabled, "disable-mouse", MouseDisabled, "disable mouse input")
 	flag.BoolVar(&DisableSearchHighlight, "disable-search-highlight", DisableSearchHighlight, "disable highlighting of regex search matches")
 	flag.BoolVar(&Quickstart, "quickstart", Quickstart, "only load data for starting pane. Use 'start-pane' to change which pane is loaded at start time.")
-	flag.IntVar(&startPane, "start-pane", startPane, "what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag). Can also be provided as the only positional argument.")
+	flag.IntVar(&startPane, "start-pane", startPane, "what pane to show on startup (1=nodes, 2=job queue, 3=job accounting, 4=sacctmgr, 5=sdiag, 6=association limits). Can also be provided as the only positional argument.")
 
 	// Config flags that have been deprecated from user config
 	// flag.DurationVar(&SearchDebounceInterval, "search-debounce-interval", SearchDebounceInterval, "interval to wait before searching, specify as a duration e.g. '300ms', '1s', '2m'")
@@ -241,8 +243,8 @@ func Configure() {
 		startPane = parsedStartPane
 	}
 
-	if !slices.Contains([]int{1, 2, 3, 4, 5}, startPane) {
-		log.Fatalf("Invalid arguments: start-pane must be one of 1, 2, 3, 4, 5")
+	if !slices.Contains([]int{1, 2, 3, 4, 5, 6}, startPane) {
+		log.Fatalf("Invalid arguments: start-pane must be one of 1, 2, 3, 4, 5, 6")
 	}
 	StartPane = map[int]string{
 		1: NODES_PAGE,
@@ -250,6 +252,7 @@ func Configure() {
 		3: SACCT_PAGE,
 		4: SACCTMGR_PAGE,
 		5: SDIAG_PAGE,
+		6: ASSOC_MGR_PAGE,
 	}[startPane]
 
 	ComputeConfigurations()

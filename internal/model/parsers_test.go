@@ -69,6 +69,33 @@ func TestParseScontrolOutput_InvalidLines(t *testing.T) {
 	assert.Equal(t, "Value", entries[0]["Key"])
 }
 
+func TestParseAssocMgrOutput(t *testing.T) {
+	input := `Current Association Manager state
+
+Association Records
+
+ClusterName=cluster Account=project UserName=alice(1001) Partition=compute Priority=1 ID=2
+    GrpJobs=10(2) GrpJobsAccrue=N(1)
+    GrpSubmitJobs=20(3) GrpWall=N(0.00)
+    GrpTRES=cpu=100(8)
+    MaxJobs=5(2) MaxJobsAccrue=4(1) MaxSubmitJobs=10(3) MaxWallPJ=60
+    MaxTRESPJ=cpu=8
+
+ClusterName=cluster Account=project UserName= Partition= Priority=0 ID=1
+    GrpJobs=N(0) GrpJobsAccrue=N(0)
+    MaxJobs= MaxJobsAccrue= MaxSubmitJobs= MaxWallPJ=
+`
+	entries := parseAssocMgrOutput(input)
+
+	require.Len(t, entries, 2)
+	assert.Equal(t, "cluster", entries[0]["ClusterName"])
+	assert.Equal(t, "alice(1001)", entries[0]["UserName"])
+	assert.Equal(t, "10(2)", entries[0]["GrpJobs"])
+	assert.Equal(t, "cpu=8", entries[0]["MaxTRESPJ"])
+	assert.Equal(t, "", entries[1]["UserName"])
+	assert.Equal(t, "", entries[1]["MaxJobs"])
+}
+
 func TestSafeGetFromMap(t *testing.T) {
 	testMap := map[string]string{
 		"exists": "value",
