@@ -12,19 +12,19 @@ import (
 )
 
 type nodePowerOption struct {
-	state       string
+	command     string
 	shortcut    rune
 	description string
 }
 
 var nodePowerOptions = []nodePowerOption{
-	{"POWER_UP", 'u', "Run ResumeProgram to leave power-saving mode."},
-	{"POWER_DOWN", 'd', "Run SuspendProgram to enter power-saving mode."},
-	{"POWER_DOWN_ASAP", 'a', "Drain node; power down after running jobs finish."},
-	{"POWER_DOWN_FORCE", 'f', "Cancel jobs, power down, then reset to IDLE."},
-	{"REBOOT", 'r', "Reboot when the node is idle."},
-	{"REBOOT_ASAP", 'b', "Drain node; reboot after running jobs finish."},
-	{"CANCEL_REBOOT", 'c', "Cancel a pending reboot request."},
+	{"power up", 'u', "Run ResumeProgram to leave power-saving mode."},
+	{"power down", 'd', "Run SuspendProgram to enter power-saving mode."},
+	{"power down asap", 'a', "Drain node; power down after running jobs finish."},
+	{"power down force", 'f', "Cancel jobs, power down, then reset to IDLE."},
+	{"reboot", 'r', "Reboot when the node is idle."},
+	{"reboot asap", 'b', "Drain node; reboot after running jobs finish."},
+	{"cancel_reboot", 'c', "Cancel a pending reboot request."},
 }
 
 func nodePowerStateIndex(shortcut rune) int {
@@ -36,13 +36,13 @@ func nodePowerStateIndex(shortcut rune) int {
 	return -1
 }
 
-func nodePowerCommand(nodes map[string]bool, state string) string {
+func nodePowerCommand(nodes map[string]bool, command string) string {
 	nodeNames := make([]string, 0, len(nodes))
 	for nodeName := range nodes {
 		nodeNames = append(nodeNames, nodeName)
 	}
 	slices.Sort(nodeNames)
-	return fmt.Sprintf("scontrol update NodeName=%q State=%q", strings.Join(nodeNames, ","), state)
+	return fmt.Sprintf("scontrol %s %q", command, strings.Join(nodeNames, ","))
 }
 
 func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
@@ -56,13 +56,13 @@ func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
 	for _, option := range nodePowerOptions {
 		option := option
 		list.AddItem(
-			fmt.Sprintf("(%c) %-16s %s", option.shortcut, option.state, option.description),
+			fmt.Sprintf("(%c) %-16s %s", option.shortcut, option.command, option.description),
 			"",
 			0,
 			func() {
 				a.Pages.RemovePage("node-power-menu")
 				a.ShowCommandModal(
-					nodePowerCommand(nodes, option.state),
+					nodePowerCommand(nodes, option.command),
 					config.NODES_PAGE,
 					false,
 					false,

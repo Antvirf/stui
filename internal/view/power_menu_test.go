@@ -7,14 +7,23 @@ import (
 )
 
 func TestNodePowerCommand(t *testing.T) {
-	command := nodePowerCommand(
-		map[string]bool{"node-b": true, "node-a": true},
-		"POWER_UP",
-	)
+	tests := []struct {
+		command string
+		want    string
+	}{
+		{"power up", `scontrol power up "node-a,node-b"`},
+		{"power down", `scontrol power down "node-a,node-b"`},
+		{"power down asap", `scontrol power down asap "node-a,node-b"`},
+		{"power down force", `scontrol power down force "node-a,node-b"`},
+		{"reboot", `scontrol reboot "node-a,node-b"`},
+		{"reboot asap", `scontrol reboot asap "node-a,node-b"`},
+		{"cancel_reboot", `scontrol cancel_reboot "node-a,node-b"`},
+	}
 
-	want := `scontrol update NodeName="node-a,node-b" State="POWER_UP"`
-	if command != want {
-		t.Errorf("nodePowerCommand() = %q, want %q", command, want)
+	for _, tt := range tests {
+		if got := nodePowerCommand(map[string]bool{"node-b": true, "node-a": true}, tt.command); got != tt.want {
+			t.Errorf("nodePowerCommand(%q) = %q, want %q", tt.command, got, tt.want)
+		}
 	}
 }
 
@@ -48,26 +57,26 @@ func TestNodePowerStateIndex(t *testing.T) {
 }
 
 func TestNodePowerOptions(t *testing.T) {
-	states := []string{
-		"POWER_UP",
-		"POWER_DOWN",
-		"POWER_DOWN_ASAP",
-		"POWER_DOWN_FORCE",
-		"REBOOT",
-		"REBOOT_ASAP",
-		"CANCEL_REBOOT",
+	commands := []string{
+		"power up",
+		"power down",
+		"power down asap",
+		"power down force",
+		"reboot",
+		"reboot asap",
+		"cancel_reboot",
 	}
 
-	if len(nodePowerOptions) != len(states) {
-		t.Fatalf("nodePowerOptions has %d entries, want %d", len(nodePowerOptions), len(states))
+	if len(nodePowerOptions) != len(commands) {
+		t.Fatalf("nodePowerOptions has %d entries, want %d", len(nodePowerOptions), len(commands))
 	}
-	for index, state := range states {
+	for index, command := range commands {
 		option := nodePowerOptions[index]
-		if option.state != state {
-			t.Errorf("option %d state = %q, want %q", index, option.state, state)
+		if option.command != command {
+			t.Errorf("option %d command = %q, want %q", index, option.command, command)
 		}
 		if option.description == "" {
-			t.Errorf("option %q has no description", state)
+			t.Errorf("option %q has no description", command)
 		}
 	}
 }
