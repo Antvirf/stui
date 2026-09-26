@@ -48,8 +48,8 @@ func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
 			a.ShowCommandModal(
 				nodePowerCommand(nodes, state),
 				config.NODES_PAGE,
-				true,
-				true,
+				false,
+				false,
 			)
 		})
 	}
