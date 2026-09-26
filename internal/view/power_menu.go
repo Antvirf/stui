@@ -22,6 +22,9 @@ var nodePowerOptions = []nodePowerOption{
 	{"POWER_DOWN", 'd', "Run SuspendProgram to enter power-saving mode."},
 	{"POWER_DOWN_ASAP", 'a', "Drain node; power down after running jobs finish."},
 	{"POWER_DOWN_FORCE", 'f', "Cancel jobs, power down, then reset to IDLE."},
+	{"REBOOT", 'r', "Reboot when the node is idle."},
+	{"REBOOT_ASAP", 'b', "Drain node; reboot after running jobs finish."},
+	{"CANCEL_REBOOT", 'c', "Cancel a pending reboot request."},
 }
 
 func nodePowerStateIndex(shortcut rune) int {
@@ -48,13 +51,13 @@ func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
 	}
 
 	list := tview.NewList().
-		ShowSecondaryText(true).
+		ShowSecondaryText(false).
 		SetHighlightFullLine(true)
 	for _, option := range nodePowerOptions {
 		option := option
 		list.AddItem(
-			fmt.Sprintf("(%c) %s", option.shortcut, option.state),
-			option.description,
+			fmt.Sprintf("(%c) %-16s %s", option.shortcut, option.state, option.description),
+			"",
 			0,
 			func() {
 				a.Pages.RemovePage("node-power-menu")
@@ -88,7 +91,7 @@ func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
 		SetDirection(tview.FlexRow).
 		AddItem(tview.NewTextView().
 			SetTextAlign(tview.AlignCenter).
-			SetText(" Node Power (U/D/A/F to select, Enter to confirm, ESC to cancel) "),
+			SetText(" Node Power (U/D/A/F/R/B/C to select, Enter to confirm, ESC to cancel) "),
 			1, 0, false).
 		AddItem(list, 0, 1, true)
 	modal.SetBorder(true).
@@ -98,11 +101,11 @@ func (a *App) ShowNodePowerMenu(nodes map[string]bool) {
 	verticallyCentered := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(nil, 0, 1, false).
-		AddItem(modal, 11, 0, true).
+		AddItem(modal, 10, 0, true).
 		AddItem(nil, 0, 1, false)
 	centered := tview.NewFlex().
 		AddItem(nil, 0, 1, false).
-		AddItem(verticallyCentered, 70, 0, true).
+		AddItem(verticallyCentered, 86, 0, true).
 		AddItem(nil, 0, 1, false)
 
 	a.Pages.AddPage("node-power-menu", centered, true, true)

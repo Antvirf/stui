@@ -31,6 +31,12 @@ func TestNodePowerStateIndex(t *testing.T) {
 		{'A', 2},
 		{'f', 3},
 		{'F', 3},
+		{'r', 4},
+		{'R', 4},
+		{'b', 5},
+		{'B', 5},
+		{'c', 6},
+		{'C', 6},
 		{'x', -1},
 	}
 
@@ -47,6 +53,9 @@ func TestNodePowerOptions(t *testing.T) {
 		"POWER_DOWN",
 		"POWER_DOWN_ASAP",
 		"POWER_DOWN_FORCE",
+		"REBOOT",
+		"REBOOT_ASAP",
+		"CANCEL_REBOOT",
 	}
 
 	if len(nodePowerOptions) != len(states) {
