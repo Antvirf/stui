@@ -29,7 +29,7 @@ func (p *NodesProvider) Fetch() error {
 		computeColumnWidths = true
 	}
 	rawData, err := getScontrolDataWithTimeout(
-		"show node --detail --all --oneliner",
+		"show node --detail --all --oneliner --future",
 		config.NodeViewColumns,
 		config.RequestTimeout,
 		computeColumnWidths,
